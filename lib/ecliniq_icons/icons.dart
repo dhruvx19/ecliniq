@@ -1,0 +1,57 @@
+const String _base = 'lib/ecliniq_icons/assets';
+
+enum EcliniqIcons {
+  arrowBack('$_base/back_arrow.png'),
+  main('$_base/main.png'),
+  mpin('$_base/mpin.svg'),
+  shield('$_base/shield.png'),
+  appointment('$_base/AppointmentRemindar.png'),
+  library('$_base/Library.png'),
+  user('$_base/User.png'),
+  userCircle('$_base/User Circle.png'),
+  home('$_base/Home.png'),
+  nameLogo('$_base/namelogo.svg'),
+  quick1('$_base/Sthethoscope.svg'),
+  quick2('$_base/Hospital.svg'),
+  quick3('$_base/Microscope.svg'),
+  quick4('$_base/Pill.svg'),
+  bell('$_base/Bell.png'),
+  magnifier('$_base/Magnifer.png'),
+  microphone('$_base/Microphone.png'),
+  location('$_base/Map Point.png'),
+  verify('$_base/Verified Check.png'),
+  mapPoint('$_base/Map Point.png'),
+  gynecology('$_base/Gynecologist.png'),
+  eye('$_base/eye care.png'),
+  dentist('$_base/Dentist.png'),
+  child('$_base/Child Spe.png'),
+  ent('$_base/ENT.png'),
+  lottie('$_base/lottie.gif'),
+  general('$_base/General Medicine.png'),
+  appointment1('$_base/Sandy Loading (1).gif'),
+  appointment2('$_base/appointment2.gif'),
+  phone('$_base/phone.svg'),
+  red('$_base/red_frame_new.svg'),
+  blue('$_base/blue_card.svg'),
+  verified('$_base/verified.svg'),
+  blueGradient('$_base/blue_grad.svg'),
+  green('$_base/green.svg'),
+  orange('$_base/orange.svg'),
+  yellow('$_base/yellow.svg'),
+  blueDark('$_base/blue_dark.svg'),
+  yellowframe('$_base/yellow_frame.svg'),
+  blueDarkframe('$_base/dark_blue_frame.svg'),
+  greenframe('$_base/green_frame.svg'),
+  orangeframe('$_base/orange_frame.svg'),
+  redframe('$_base/red_frame.svg'),
+  prescription('$_base/prescription.png'),
+  pdf('$_base/pdf.svg'),
+  threeDots('$_base/MenuDots.svg'),
+  star('$_base/Star.svg'),
+  call('$_base/Incoming Call.png');
+
+  //speciality
+
+  final String assetPath;
+  const EcliniqIcons(this.assetPath);
+}

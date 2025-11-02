@@ -18,9 +18,9 @@ class QuickActionsWidget extends StatelessWidget {
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
-    final itemWidth = isSmallScreen ? 160.0 : 182.0;
+    final itemWidth = isSmallScreen ? 160.0 : 192.0;
     final itemHeight = isSmallScreen ? 100.0 : 105.0;
-    final spacing = isSmallScreen ? 8.0 : 10.0;
+    final spacing = isSmallScreen ? 12.0 : 14.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,54 +53,33 @@ class QuickActionsWidget extends StatelessWidget {
         ),
 
         Padding(
-          padding: const EdgeInsets.all(26.0),
+          padding: const EdgeInsets.all(34.0),
           child: Row(
             children: [
-              _buildQuickActionItem(
-                context,
-                width: itemWidth,
-                height: itemHeight,
-                assetPath: EcliniqIcons.quick1.assetPath,
-                title: 'Consult Doctors',
-                onTap: () => EcliniqRouter(),
+              Expanded(
+                child: _buildQuickActionItem(
+                  context,
+                  width: itemWidth,
+                  height: itemHeight,
+                  assetPath: EcliniqIcons.quick1.assetPath,
+                  title: 'Consult Doctors',
+                  onTap: () => EcliniqRouter(),
+                ),
               ),
               SizedBox(width: spacing),
-              _buildQuickActionItem(
-                context,
-                width: itemWidth,
-                height: itemHeight,
-                assetPath: EcliniqIcons.quick2.assetPath,
-                title: 'Visit Hospitals',
-                onTap: () => EcliniqRouter(),
+              Expanded(
+                child: _buildQuickActionItem(
+                  context,
+                  width: itemWidth,
+                  height: itemHeight,
+                  assetPath: EcliniqIcons.quick2.assetPath,
+                  title: 'Visit Hospitals',
+                  onTap: () => EcliniqRouter(),
+                ),
               ),
             ],
           ),
         ),
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       ],
     );
   }
@@ -162,7 +141,6 @@ class QuickActionsWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Row(
           children: [
             Container(
@@ -192,7 +170,6 @@ class QuickActionsWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-
 
         Padding(
           padding: const EdgeInsets.all(12.0),

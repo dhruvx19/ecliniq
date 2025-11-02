@@ -93,58 +93,59 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget>
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Top Doctors',
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: Color(0xff424242),
                     ),
                   ),
-
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: Row(
-                        children: [
-                          Text(
-                            'View All',
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF4285F4),
-                            ),
-                          ),
-                          const SizedBox(width: 1),
-                          Icon(
-                            Icons.chevron_right,
-                            color: Color(0xFF4285F4),
-                            size: 20,
-                          ),
-                        ],
-                      ),
+                  SizedBox(height: 4.0),
+                  Text(
+                    'At your location',
+                    style: TextStyle(
+                      fontSize: 13.0,
+                      color: Color(0xff8E8E8E),
+                      fontWeight: FontWeight.w400,
                     ),
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'View All',
+                    style: TextStyle(
+                      color: Color(0xFF2372EC),
+                      fontWeight: FontWeight.w400,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Color(0xFF2372EC),
                   ),
                 ],
               ),
             ),
           ],
         ),
-
-        Padding(
-          padding: const EdgeInsets.only(left: 26.0, bottom: 16.0),
-          child: Text(
-            'At your location',
-            style: EcliniqTextStyles.bodyLarge.copyWith(
-              fontWeight: FontWeight.w400,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ),
+        SizedBox(height: 10.0),
 
         SizedBox(
           height: 320,
@@ -298,11 +299,7 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.star,
-                          size: 18,
-                          color: Color(0xffBE8B00),
-                        ),
+                        Icon(Icons.star, size: 18, color: Color(0xffBE8B00)),
                         const SizedBox(width: 2),
                         Text(
                           '4.0',
@@ -329,47 +326,6 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget>
                   ),
                 ],
               ),
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
               const SizedBox(height: 20.0),
 
@@ -408,7 +364,6 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Row(
           children: [
             Container(
@@ -486,7 +441,6 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-
             Shimmer.fromColors(
               baseColor: Colors.grey.shade300,
               highlightColor: Colors.grey.shade100,

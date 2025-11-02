@@ -609,7 +609,14 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                         flex: 1,
                         child: ElevatedButton(
                           onPressed: () {
-                            EcliniqRouter.push(ClinicVisitSlotScreen());
+                            EcliniqRouter.push(ClinicVisitSlotScreen(
+                              doctorId: doctor.id,
+                              hospitalId: widget.hospitalId,
+                              doctorName: doctor.name,
+                              doctorSpecialization: doctor.specializations.isNotEmpty
+                                  ? doctor.specializations.first
+                                  : null,
+                            ));
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2372EC),

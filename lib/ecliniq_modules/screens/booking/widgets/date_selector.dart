@@ -3,31 +3,41 @@ import 'package:flutter/material.dart';
 
 class DateSelector extends StatelessWidget {
   final String selectedDate;
-  final Function(String) onDateChanged;
+  final DateTime? selectedDateValue;
+  final Function(DateTime) onDateChanged;
 
   const DateSelector({
     super.key,
     required this.selectedDate,
+    this.selectedDateValue,
     required this.onDateChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final dates = [
-      {'label': 'Today, 2 Mar', 'tokens': 25},
-      {'label': 'Tom, 3 Mar', 'tokens': 75},
-      {'label': 'Tue, 4 Mar', 'tokens': 100},
-    ];
+    final now = DateTime.now();
+    final dates = <DateTime>[];
+    
+    // Generate dates for next 7 days
+    for (int i = 0; i < 7; i++) {
+      dates.add(now.add(Duration(days: i)));
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: dates.map((date) {
-          final isSelected = selectedDate == date['label'];
+          final isSelected = selectedDateValue != null &&
+              date.year == selectedDateValue!.year &&
+              date.month == selectedDateValue!.month &&
+              date.day == selectedDateValue!.day;
+          
+          final label = _formatDateLabel(date);
+          
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: GestureDetector(
-              onTap: () => onDateChanged(date['label'] as String),
+              onTap: () => onDateChanged(date),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -45,19 +55,18 @@ class DateSelector extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      date['label'] as String,
+                      label,
                       style: EcliniqTextStyles.titleXBLarge.copyWith(
-                        color: isSelected ? Colors.white : Colors.black87,
+                        color: isSelected ? Colors.white : Color(0xff424242),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${date['tokens']} Tokens Available',
-                      style: EcliniqTextStyles.bodySmall
-                      .copyWith(
+                      'Tap to view slots',
+                      style: EcliniqTextStyles.bodySmall.copyWith(
                         color: isSelected
-                            ? Colors.white
-                            : const Color(0xFF4CAF50),
+                            ? Colors.white.withOpacity(0.9)
+                            : const Color(0xFF3EAF3F),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -69,5 +78,26 @@ class DateSelector extends StatelessWidget {
         }).toList(),
       ),
     );
+  }
+
+  String _formatDateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    if (dateOnly == today) {
+      return 'Today';
+    } else if (dateOnly == tomorrow) {
+      return 'Tomorrow';
+    } else {
+      final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return '${weekdays[date.weekday - 1]}, ${date.day} ${_getMonthName(date.month)}';
+    }
+  }
+
+  String _getMonthName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
   }
 }

@@ -1,5 +1,6 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class EasyWayToBookWidget extends StatefulWidget {
   const EasyWayToBookWidget({super.key});
@@ -41,7 +42,7 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: Color(0xff424242),
                     ),
                   ),
                 ],
@@ -57,10 +58,10 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Image.asset(
+                  SvgPicture.asset(
                     EcliniqIcons.call.assetPath,
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                   ),
                   const SizedBox(width: 12),
 
@@ -72,17 +73,17 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
                         const Text(
                           'Request a Callback',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xff424242),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'Assisted booking with expert',
                           style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
+                            fontSize: 14,
+                            color: Color(0xff8E8E8E),
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -98,20 +99,20 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
                         vertical: 7,
                       ),
                       side: const BorderSide(
-                        color: Color(0xFF2196F3),
+                        color: Color(0xFF96BFFF),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      backgroundColor: Colors.white,
+                      backgroundColor: Color(0xFFF2F7FF),
                     ),
                     child: const Text(
                       'Call Us',
                       style: TextStyle(
-                        color: Color(0xFF2196F3),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2372EC),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -119,7 +120,7 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
               ),
             ),
 
-            Container(height: 1, color: Colors.grey.shade200),
+            Divider(height: 1,thickness: 0.5, color: Color(0xffB8B8B8), indent: 15, endIndent: 15),
 
             Padding(
               padding: const EdgeInsets.all(16),
@@ -128,16 +129,16 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
                   GestureDetector(
                     onTap: () => _toggleWhatsAppUpdates(!_isWhatsAppEnabled),
                     child: Container(
-                      width: 16,
-                      height: 16,
+                      width: 20,
+                      height: 20,
                       decoration: BoxDecoration(
                         color: _isWhatsAppEnabled
-                            ? const Color(0xFF2196F3)
+                            ? const Color(0xff2372EC)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
                           color: _isWhatsAppEnabled
-                              ? const Color(0xFF2196F3)
+                              ? const Color(0xff2372EC)
                               : Colors.grey.shade400,
                           width: 2,
                         ),
@@ -145,7 +146,7 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
                       child: _isWhatsAppEnabled
                           ? const Icon(
                               Icons.check,
-                              size: 12,
+                              size: 16,
                               color: Colors.white,
                             )
                           : null,
@@ -161,9 +162,9 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
                       child: Text(
                         'Get updates/information on WhatsApp/SMS',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: Color(0xff626060),
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ),

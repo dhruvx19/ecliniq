@@ -1,9 +1,8 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-/// Shared bottom navigation bar widget used across main screens
-/// Supports visual selection state and tap handling
 class EcliniqBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -40,9 +39,10 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(0),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                    iconPath: EcliniqIcons.home.assetPath,
+                    iconPath: EcliniqIcons.explore.assetPath,
                     isSelected: currentIndex == 0,
                     label: 'Explore',
+                    isSvg: true,
                   ),
                 ),
               ),
@@ -51,9 +51,10 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(1),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                    iconPath: EcliniqIcons.appointment.assetPath,
+                    iconPath: EcliniqIcons.myVisits.assetPath,
                     isSelected: currentIndex == 1,
                     label: 'My Visits',
+                    isSvg: true,
                   ),
                 ),
               ),
@@ -62,9 +63,10 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(2),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                    iconPath: EcliniqIcons.library.assetPath,
+                    iconPath: EcliniqIcons.healthfile.assetPath,
                     isSelected: currentIndex == 2,
                     label: 'Health Files',
+                    isSvg: true,
                   ),
                 ),
               ),
@@ -73,9 +75,10 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(3),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                    iconPath: EcliniqIcons.user.assetPath,
+                    iconPath: EcliniqIcons.profile.assetPath,
                     isSelected: currentIndex == 3,
                     label: 'Profile',
+                    isSvg: true,
                   ),
                 ),
               ),
@@ -90,7 +93,15 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
     required String iconPath,
     required bool isSelected,
     required String label,
+    required bool isSvg,
   }) {
+    // Selected colors
+    const selectedIconColor = Color(0xFF96BFFF);
+    const selectedTextColor = Color(0xFFF2F7FF);
+    // Unselected colors
+    const unselectedIconColor = Colors.white;
+    const unselectedTextColor = Colors.white;
+
     return Container(
       width: 80,
       decoration: BoxDecoration(
@@ -110,19 +121,28 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Image.asset(
+
+          SvgPicture.asset(
             iconPath,
-            width: 24,
-            height: 24,
-            color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
+            width: 32,
+            height: 32,
+            colorFilter: isSelected
+                ? ColorFilter.mode(
+                    selectedIconColor,
+                    BlendMode.srcIn,
+                  )
+                : ColorFilter.mode(
+                    unselectedIconColor,
+                    BlendMode.srcIn,
+                  ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+              color: isSelected ? selectedTextColor : unselectedTextColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -130,4 +150,3 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
     );
   }
 }
-

@@ -112,7 +112,7 @@ class _MyVisitsState extends State<MyVisits>
       return;
     }
 
-    // Navigate using the navigation helper with proper transitions
+    // Navigate using the navigation helper with smooth left-to-right transitions
     NavigationHelper.navigateToTab(context, index, _currentIndex);
   }
 
@@ -185,49 +185,6 @@ class _MyVisitsState extends State<MyVisits>
     });
   }
 
-  Widget _buildNavItem({
-    required String iconPath,
-    required bool isSelected,
-    required String label,
-  }) {
-    return Container(
-      width: 80,
-      decoration: BoxDecoration(
-        color: isSelected ? Color(0xFF0E4395) : Colors.transparent,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(8),
-          bottomRight: Radius.circular(8),
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 4,
-            width: 90,
-            decoration: BoxDecoration(
-              color: isSelected ? Color(0xFF96BFFF) : Colors.transparent,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Image.asset(
-            iconPath,
-            width: 24,
-            height: 24,
-            color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTopTabs() {
     return Container(
@@ -688,81 +645,9 @@ class _MyVisitsState extends State<MyVisits>
                                       },
                                     ),
                             ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: EcliniqScaffold.primaryBlue,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, -2),
-                                  ),
-                                ],
-                              ),
-                              child: SafeArea(
-                                top: false,
-                                child: Container(
-                                  height: 70,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => _onTabTapped(0),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: _buildNavItem(
-                                            iconPath:
-                                                EcliniqIcons.home.assetPath,
-                                            isSelected: _currentIndex == 0,
-                                            label: 'Explore',
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => _onTabTapped(1),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: _buildNavItem(
-                                            iconPath: EcliniqIcons
-                                                .appointment
-                                                .assetPath,
-                                            isSelected: _currentIndex == 1,
-                                            label: 'My Visits',
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => _onTabTapped(2),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: _buildNavItem(
-                                            iconPath:
-                                                EcliniqIcons.library.assetPath,
-                                            isSelected: _currentIndex == 2,
-                                            label: 'Health Files',
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => _onTabTapped(3),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: _buildNavItem(
-                                            iconPath:
-                                                EcliniqIcons.user.assetPath,
-                                            isSelected: _currentIndex == 3,
-                                            label: 'Profile',
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                            EcliniqBottomNavigationBar(
+                              currentIndex: _currentIndex,
+                              onTap: _onTabTapped,
                             ),
                           ],
                         ),

@@ -1,6 +1,8 @@
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/health_files.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/home_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/provider/doctor_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/provider/hospital_provider.dart';
@@ -18,6 +20,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => HospitalProvider()),
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
+        ChangeNotifierProvider(create: (_) => HealthFilesProvider()),
       ],
       child: const MyApp(),
     ),

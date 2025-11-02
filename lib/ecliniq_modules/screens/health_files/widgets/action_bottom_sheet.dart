@@ -1,14 +1,19 @@
 import 'package:ecliniq/ecliniq_core/router/route.dart';
-import 'package:ecliniq/ecliniq_modules/screens/health_files/recently_uploaded.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/edit_doc_details.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ActionBottomSheet extends StatefulWidget {
+  final HealthFile? healthFile;
   final VoidCallback? onEditDocument;
   final VoidCallback? onDownloadDocument;
   final VoidCallback? onDeleteDocument;
 
   const ActionBottomSheet({
     super.key,
+    this.healthFile,
     this.onEditDocument,
     this.onDownloadDocument,
     this.onDeleteDocument,
@@ -35,28 +40,33 @@ class _ActionBottomSheetState extends State<ActionBottomSheet> {
           const Text(
             'Choose Action',
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D2D2D),
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF424242),
             ),
           ),
           const SizedBox(height: 24),
 
           _ActionOption(
-            icon: Icons.edit,
-            iconColor: const Color(0xFF2B7FFF),
+            icon: EcliniqIcons.penEdit,
             backgroundColor: const Color(0xFFE3F2FD),
             title: 'Edit Document Details',
             onTap: () {
-              EcliniqRouter.push(EditDocumentDetailsPage());
+              Navigator.pop(context);
+              if (widget.healthFile != null) {
+                EcliniqRouter.push(
+                  EditDocumentDetailsPage(healthFile: widget.healthFile!),
+                );
+              } else {
+                widget.onEditDocument?.call();
+              }
             },
           ),
 
           const SizedBox(height: 16),
 
           _ActionOption(
-            icon: Icons.download,
-            iconColor: const Color(0xFF2B7FFF),
+            icon: EcliniqIcons.download,
             backgroundColor: const Color(0xFFE3F2FD),
             title: 'Download Document',
             onTap: () {
@@ -68,8 +78,7 @@ class _ActionBottomSheetState extends State<ActionBottomSheet> {
           const SizedBox(height: 16),
 
           _ActionOption(
-            icon: Icons.delete,
-            iconColor: const Color(0xFFEF5350),
+            icon: EcliniqIcons.delete,
             backgroundColor: const Color(0xFFFFEBEE),
             title: 'Delete Document',
             isDestructive: true,
@@ -87,8 +96,8 @@ class _ActionBottomSheetState extends State<ActionBottomSheet> {
 }
 
 class _ActionOption extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
+  final EcliniqIcons icon;
+
   final Color backgroundColor;
   final String title;
   final bool isDestructive;
@@ -96,7 +105,7 @@ class _ActionOption extends StatelessWidget {
 
   const _ActionOption({
     required this.icon,
-    required this.iconColor,
+
     required this.backgroundColor,
     required this.title,
     this.isDestructive = false,
@@ -118,7 +127,7 @@ class _ActionOption extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: iconColor, size: 24),
+              SvgPicture.asset(icon.assetPath, width: 26, height: 26),
               const SizedBox(width: 16),
 
               Expanded(
@@ -126,10 +135,10 @@ class _ActionOption extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                     color: isDestructive
-                        ? const Color(0xFFEF5350)
-                        : const Color(0xFF2D2D2D),
+                        ? const Color(0xFFF04248)
+                        : const Color(0xFF424242),
                   ),
                 ),
               ),

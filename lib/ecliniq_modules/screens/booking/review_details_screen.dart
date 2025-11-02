@@ -1,19 +1,42 @@
-import 'package:ecliniq/ecliniq_modules/screens/booking/booking_confirmed_screen.dart';
+import 'package:ecliniq/ecliniq_api/appointment_service.dart';
+import 'package:ecliniq/ecliniq_api/hospital_service.dart';
+import 'package:ecliniq/ecliniq_api/models/appointment.dart';
+import 'package:ecliniq/ecliniq_api/models/hospital.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/clinic_location_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/reason_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/top_bar_widgets/easy_way_book.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+// Commented out - using only SharedPreferences data from API responses
+// import 'package:provider/provider.dart';
+// import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 
 class ReviewDetailsScreen extends StatefulWidget {
   final String selectedSlot;
   final String selectedDate;
+  final String doctorId;
+  final String hospitalId;
+  final String slotId;
+  final String? doctorName;
+  final String? doctorSpecialization;
 
   const ReviewDetailsScreen({
     super.key,
     required this.selectedSlot,
     required this.selectedDate,
+    required this.doctorId,
+    required this.hospitalId,
+    required this.slotId,
+    this.doctorName,
+    this.doctorSpecialization,
   });
 
   @override
@@ -21,8 +44,18 @@ class ReviewDetailsScreen extends StatefulWidget {
 }
 
 class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
+  final AppointmentService _appointmentService = AppointmentService();
+  final HospitalService _hospitalService = HospitalService();
+  final TextEditingController _referByController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
   String? selectedReason;
   bool receiveUpdates = true;
+  bool _isBooking = false;
+  String? _errorMessage;
+  String? _patientId;
+  String? _authToken;
+  String? _hospitalAddress;
 
   final List<String> reasons = [
     'Fever',
@@ -30,8 +63,96 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     'Body Pain',
     'Skin Issues',
     'Stomach Issues',
+    'Routine checkup and consultation',
     'Others',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatientId();
+    _fetchHospitalAddress();
+  }
+
+  Future<void> _fetchHospitalAddress() async {
+    if (widget.hospitalId.isEmpty) return;
+    
+    try {
+      final response = await _hospitalService.getHospitalDetails(
+        hospitalId: widget.hospitalId,
+      );
+
+      if (mounted && response.success && response.data != null) {
+        final hospitalDetail = response.data!;
+        final address = hospitalDetail.address;
+        final parts = <String>[];
+        
+        if (address.street != null && address.street!.isNotEmpty) {
+          parts.add(address.street!);
+        }
+        if (address.blockNo != null && address.blockNo!.isNotEmpty) {
+          parts.add(address.blockNo!);
+        }
+        if (hospitalDetail.city.isNotEmpty) {
+          parts.add(hospitalDetail.city);
+        }
+        if (hospitalDetail.state.isNotEmpty) {
+          parts.add(hospitalDetail.state);
+        }
+        if (address.landmark != null && address.landmark!.isNotEmpty) {
+          parts.add('Near ${address.landmark}');
+        }
+
+        setState(() {
+          _hospitalAddress = parts.isEmpty ? 'Address not available' : parts.join(', ');
+        });
+      }
+    } catch (e) {
+      // Silently fail - address will be null
+    }
+  }
+
+  @override
+  void dispose() {
+    _referByController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPatientId() async {
+    // For now, use hardcoded patientId - login requirement removed
+    // TODO: Add login requirement later
+    final prefs = await SharedPreferences.getInstance();
+    final patientId =
+        prefs.getString('patient_id') ??
+        prefs.getString('patientId') ??
+        prefs.getString('user_id');
+    final authToken = prefs.getString('auth_token');
+
+    setState(() {
+      // Use hardcoded patientId for now - will get from API response later
+      _patientId =
+          patientId ??
+          'b938b18a-acef-40e1-aca8-1cd971580eb8'; // Hardcoded for now
+      _authToken = authToken;
+    });
+  }
+
+  Future<void> _showReasonBottomSheet(BuildContext context) async {
+    final String? selected = await EcliniqBottomSheet.show<String>(
+      context: context,
+      child: ReasonBottomSheet(
+        reasons: reasons,
+        selectedReason: selectedReason,
+      ),
+    );
+
+    if (selected != null && mounted) {
+      setState(() {
+        selectedReason = selected;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,27 +160,33 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Review Details',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Review Details',
+            style: EcliniqTextStyles.headlineMedium.copyWith(
+              color: Color(0xff424242),
+            ),
           ),
         ),
-        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.2),
+          child: Container(color: Color(0xFFB8B8B8), height: 1.0),
+        ),
+
         actions: [
           TextButton.icon(
             onPressed: () {},
-            icon: const Icon(Icons.help_outline, color: Colors.black, size: 20),
-            label: const Text(
+            icon: const Icon(Icons.help_outline, size: 24),
+            label: Text(
               'Help',
-              style: TextStyle(color: Colors.black, fontSize: 14),
+              style: EcliniqTextStyles.headlineXMedium.copyWith(
+                color: Color(0xff424242),
+              ),
             ),
           ),
         ],
@@ -68,98 +195,120 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              clipBehavior: Clip.none,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  RepaintBoundary(child: const DoctorInfoCard()),
+
                   const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: DoctorInfoCard(),
-                  ),
-                  const Divider(height: 1),
-                  const Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(20),
                     child: Text(
                       'Appointment Details',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: Color(0xff424242),
                       ),
                     ),
                   ),
-                  AppointmentDetailItem(
-                    icon: Icons.person_outline,
-                    title: 'Ketan Patni',
-                    subtitle: 'Male, 02/02/1996 (29Y)',
-                    badge: 'You',
-                    showEdit: true,
+                  RepaintBoundary(
+                    child: AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.user.assetPath,
+                      title: 'Ketan Patni',
+                      subtitle: 'Male, 02/02/1996 (29Y)',
+                      badge: 'You',
+                      showEdit: true,
+                    ),
                   ),
-                  AppointmentDetailItem(
-                    icon: Icons.calendar_today_outlined,
-                    title: _getTimeSlotTime(widget.selectedSlot),
-                    subtitle: 'Today, 2 March 2025',
-                    showEdit: false,
+                  Divider(
+                    thickness: 0.5,
+                    color: Color(0xffB8B8B8),
+                    indent: 15,
+                    endIndent: 15,
                   ),
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: ClinicLocationCard(),
+                  RepaintBoundary(
+                    child: AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.calendar.assetPath,
+                      title: widget.selectedSlot,
+                      subtitle: widget.selectedDate,
+                      showEdit: false,
+                    ),
                   ),
-                  const Padding(
+                  Divider(
+                    thickness: 0.5,
+                    color: Color(0xffB8B8B8),
+                    indent: 15,
+                    endIndent: 15,
+                  ),
+                  RepaintBoundary(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: ClinicLocationCard(
+                        hospitalId: widget.hospitalId.isNotEmpty
+                            ? widget.hospitalId
+                            : '',
+                      ),
+                    ),
+                  ),
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Reason for Visit',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                      style: EcliniqTextStyles.headlineXMedium.copyWith(
+                        color: Color(0xff626060),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedReason,
-                      decoration: InputDecoration(
-                        hintText: 'Enter Reason for Visit',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
+                    child: InkWell(
+                      onTap: () => _showReasonBottomSheet(context),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        key: const ValueKey('reason_field'),
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
-                      ),
-                      items: reasons
-                          .map(
-                            (reason) => DropdownMenuItem(
-                              value: reason,
-                              child: Text(reason),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xff626060)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                selectedReason ?? 'Enter Reason for Visit',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: selectedReason != null
+                                      ? Colors.black
+                                      : const Color(0xffD6D6D6),
+                                ),
+                              ),
                             ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedReason = value;
-                        });
-                      },
+                            SvgPicture.asset(
+                              EcliniqIcons.arrowDown.assetPath,
+                              width: 24,
+                              height: 24,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Refer By',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                      style: EcliniqTextStyles.headlineXMedium.copyWith(
+                        color: Color(0xff626060),
                       ),
                     ),
                   ),
@@ -167,16 +316,22 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextFormField(
+                      key: const ValueKey('refer_by_field'),
+                      controller: _referByController,
                       decoration: InputDecoration(
                         hintText: 'Enter Who Refer you',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        hintStyle: const TextStyle(color: Color(0xffD6D6D6)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(
+                            color: Color(0xff626060),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(
+                            color: Color(0xff626060),
+                          ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -186,121 +341,102 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    padding: const EdgeInsets.all(16),
-                    
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Payment Details',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                  RepaintBoundary(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Payment Details',
+                            style: EcliniqTextStyles.headlineLarge.copyWith(
+                              color: Color(0xff424242),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Consultation Fee',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Consultation Fee',
+                                style: EcliniqTextStyles.headlineXMedium
+                                    .copyWith(color: Color(0xff626060)),
                               ),
-                            ),
-                            const Text(
-                              '₹700',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
+                              Text(
+                                '₹700',
+                                style: EcliniqTextStyles.headlineXMedium
+                                    .copyWith(color: Color(0xff424242)),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Service Fee & Tax',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.info_outline,
-                                  size: 16,
-                                  color: Colors.grey[500],
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  '₹49',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    decoration: TextDecoration.lineThrough,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Free',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF4CAF50),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'We care for you and provide a free booking',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                            ],
                           ),
-                        ),
-                        const Divider(height: 24),
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total Payable',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Service Fee & Tax',
+                                    style: EcliniqTextStyles.headlineXMedium
+                                        .copyWith(color: Color(0xff626060)),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 20,
+                                    color: Color(0xff424242),
+                                  ),
+                                ],
                               ),
-                            ),
-                            Text(
-                              '₹700',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
+                              Row(
+                                children: [
+                                  Text(
+                                    '₹49',
+                                    style: EcliniqTextStyles.headlineXLMedium
+                                        .copyWith(color: Color(0xff8E8E8E)),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Free',
+                                    style: EcliniqTextStyles.headlineMedium
+                                        .copyWith(color: Color(0xff54B955)),
+                                  ),
+                                ],
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'We care for you and provide a free booking',
+                            style: EcliniqTextStyles.buttonSmall.copyWith(
+                              color: Color(0xff54B955),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const Divider(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total Payable',
+                                style: EcliniqTextStyles.headlineLarge.copyWith(
+                                  color: Color(0xff424242),
+                                ),
+                              ),
+                              Text(
+                                '₹700',
+                                style: EcliniqTextStyles.headlineLarge.copyWith(
+                                  color: Color(0xff424242),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                   EasyWayToBookWidget(),
+                  RepaintBoundary(child: const EasyWayToBookWidget()),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -312,61 +448,160 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
                 ),
               ],
             ),
-            child: SafeArea(
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AppointmentRequestScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1565C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Confirm Visit',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            child: SafeArea(child: _buildConfirmVisitButton()),
           ),
         ],
       ),
     );
   }
 
-  String _getTimeSlotTime(String slot) {
-    switch (slot) {
-      case 'Morning':
-        return '10:00am - 12:00pm';
-      case 'Afternoon':
-        return '2:00pm - 4:00pm';
-      case 'Evening':
-        return '6:00pm - 8:00pm';
-      case 'Night':
-        return '8:30pm - 10:30pm';
-      default:
-        return '';
+  Future<void> _onConfirmVisit() async {
+    // Prevent multiple taps
+    if (_isBooking) {
+      return;
     }
+
+    // Validate reason first - only requirement for now
+    if (selectedReason == null || selectedReason!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a reason for visit'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // For now, use hardcoded patientId - login requirement removed
+    // TODO: Add login requirement later
+    await _loadPatientId();
+    final finalPatientId = _patientId ?? 'b938b18a-acef-40e1-aca8-1cd971580eb8';
+
+    setState(() {
+      _isBooking = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Use the slot ID from get slots API response as doctorSlotScheduleId
+      final request = BookAppointmentRequest(
+        patientId:
+            finalPatientId, // Use finalPatientId (with fallback to hardcoded)
+        doctorId: widget.doctorId,
+        doctorSlotScheduleId:
+            widget.slotId, // Slot ID from get slots API response
+        reason: selectedReason,
+        referBy: _referByController.text.trim().isEmpty
+            ? null
+            : _referByController.text.trim(),
+        bookedFor: 'SELF',
+      );
+
+      final response = await _appointmentService.bookAppointment(
+        request: request,
+        authToken: _authToken,
+      );
+
+      if (mounted) {
+        if (response.success && response.data != null) {
+          // Get token number from API response
+          final tokenNumber = response.data!.tokenNo.toString();
+          
+          // Navigate to request sent screen with doctor details
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AppointmentRequestScreen(
+                doctorName: widget.doctorName,
+                doctorSpecialization: widget.doctorSpecialization,
+                selectedSlot: widget.selectedSlot,
+                selectedDate: widget.selectedDate,
+                hospitalAddress: _hospitalAddress,
+                tokenNumber: tokenNumber,
+              ),
+            ),
+          );
+        } else {
+          setState(() {
+            _isBooking = false;
+            _errorMessage = response.message;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isBooking = false;
+          _errorMessage = e.toString();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to book appointment: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildConfirmVisitButton() {
+    final isButtonEnabled = !_isBooking;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isButtonEnabled ? _onConfirmVisit : null,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          width: double.infinity,
+          height: 52,
+          decoration: BoxDecoration(
+            color: isButtonEnabled
+                ? EcliniqButtonType.brandPrimary.backgroundColor(context)
+                : EcliniqButtonType.brandPrimary.disabledBackgroundColor(
+                    context,
+                  ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_isBooking)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              else ...[
+                Text(
+                  'Confirm Visit',
+                  style: EcliniqTextStyles.headlineMedium.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

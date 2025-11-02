@@ -42,17 +42,18 @@ class NotFeelingWell extends StatelessWidget {
                       Text(
                         'Not Feeling Well?',
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 18.0 : 20.0,
+                          fontSize: 20.0,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: Color(0xff424242),
                         ),
                       ),
                       SizedBox(height: 4.0),
                       Text(
                         'Select the symptom you are experiencing',
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 13.0 : 14.0,
-                          color: Colors.grey.shade600,
+                          fontSize: 13.0,
+                          color: Color(0xff8E8E8E),
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -71,16 +72,16 @@ class NotFeelingWell extends StatelessWidget {
                       Text(
                         'View All',
                         style: TextStyle(
-                          color: Color(0xFF1E88E5),
-                          fontWeight: FontWeight.w500,
-                          fontSize: isSmallScreen ? 13.0 : 14.0,
+                          color: Color(0xFF2372EC),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 18.0,
                         ),
                       ),
                       SizedBox(width: 4),
                       Icon(
                         Icons.arrow_forward_ios,
-                        size: isSmallScreen ? 12 : 14,
-                        color: Color(0xFF1E88E5),
+                        size: 16,
+                        color: Color(0xFF2372EC),
                       ),
                     ],
                   ),

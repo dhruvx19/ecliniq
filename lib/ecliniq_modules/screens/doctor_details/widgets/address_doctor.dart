@@ -1,3 +1,4 @@
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 
 class AddressWidget extends StatelessWidget {
@@ -84,11 +85,13 @@ class AddressWidget extends StatelessWidget {
                         ),
                       ),
                       Center(
-                        child: Text(
-                          'Tap to get the clinic direction',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
+                child: Text(
+                  'Tap to get the clinic direction',
+                  style: EcliniqTextStyles.bodySmall.copyWith(
+                    color: Color(0xff2372EC),
+                  ),
+                ),
+              ),
                       SizedBox(height: 4),
                     ],
                   ),

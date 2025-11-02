@@ -1,8 +1,10 @@
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class AppointmentDetailItem extends StatelessWidget {
-  final IconData icon;
+  final String iconAssetPath; // Changed from IconData to String for asset path
   final String title;
   final String subtitle;
   final String? badge;
@@ -10,27 +12,23 @@ class AppointmentDetailItem extends StatelessWidget {
 
   const AppointmentDetailItem({
     super.key,
-    required this.icon,
+    required this.iconAssetPath, // Now expects asset path string
     required this.title,
     required this.subtitle,
     this.badge,
     required this.showEdit,
   });
 
+  static final Color _primaryColor = const Color(0xFF1565C0);
+  static final Color _badgeColor = _primaryColor;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1565C0).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: const Color(0xFF1565C0), size: 24),
-          ),
+          SvgPicture.asset(iconAssetPath, width: 32, height: 32),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -41,7 +39,7 @@ class AppointmentDetailItem extends StatelessWidget {
                     Text(
                       title,
                       style: EcliniqTextStyles.headlineMedium.copyWith(
-                        color: Colors.black87,
+                        color: Color(0xff424242),
                       ),
                     ),
                     if (badge != null) ...[
@@ -52,7 +50,7 @@ class AppointmentDetailItem extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1565C0),
+                          color: _badgeColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -65,21 +63,21 @@ class AppointmentDetailItem extends StatelessWidget {
                     ],
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   style: EcliniqTextStyles.titleXLarge.copyWith(
-                    color: Colors.grey[600],
+                    color: Color(0xff8E8E8E),
                   ),
                 ),
               ],
             ),
           ),
           if (showEdit)
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 20),
-              onPressed: () {},
-              color: Colors.grey[600],
+            SvgPicture.asset(
+              EcliniqIcons.editIcon.assetPath,
+              width: 48,
+              height: 48,
             ),
         ],
       ),

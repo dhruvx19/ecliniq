@@ -111,15 +111,16 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
                           style: TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: Color(0xff424242),
                           ),
                         ),
                         SizedBox(height: 4.0),
                         Text(
                           'Near you',
                           style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.grey.shade600,
+                            fontSize: 13.0,
+                            color: Color(0xff8E8E8E),
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
@@ -138,16 +139,16 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
                         Text(
                           'View All',
                           style: TextStyle(
-                            color: Color(0xFF1E88E5),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14.0,
+                            color: Color(0xFF2372EC),
+                            fontWeight: FontWeight.w400,
+                            fontSize: 18.0,
                           ),
                         ),
                         SizedBox(width: 4),
                         Icon(
                           Icons.arrow_forward_ios,
-                          size: 14,
-                          color: Color(0xFF1E88E5),
+                          size: 16,
+                          color: Color(0xFF2372EC),
                         ),
                       ],
                     ),
@@ -444,7 +445,9 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
                         borderRadius: const BorderRadius.all(
                           Radius.circular(12.0),
                         ),
-                        child: hospital.image.isNotEmpty
+                        child:
+                            hospital.image.isNotEmpty &&
+                                _isValidImageUrl(hospital.image)
                             ? Image.network(
                                 hospital.image,
                                 fit: BoxFit.cover,
@@ -543,10 +546,10 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.star,
-                                size: 18,
-                                color: Colors.amber.shade700,
+                              SvgPicture.asset(
+                                EcliniqIcons.star.assetPath,
+                                width: 18,
+                                height: 18,
                               ),
                               const SizedBox(width: 2),
                               Text(
@@ -581,42 +584,50 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 20,
-                          color: Colors.grey.shade600,
+                        SvgPicture.asset(
+                          EcliniqIcons.mapPoint.assetPath,
+                          width: 24,
+                          height: 24,
                         ),
                         const SizedBox(width: 2),
                         Expanded(
-                          child: Text(
-                            '${hospital.city}, ${hospital.state}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Color(0xff424242),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            hospital.distance > 0
-                                ? '${hospital.distance.toStringAsFixed(1)} Km'
-                                : 'Nearby',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xff424242),
-                              fontWeight: FontWeight.w500,
-                            ),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  '${hospital.city}, ${hospital.state}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff424242),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Color(0xffF9F9F9),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Color(0xffB8B8B8)),
+                                ),
+                                child: Text(
+                                  hospital.distance > 0
+                                      ? '${hospital.distance.toStringAsFixed(1)} Km'
+                                      : 'Nearby',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xff424242),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -653,29 +664,22 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
                                     ),
                                     maxLines: 1,
                                   ),
-                                  Icon(
-                                    Icons.arrow_right_alt,
-                                    color: Colors.white,
+                                  SizedBox(width: 2),
+                                  SvgPicture.asset(
+                                    EcliniqIcons.arrowRight.assetPath,
+                                    width: 24,
+                                    height: 24,
                                   ),
                                 ],
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        SizedBox(
-                          width: 48,
-                          height: 48,
-
-                          child: IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.phone_outlined,
-                              size: 32,
-                              color: Colors.grey.shade600,
-                            ),
-                            padding: EdgeInsets.zero,
-                          ),
+                        const SizedBox(width: 22),
+                        SvgPicture.asset(
+                          EcliniqIcons.phone.assetPath,
+                          width: 32,
+                          height: 32,
                         ),
                       ],
                     ),
@@ -687,6 +691,15 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
         ),
       ),
     );
+  }
+
+  bool _isValidImageUrl(String url) {
+    // Check if URL is valid (starts with http:// or https://)
+    // Reject file:// URLs or invalid paths
+    if (url.startsWith('file://') || url.startsWith('/hospitals/')) {
+      return false;
+    }
+    return url.startsWith('http://') || url.startsWith('https://');
   }
 
   Widget _buildImagePlaceholder(String hospitalName) {

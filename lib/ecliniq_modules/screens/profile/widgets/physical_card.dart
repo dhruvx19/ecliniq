@@ -1,3 +1,4 @@
+import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
@@ -50,9 +51,9 @@ class PhysicalHealthCard extends StatelessWidget {
               fontSize: 17,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 30),
           _BMIVisualization(bmi: bmi),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -96,7 +97,6 @@ class _BMIVisualization extends StatelessWidget {
   }
 
   double _calculatePosition() {
-
     const double minBMI = 15.0;
     const double maxBMI = 35.0;
     double position = (bmi - minBMI) / (maxBMI - minBMI);
@@ -111,29 +111,18 @@ class _BMIVisualization extends StatelessWidget {
         const bmiValueWidth = 60.0;
         final barWidth = totalWidth - bmiValueWidth - 16;
         final position = _calculatePosition();
-        final indicatorPosition = (barWidth * position);
+
+        // Fixed indicator width
+        const indicatorWidth = 80.0;
+
+        // Calculate position and ensure indicator stays within bounds
+        final rawPosition = (barWidth * position);
+        final indicatorPosition = (rawPosition - (indicatorWidth / 2))
+            .clamp(0.0, barWidth - indicatorWidth);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            SizedBox(
-              height: 32,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    left: _calculateBadgePosition(indicatorPosition, barWidth),
-                    child: _StatusBadge(
-                      status: _getStatus(),
-                      color: _getBMIColor(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -142,11 +131,14 @@ class _BMIVisualization extends StatelessWidget {
                     clipBehavior: Clip.none,
                     children: [
                       _BMIBar(),
-
+                      // Positioned indicator with fixed width
                       Positioned(
-                        left: indicatorPosition - 6,
-                        top: -10,
-                        child: _TriangleIndicator(color: _getBMIColor()),
+                        left: indicatorPosition,
+                        top: -23, // Fixed distance above the bar
+                        child: _TriangleIndicator(
+                          color: _getBMIColor(),
+                          status: _getStatus(),
+                        ),
                       ),
                     ],
                   ),
@@ -157,7 +149,7 @@ class _BMIVisualization extends StatelessWidget {
                   child: Text(
                     bmi.toStringAsFixed(1),
                     style: EcliniqTextStyles.headlineLarge.copyWith(
-                      fontSize: 28,
+                      fontSize: (MediaQuery.of(context).size.height*0.03),
                       fontWeight: FontWeight.w700,
                       color: _getBMIColor(),
                       height: 1,
@@ -170,53 +162,6 @@ class _BMIVisualization extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  double _calculateBadgePosition(double indicatorPosition, double barWidth) {
-    const badgeWidth = 90.0;
-    double badgeCenter = indicatorPosition - (badgeWidth / 2);
-
-
-    const padding = 4.0;
-    badgeCenter = badgeCenter.clamp(padding, barWidth - badgeWidth - padding);
-
-    return badgeCenter;
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final String status;
-  final Color color;
-
-  const _StatusBadge({
-    required this.status,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Text(
-        status,
-        style: EcliniqTextStyles.bodyMediumProminent.copyWith(
-          color: Colors.white,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
   }
 }
@@ -237,7 +182,6 @@ class _BMIBar extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
         child: Row(
           children: [
             ..._buildBarSection(16, Primitives.brightBlue),
@@ -258,6 +202,7 @@ class _BMIBar extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 1),
           decoration: BoxDecoration(
             color: color,
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
       ),
@@ -267,25 +212,38 @@ class _BMIBar extends StatelessWidget {
 
 class _TriangleIndicator extends StatelessWidget {
   final Color color;
+  final String status;
 
-  const _TriangleIndicator({required this.color});
+  const _TriangleIndicator({required this.color, required this.status});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.4),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 50,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
           ),
-        ],
-      ),
-      child: CustomPaint(
-        size: const Size(12, 10),
-        painter: _TrianglePainter(color: color),
-      ),
+          child: Center(
+            child: EcliniqText(
+              status,
+              style: EcliniqTextStyles.bodyMedium.copyWith(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+          ),
+        ),
+        CustomPaint(
+          size: const Size(10, 7),
+          painter: _TrianglePainter(color: color),
+        ),
+      ],
     );
   }
 }
@@ -326,7 +284,7 @@ class _InfoBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: EcliniqColors.light.bgBaseBase,
         border: Border.all(

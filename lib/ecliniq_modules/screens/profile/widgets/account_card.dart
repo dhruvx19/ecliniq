@@ -1,6 +1,7 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountSettingsMenu extends StatelessWidget {
   final VoidCallback? onPersonalDetailsPressed;
@@ -80,7 +81,7 @@ class AccountSettingsMenu extends StatelessWidget {
               width: 20,
               height: 20,
               
-              child: Image.asset(iconPath, width: 20, height: 20)
+              child: Image.asset(iconPath, height: 20, width: 20,),
             ),
           
             const SizedBox(width: 16),

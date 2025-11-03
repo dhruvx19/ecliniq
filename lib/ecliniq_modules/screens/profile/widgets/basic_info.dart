@@ -15,7 +15,7 @@ class BasicInfoCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _InfoCard(
           icon: Icons.cake_outlined,
@@ -23,11 +23,21 @@ class BasicInfoCards extends StatelessWidget {
           value: age,
           iconColor: Colors.blue,
         ),
+        Container(
+          width: 1,
+          height: 60,
+          color: Colors.grey[300],
+        ),
         _InfoCard(
           icon: Icons.person_outline,
           label: "Gender",
           value: gender,
           iconColor: Colors.blue,
+        ),
+        Container(
+          width: 1,
+          height: 60,
+          color: Colors.grey[300],
         ),
         _InfoCard(
           icon: Icons.bloodtype_outlined,
@@ -59,11 +69,11 @@ class _InfoCard extends StatelessWidget {
       children: [
         Icon(icon, color: iconColor, size: 28),
         const SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(label, style: TextStyle(fontSize: 16, color: Colors.grey[600])),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -126,10 +136,10 @@ class ProfileHeader extends StatelessWidget {
               ),
             ),
           ),
-           
 
-          
-         
+
+
+
         ],
       ),
     );

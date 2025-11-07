@@ -1,5 +1,7 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/profile/my_doctors/my_doctor.dart';
+import 'package:ecliniq/ecliniq_modules/screens/profile/personal_details/personal_detail.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/account_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/basic_info.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/dependent.dart';
@@ -47,11 +49,21 @@ class _ProfilePageState extends State<ProfilePage>
 
   void _handleAppUpdate() {}
 
-  void _navigateToPersonalDetails() {}
+  void _navigateToPersonalDetails() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PersonalDetails(),
+      ));
+  }
 
-  void _navigateToCreateAbha() {}
-
-  void _navigateToMedicalRecords() {}
+  void _onMyDoctorsPressed() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MyDoctors(),
+        ));
+  }
 
   void _navigateToSecuritySettings() {}
 
@@ -112,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage>
               // Profile Header
               ProfileHeader(onSettingsPressed: _handleSettings),
 
-              // Main content with cutout
+
               Positioned(
                 top: topMargin,
                 left: 0,
@@ -121,7 +133,7 @@ class _ProfilePageState extends State<ProfilePage>
                 child: ClipPath(
                   clipper: TopCircleCutClipper(radius: 50, topCut: 30),
                   child: Container(
-                    padding: const EdgeInsets.only(top: 70),
+                    padding: const EdgeInsets.only(top: 90),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -178,8 +190,7 @@ class _ProfilePageState extends State<ProfilePage>
                           AccountSettingsMenu(
                             onPersonalDetailsPressed:
                                 _navigateToPersonalDetails,
-                            onCreateAbhaPressed: _navigateToCreateAbha,
-                            onMedicalRecordsPressed: _navigateToMedicalRecords,
+                            onMyDoctorsPressed: _onMyDoctorsPressed,
                             onSecuritySettingsPressed:
                                 _navigateToSecuritySettings,
                           ),
@@ -258,7 +269,7 @@ class _ProfilePageState extends State<ProfilePage>
                 ),
               ),
 
-              // Profile Avatar
+
               Positioned(
                 top: topMargin - 13,
                 left: MediaQuery.of(context).size.width / 2 - 43,

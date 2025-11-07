@@ -8,7 +8,6 @@ enum EcliniqIcons {
   appointment('$_base/AppointmentRemindar.png'),
   library('$_base/Library.png'),
   user('$_base/User.png'),
-  userCircle('$_base/User Circle.png'),
   home('$_base/Home.png'),
   nameLogo('$_base/namelogo.svg'),
   quick1('$_base/Sthethoscope.svg'),
@@ -48,13 +47,19 @@ enum EcliniqIcons {
   pdf('$_base/pdf.svg'),
   threeDots('$_base/MenuDots.svg'),
   star('$_base/Star.svg'),
-  abhaIdLogo('$_base/abha_log.png'),
   call('$_base/Incoming Call.png'),
-  abhaIdLogoSvg('$_base/abha_logo.svg');
-
-
+  stethoscope('$_base/Stethoscope.svg'),
+  userCircle('$_base/user_circle.svg'),
+  lockKeyHoleMinimalistic('$_base/lock_key_hole_minimalistic.svg'),
+  medicalKit('$_base/Medical Kit.svg'),
+  heart('$_base/Heart.svg'),
+  appointmentRemindar('$_base/Appointment Remindar.svg'),
+  verifiedCheck('$_base/Verified Check.svg'),
+  map('$_base/Map Point.svg'),
+  microphoneMyDoctor('$_base/Microphone.svg'),
+  magnifierMyDoctor('$_base/Magnifer.svg'),
+  refreshed('$_base/Refresh.svg');
   //speciality
-
   final String assetPath;
   const EcliniqIcons(this.assetPath);
 }

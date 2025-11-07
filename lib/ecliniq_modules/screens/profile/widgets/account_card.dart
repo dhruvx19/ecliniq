@@ -5,16 +5,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountSettingsMenu extends StatelessWidget {
   final VoidCallback? onPersonalDetailsPressed;
-  final VoidCallback? onCreateAbhaPressed;
-  final VoidCallback? onMedicalRecordsPressed;
+  final VoidCallback? onMyDoctorsPressed;
   final VoidCallback? onSecuritySettingsPressed;
 
   const AccountSettingsMenu({
     super.key,
     this.onPersonalDetailsPressed,
-    this.onCreateAbhaPressed,
-    this.onMedicalRecordsPressed,
     this.onSecuritySettingsPressed,
+    this.onMyDoctorsPressed,
   });
 
   @override
@@ -34,28 +32,21 @@ class AccountSettingsMenu extends StatelessWidget {
             ),
           ),
           _buildMenuItem(
-            iconPath: EcliniqIcons.userCircle.assetPath ,
+            iconPath: 'lib/ecliniq_icons/assets/user_circle.svg' ,
             iconColor: Colors.blue,
             title: 'Personal Details',
             onTap: onPersonalDetailsPressed,
           ),
           _buildDivider(),
           _buildMenuItem(
-            iconPath: EcliniqIcons.abhaIdLogo.assetPath,
+            iconPath: 'lib/ecliniq_icons/assets/Stethoscope.svg',
             iconColor: Colors.purple,
-            title: 'Create My ABHA ID',
-            onTap: onCreateAbhaPressed,
+            title: 'My Doctors',
+            onTap: onMyDoctorsPressed,
           ),
           _buildDivider(),
           _buildMenuItem(
-            iconPath: 'assets/icons/medical_information_outlined.png',
-            iconColor: Colors.blue,
-            title: 'Medical Records',
-            onTap: onMedicalRecordsPressed,
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            iconPath: 'assets/icons/lock_outline.png',
+            iconPath: 'lib/ecliniq_icons/assets/lock_key_hole_minimalistic.svg',
             iconColor: Colors.blue,
             title: 'Security Settings',
             onTap: onSecuritySettingsPressed,
@@ -78,10 +69,9 @@ class AccountSettingsMenu extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(
-              width: 20,
-              height: 20,
-              
-              child: Image.asset(iconPath, height: 20, width: 20,),
+              width: 24,
+              height: 24,
+              child: SvgPicture.asset(iconPath, height: 24, width: 24,)
             ),
           
             const SizedBox(width: 16),

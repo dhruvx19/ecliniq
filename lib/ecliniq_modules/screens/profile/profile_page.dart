@@ -2,6 +2,7 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/my_doctors/my_doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/personal_details/personal_detail.dart';
+import 'package:ecliniq/ecliniq_modules/screens/profile/security_settings/security_settings.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/account_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/basic_info.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/dependent.dart';
@@ -65,7 +66,13 @@ class _ProfilePageState extends State<ProfilePage>
         ));
   }
 
-  void _navigateToSecuritySettings() {}
+  void _navigateToSecuritySettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SecuritySettingsOptions(),
+      ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +91,6 @@ class _ProfilePageState extends State<ProfilePage>
         final weight = "69 kg";
         final currentVersion = "v1.0.0";
         final newVersion = "v1.0.1";
-
         final dependents = [
           Dependent(id: "1", name: "Father's Name", relation: "Father"),
         ];

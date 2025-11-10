@@ -1,4 +1,6 @@
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class BasicInfoCards extends StatelessWidget {
   final String age;
@@ -18,10 +20,9 @@ class BasicInfoCards extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _InfoCard(
-          icon: Icons.cake_outlined,
+          path: EcliniqIcons.userHeartRounded.assetPath,
           label: "Age",
           value: age,
-          iconColor: Colors.blue,
         ),
         Container(
           width: 1,
@@ -29,10 +30,9 @@ class BasicInfoCards extends StatelessWidget {
           color: Colors.grey[300],
         ),
         _InfoCard(
-          icon: Icons.person_outline,
+          path: EcliniqIcons.gender.assetPath,
           label: "Gender",
           value: gender,
-          iconColor: Colors.blue,
         ),
         Container(
           width: 1,
@@ -40,10 +40,9 @@ class BasicInfoCards extends StatelessWidget {
           color: Colors.grey[300],
         ),
         _InfoCard(
-          icon: Icons.bloodtype_outlined,
+          path: EcliniqIcons.dropperMinimalistic.assetPath,
           label: "Blood Group",
           value: bloodGroup,
-          iconColor: Colors.red,
         ),
       ],
     );
@@ -51,23 +50,21 @@ class BasicInfoCards extends StatelessWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  final IconData icon;
+  final String path;
   final String label;
   final String value;
-  final Color iconColor;
 
   const _InfoCard({
-    required this.icon,
+    required this.path,
     required this.label,
     required this.value,
-    required this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: iconColor, size: 28),
+        SvgPicture.asset(path, height: 24, width: 24,),
         const SizedBox(height: 8),
         Text(label, style: TextStyle(fontSize: 16, color: Colors.grey[600])),
         const SizedBox(height: 4),

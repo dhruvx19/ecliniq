@@ -30,26 +30,39 @@ class _PersonalDetailsState extends State<PersonalDetails> {
       ],
       child: Consumer<PersonalDetailsProvider>(
         builder: (context, provider, child) {
-          return EcliniqScaffold(
-            appBar: EcliniqAppBar(
-              title: Text(
-                'Edit Personal Details',
-                style: EcliniqTextStyles.titleXBLarge.copyWith(
-                  color: EcliniqColors.light.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              leading: IconButton(
+                icon: SvgPicture.asset(
+                  EcliniqIcons.arrowLeft.assetPath,
+                  width: 32,
+                  height: 32,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Edit Personal Details',
+                  style: EcliniqTextStyles.headlineMedium.copyWith(
+                    color: Color(0xff424242),
+                  ),
                 ),
               ),
-              primary: true,
-              leading: InkWell(
-                  onTap: (){
-                    Navigator.pop(context);
-                  },
-                  child: Icon(Icons.arrow_back)),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(0.2),
+                child: Container(color: Color(0xFFB8B8B8), height: 1.0),
+              ),
               actions: [
                 Row(
                   children: [
-                    Icon(Icons.help_outline),
+                    SvgPicture.asset(
+                      EcliniqIcons.questionCircle.assetPath,
+                      width: 32,
+                      height: 32,
+                    ),
                     Text(
                       ' Help',
                       style: EcliniqTextStyles.titleXBLarge.copyWith(

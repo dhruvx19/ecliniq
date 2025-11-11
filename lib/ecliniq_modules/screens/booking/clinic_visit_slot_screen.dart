@@ -1,66 +1,514 @@
+import 'package:ecliniq/ecliniq_api/models/slot.dart';
+import 'package:ecliniq/ecliniq_api/slot_service.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/review_details_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/date_selector.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/time_slot_card.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ClinicVisitSlotScreen extends StatefulWidget {
-  const ClinicVisitSlotScreen({super.key});
+  final String doctorId;
+  final String hospitalId;
+  final String? doctorName;
+  final String? doctorSpecialization;
+
+  const ClinicVisitSlotScreen({
+    super.key,
+    required this.doctorId,
+    required this.hospitalId,
+    this.doctorName,
+    this.doctorSpecialization,
+  });
 
   @override
   State<ClinicVisitSlotScreen> createState() => _ClinicVisitSlotScreenState();
 }
 
 class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
+  final SlotService _slotService = SlotService();
+
   String? selectedSlot;
-  String selectedDate = 'Today, 2 Mar';
+  String selectedDateLabel = 'Today';
+  DateTime? selectedDate;
+  bool _isButtonPressed = false;
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  final List<Map<String, dynamic>> timeSlots = [
-    {
-      'title': 'Morning',
-      'time': '10:00am - 12:00pm',
-      'available': 2,
-      'icon': Icons.wb_sunny_outlined,
-    },
-    {
-      'title': 'Afternoon',
-      'time': '2:00pm-4:00pm',
-      'available': 3,
-      'icon': Icons.wb_sunny,
-    },
-    {
-      'title': 'Evening',
-      'time': '6:00pm-8:00pm',
-      'available': 5,
-      'icon': Icons.wb_twilight,
-    },
-    {
-      'title': 'Night',
-      'time': '8:30pm-10:30pm',
-      'available': 20,
-      'icon': Icons.nightlight_round,
-    },
-  ];
+  List<Slot> _slots = [];
+  Map<String, List<Slot>> _groupedSlots = {};
 
-  void _onSlotSelected(String slot) {
+  @override
+  void initState() {
+    super.initState();
+    _initializeDates();
+    _fetchSlots();
+  }
+
+  void _initializeDates() {
+    final now = DateTime.now();
+    selectedDate = DateTime(now.year, now.month, now.day);
+    selectedDateLabel = _formatDateLabel(selectedDate!);
+  }
+
+  String _formatDateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    if (dateOnly == today) {
+      return 'Today';
+    } else if (dateOnly == tomorrow) {
+      return 'Tomorrow';
+    } else {
+      final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return '${weekdays[date.weekday - 1]}, ${date.day} ${_getMonthName(date.month)}';
+    }
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
+  }
+
+  String _formatDateForApi(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _fetchSlots() async {
+    if (selectedDate == null) return;
+
     setState(() {
-      selectedSlot = slot;
+      _isLoading = true;
+      _errorMessage = null;
+      _slots = [];
+      _groupedSlots = {};
+      selectedSlot = null;
     });
+
+    try {
+      final response = await _slotService.findSlotsByDoctorAndDate(
+        doctorId: widget.doctorId,
+        hospitalId: widget.hospitalId,
+        date: _formatDateForApi(selectedDate!),
+      );
+
+      if (mounted) {
+        if (response.success) {
+          setState(() {
+            _slots = response.data;
+            _groupSlots();
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _errorMessage = response.message;
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to fetch slots: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  DateTime _convertToIST(DateTime utcTime) {
+    final utcDateTime = utcTime.isUtc
+        ? utcTime
+        : DateTime.utc(
+            utcTime.year,
+            utcTime.month,
+            utcTime.day,
+            utcTime.hour,
+            utcTime.minute,
+            utcTime.second,
+          );
+    return utcDateTime.add(const Duration(hours: 5, minutes: 30));
+  }
+
+  DateTime _getSlotDateTime(DateTime slotTime, DateTime selectedDate) {
+    final istTime = _convertToIST(slotTime);
+    return DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      istTime.hour,
+      istTime.minute,
+      istTime.second,
+    );
+  }
+
+  int _getHourInIST(DateTime slotTimeUTC) {
+    final utcTime = slotTimeUTC.isUtc
+        ? slotTimeUTC
+        : DateTime.utc(
+            slotTimeUTC.year,
+            slotTimeUTC.month,
+            slotTimeUTC.day,
+            slotTimeUTC.hour,
+            slotTimeUTC.minute,
+            slotTimeUTC.second,
+          );
+
+    final istTime = utcTime.add(const Duration(hours: 5, minutes: 30));
+
+    return istTime.hour;
+  }
+
+  void _groupSlots() {
+    _groupedSlots.clear();
+
+    if (selectedDate == null) return;
+
+    for (final slot in _slots) {
+      final hourIST = _getHourInIST(slot.startTime);
+
+    
+      String period;
+      if (hourIST >= 5 && hourIST < 12) {
+        period = 'Morning';
+      } else if (hourIST >= 12 && hourIST < 17) {
+        period = 'Afternoon';
+      } else if (hourIST >= 17 && hourIST < 21) {
+        period = 'Evening';
+      } else {
+        period = 'Night';
+      }
+
+      if (!_groupedSlots.containsKey(period)) {
+        _groupedSlots[period] = [];
+      }
+      _groupedSlots[period]!.add(slot);
+    }
+  }
+
+  String _formatTime(DateTime timeIST) {
+    final hour = timeIST.hour;
+    final minute = timeIST.minute;
+    final period = hour >= 12 ? 'pm' : 'am';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    final minuteStr = minute.toString().padLeft(2, '0');
+    return '$displayHour:$minuteStr$period';
+  }
+
+  String _formatTimeRange(DateTime startUTC, DateTime endUTC) {
+    if (selectedDate == null) return '';
+
+    final startIST = _getSlotDateTime(startUTC, selectedDate!);
+    final endIST = _getSlotDateTime(endUTC, selectedDate!);
+
+    final startFormatted = _formatTime(startIST);
+    final endFormatted = _formatTime(endIST);
+    return '$startFormatted - $endFormatted';
+  }
+
+  String _getIconPath(String period) {
+    switch (period) {
+      case 'Morning':
+        return EcliniqIcons.morning.assetPath;
+      case 'Afternoon':
+        return EcliniqIcons.afternoon.assetPath;
+      case 'Evening':
+        return EcliniqIcons.evening.assetPath;
+      case 'Night':
+        return EcliniqIcons.night.assetPath;
+      default:
+        return EcliniqIcons.morning.assetPath;
+    }
+  }
+
+  void _onSlotSelected(String slotId) {
+    setState(() {
+      selectedSlot = slotId;
+    });
+  }
+
+  void _onDateChanged(DateTime date) {
+    setState(() {
+      selectedDate = date;
+      selectedDateLabel = _formatDateLabel(date);
+    });
+    _fetchSlots();
   }
 
   void _onReviewVisit() {
     if (selectedSlot != null) {
+      final slot = _slots.firstWhere((s) => s.id == selectedSlot);
+
+      final hospitalIdFromSlot = slot.hospitalId.isNotEmpty
+          ? slot.hospitalId
+          : widget.hospitalId;
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ReviewDetailsScreen(
-            selectedSlot: selectedSlot!,
-            selectedDate: selectedDate,
+            selectedSlot: _formatTimeRange(slot.startTime, slot.endTime),
+            selectedDate: selectedDateLabel,
+            doctorId: slot.doctorId.isNotEmpty
+                ? slot.doctorId
+                : widget.doctorId,
+            hospitalId:
+                hospitalIdFromSlot, 
+            slotId: slot.id, 
+            doctorName: widget.doctorName,
+            doctorSpecialization: widget.doctorSpecialization,
           ),
         ),
       );
     }
+  }
+
+  Widget _buildShimmerSlots() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: List.generate(4, (index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey.shade300,
+              highlightColor: Colors.grey.shade100,
+              child: Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage ?? 'Failed to load slots',
+              style: EcliniqTextStyles.titleXLarge.copyWith(
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchSlots,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2372EC),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 24),
+            Text(
+              'No slots available for this date',
+              style: EcliniqTextStyles.headlineLarge.copyWith(
+                color: const Color(0xff424242),
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Please choose another day',
+              style: EcliniqTextStyles.titleXLarge.copyWith(
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF1565C0).withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 20,
+                    color: const Color(0xFF1565C0),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Select a different date above',
+                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                      color: const Color(0xFF1565C0),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSlotsList() {
+    final periods = ['Morning', 'Afternoon', 'Evening', 'Night'];
+
+    if (selectedDate == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _groupedSlots.length,
+        itemBuilder: (context, index) {
+          final periodWithSlots = periods
+              .where((p) => _groupedSlots.containsKey(p))
+              .toList();
+          if (index >= periodWithSlots.length) return const SizedBox.shrink();
+
+          final period = periodWithSlots[index];
+          final slots = _groupedSlots[period]!;
+
+          slots.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+          final earliestStartUTC = slots
+              .map((s) => s.startTime)
+              .reduce((a, b) => a.isBefore(b) ? a : b);
+          final latestEndUTC = slots
+              .map((s) => s.endTime)
+              .reduce((a, b) => a.isAfter(b) ? a : b);
+
+          final totalAvailable = slots.fold<int>(
+            0,
+            (sum, slot) => sum + slot.availableTokens,
+          );
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TimeSlotCard(
+              title: period,
+              time: _formatTimeRange(earliestStartUTC, latestEndUTC),
+              available: totalAvailable,
+              iconPath: _getIconPath(period),
+              isSelected:
+                  selectedSlot != null &&
+                  slots.any((s) => s.id == selectedSlot),
+              onTap: () {
+                _onSlotSelected(slots.first.id);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildReviewVisitButton() {
+    final isButtonEnabled = selectedSlot != null;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: GestureDetector(
+        onTapDown: (_) {
+          if (isButtonEnabled) {
+            setState(() {
+              _isButtonPressed = true;
+            });
+          }
+        },
+        onTapUp: (_) {
+          if (isButtonEnabled) {
+            setState(() {
+              _isButtonPressed = false;
+            });
+            _onReviewVisit();
+          }
+        },
+        onTapCancel: () {
+          setState(() {
+            _isButtonPressed = false;
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: _isButtonPressed
+                ? const Color(0xFF0E4395)
+                : isButtonEnabled
+                ? EcliniqButtonType.brandPrimary.backgroundColor(context)
+                : EcliniqButtonType.brandPrimary.disabledBackgroundColor(
+                    context,
+                  ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Review Visit',
+                style: EcliniqTextStyles.headlineMedium.copyWith(
+                  color: _isButtonPressed
+                      ? Colors.white
+                      : isButtonEnabled
+                      ? Colors.white
+                      : Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -70,7 +518,11 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: SvgPicture.asset(
+            EcliniqIcons.backArrow.assetPath,
+            width: 32,
+            height: 32,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Align(
@@ -78,7 +530,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           child: Text(
             'Clinic Visit Slot',
             style: EcliniqTextStyles.headlineMedium.copyWith(
-              color: Colors.black,
+              color: Color(0xff424242),
             ),
           ),
         ),
@@ -94,21 +546,17 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: DoctorInfoCard(),
-                  ),
+                  DoctorInfoCard(),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: DateSelector(
-                      selectedDate: selectedDate,
-                      onDateChanged: (date) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                      },
+                      selectedDate: selectedDateLabel,
+                      selectedDateValue: selectedDate,
+                      onDateChanged: _onDateChanged,
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  const Divider(height: 1, thickness: 0.3, color: Colors.grey),
                   const SizedBox(height: 24),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -120,26 +568,14 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: timeSlots.length,
-                    itemBuilder: (context, index) {
-                      final slot = timeSlots[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: TimeSlotCard(
-                          title: slot['title'],
-                          time: slot['time'],
-                          available: slot['available'],
-                          icon: slot['icon'],
-                          isSelected: selectedSlot == slot['title'],
-                          onTap: () => _onSlotSelected(slot['title']),
-                        ),
-                      );
-                    },
-                  ),
+                  if (_isLoading)
+                    _buildShimmerSlots()
+                  else if (_errorMessage != null)
+                    _buildErrorState()
+                  else if (_groupedSlots.isEmpty)
+                    _buildEmptyState()
+                  else
+                    _buildSlotsList(),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -149,37 +585,17 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 2,
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
                   ),
                 ],
+                color: Colors.white,
               ),
-              child: SafeArea(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _onReviewVisit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2372EC),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Review Visit',
-                      style: EcliniqTextStyles.headlineMedium.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              child: SafeArea(child: _buildReviewVisitButton()),
             ),
         ],
       ),

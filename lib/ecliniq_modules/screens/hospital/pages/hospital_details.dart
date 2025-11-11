@@ -113,7 +113,12 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           ),
         // Bottom Section (only show for Details tab)
         if (_currentTabIndex == 0)
-          Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomSection()),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildBottomSection(),
+          ),
       ],
     );
   }
@@ -131,7 +136,8 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               _buildHospitalInfo(hospital),
               const SizedBox(height: 16),
               _buildStatsCards(hospital),
-              const SizedBox(height: 16),
+              Divider(color: Color(0xffD6D6D6), thickness: 1,),
+              const SizedBox(height: 28),
               const AppointmentTimingWidget(),
               const SizedBox(height: 16),
               AddressWidget(hospital: hospital),
@@ -140,16 +146,14 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               const SizedBox(height: 16),
               if (hospital.specialties.isNotEmpty)
                 MedicalSpecialtiesWidget(specialties: hospital.specialties),
-              if (hospital.specialties.isNotEmpty)
-                const SizedBox(height: 16),
+              if (hospital.specialties.isNotEmpty) const SizedBox(height: 16),
               if (hospital.hospitalServices.isNotEmpty)
                 HospitalServicesWidget(services: hospital.hospitalServices),
               if (hospital.hospitalServices.isNotEmpty)
                 const SizedBox(height: 16),
               if (hospital.accreditation.isNotEmpty)
                 CertificatesWidget(accreditation: hospital.accreditation),
-              if (hospital.accreditation.isNotEmpty)
-                const SizedBox(height: 16),
+              if (hospital.accreditation.isNotEmpty) const SizedBox(height: 16),
               const SizedBox(height: 16),
               const ContactDetailsWidget(),
               const SizedBox(height: 16),
@@ -292,9 +296,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           Text(
             hospital.name,
             style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Color(0xff424242),
             ),
             textAlign: TextAlign.center,
           ),
@@ -304,32 +308,58 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             children: [
               Text(
                 hospital.type,
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xff424242),
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text('|', style: TextStyle(color: Colors.grey[400])),
+                child: Text(
+                  '|',
+                  style: TextStyle(
+                    color: Color(0xff424242),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
               Text(
                 '${hospital.numberOfDoctors}+ Doctors',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xff424242),
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             'Established in ${hospital.establishmentYear} (${DateTime.now().year - (int.tryParse(hospital.establishmentYear) ?? 0)} Years of Experience)',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xff424242),
+              fontWeight: FontWeight.w400,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.location_on, size: 20, color: Colors.blue[400]),
+              SvgPicture.asset(
+                EcliniqIcons.mapPoint.assetPath,
+                width: 24,
+                height: 24,
+              ),
               const SizedBox(width: 6),
               Text(
                 '${hospital.city}, ${hospital.state}',
-                style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xff424242),
+                ),
               ),
             ],
           ),
@@ -341,7 +371,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildStatsCards(hospital) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -384,14 +414,18 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
 
   Widget _buildStatCard(IconData icon, String label, String value) {
     return SizedBox(
-      width: 120,
+      width: 140,
       child: Column(
         children: [
           Icon(icon, color: Colors.blue[600], size: 32),
           const SizedBox(height: 8),
           Text(
             label,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 16,
+              color: Color(0xff626060),
+              fontWeight: FontWeight.w400,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
@@ -399,8 +433,8 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             value,
             style: TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[600],
+              fontWeight: FontWeight.w600,
+              color: Color(0xff2372EC),
             ),
           ),
         ],

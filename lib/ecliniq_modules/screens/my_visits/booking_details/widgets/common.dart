@@ -349,7 +349,7 @@ class StatusHeader extends StatelessWidget {
               ),
             ],
             if (currentTokenNumber != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.grey[200],

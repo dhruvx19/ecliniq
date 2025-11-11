@@ -1,8 +1,8 @@
-import 'recently_uploaded.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:flutter/material.dart';
 
 class FileOptionsBottomSheet extends StatelessWidget {
-  final UploadedFile file;
+  final HealthFile file;
   final VoidCallback? onOpen;
   final VoidCallback? onShare;
   final VoidCallback? onDownload;

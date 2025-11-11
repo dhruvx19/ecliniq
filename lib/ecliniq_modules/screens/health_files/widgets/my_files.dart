@@ -1,24 +1,25 @@
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/file_type_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 
 class FileCategory {
-  final String title;
-  final int fileCount;
+  final HealthFileType fileType;
   final String backgroundImage;
   final String overlayImage;
 
-  final String route;
-
   FileCategory({
-    required this.title,
-    required this.fileCount,
+    required this.fileType,
     required this.backgroundImage,
     required this.overlayImage,
-
-    required this.route,
   });
+
+  String get title => fileType.displayName;
 }
 
 
@@ -29,47 +30,34 @@ class MyFilesWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final categories = [
       FileCategory(
-        title: 'Lab Reports',
-        fileCount: 15,
+        fileType: HealthFileType.labReports,
         backgroundImage: EcliniqIcons.blue.assetPath,
         overlayImage: EcliniqIcons.blueGradient.assetPath,
-
-        route: '/lab-reports',
       ),
       FileCategory(
-        title: 'Scan / Imaging',
-        fileCount: 15,
+        fileType: HealthFileType.scanImaging,
         backgroundImage: EcliniqIcons.green.assetPath,
         overlayImage: EcliniqIcons.greenframe.assetPath,
-        route: '/scan-imaging',
       ),
       FileCategory(
-        title: 'Prescriptions',
-        fileCount: 20,
+        fileType: HealthFileType.prescriptions,
         backgroundImage: EcliniqIcons.orange.assetPath,
         overlayImage: EcliniqIcons.orangeframe.assetPath,
-        route: '/prescriptions',
       ),
       FileCategory(
-        title: 'Invoices',
-        fileCount: 8,
+        fileType: HealthFileType.invoices,
         backgroundImage: EcliniqIcons.yellow.assetPath,
         overlayImage: EcliniqIcons.yellowframe.assetPath,
-        route: '/medical-records',
       ),
       FileCategory(
-        title: 'Vaccinations',
-        fileCount: 8,
+        fileType: HealthFileType.vaccinations,
         backgroundImage: EcliniqIcons.blueDark.assetPath,
         overlayImage: EcliniqIcons.blueDarkframe.assetPath,
-        route: '/medical-records',
       ),
       FileCategory(
-        title: 'Others',
-        fileCount: 8,
+        fileType: HealthFileType.others,
         backgroundImage: EcliniqIcons.red.assetPath,
         overlayImage: EcliniqIcons.redframe.assetPath,
-        route: '/medical-records',
       ),
     ];
 
@@ -94,12 +82,21 @@ class MyFilesWidget extends StatelessWidget {
 
           SizedBox(
             height: 170,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 16),
-              itemBuilder: (context, index) {
-                return FileCategoryCard(category: categories[index]);
+            child: Consumer<HealthFilesProvider>(
+              builder: (context, provider, child) {
+                return ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: categories.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 16),
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+                    final fileCount = provider.getFileCountByType(category.fileType);
+                    return FileCategoryCard(
+                      category: category,
+                      fileCount: fileCount,
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -114,14 +111,21 @@ class MyFilesWidget extends StatelessWidget {
 
 class FileCategoryCard extends StatelessWidget {
   final FileCategory category;
+  final int fileCount;
 
-  const FileCategoryCard({super.key, required this.category});
+  const FileCategoryCard({
+    super.key,
+    required this.category,
+    required this.fileCount,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, category.route);
+        EcliniqRouter.push(
+          FileTypeScreen(fileType: category.fileType),
+        );
       },
       child: Container(
         width: 200,
@@ -156,7 +160,7 @@ class FileCategoryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${category.fileCount} Files',
+                      '$fileCount ${fileCount == 1 ? 'File' : 'Files'}',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 16,
@@ -171,39 +175,19 @@ class FileCategoryCard extends StatelessWidget {
               Positioned(
                 bottom: 8,
                 left: 8,
-
-                child: Stack(
-                  children: [
-
-                    SvgPicture.asset(
-                      category.overlayImage,
-                      width: double.infinity,
-                      height: 76,
-                      fit: BoxFit.fitHeight,
-                    ),
-                  ],
+                right: 8,
+                child: SizedBox(
+                  height: 76,
+                  child: SvgPicture.asset(
+                    category.overlayImage,
+                    fit: BoxFit.fitHeight,
+                  ),
                 ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-
-class LabReportsScreen extends StatelessWidget {
-  const LabReportsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lab Reports'),
-        backgroundColor: const Color(0xFF2B7FFF),
-      ),
-      body: const Center(child: Text('Lab Reports - 15 Files')),
     );
   }
 }

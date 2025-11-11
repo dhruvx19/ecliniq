@@ -5,8 +5,13 @@ import 'package:flutter/material.dart';
 
 class DatePickerBottomSheet extends StatefulWidget {
   final DateTime initialDate;
+  final String? title;
 
-  const DatePickerBottomSheet({super.key, required this.initialDate});
+  const DatePickerBottomSheet({
+    super.key,
+    required this.initialDate,
+    this.title,
+  });
 
   @override
   State<DatePickerBottomSheet> createState() => _DatePickerBottomSheetState();
@@ -136,7 +141,7 @@ class _DatePickerBottomSheetState extends State<DatePickerBottomSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   EcliniqText(
-                    'Select Date Of Birth',
+                    widget.title ?? 'Select Date Of Birth',
                     style: EcliniqTextStyles.headlineMedium.copyWith(
                       color: Colors.black87,
                       fontWeight: FontWeight.w600,

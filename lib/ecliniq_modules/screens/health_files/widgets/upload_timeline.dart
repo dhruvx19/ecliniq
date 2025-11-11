@@ -1,4 +1,6 @@
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class UploadTimeline extends StatelessWidget {
   const UploadTimeline({super.key});
@@ -34,7 +36,7 @@ class UploadTimeline extends StatelessWidget {
                   left: 20,
                   right: 20,
                   child: Opacity(
-                    opacity: 0.4,
+                    opacity: 0.65,
                     child: Transform.scale(
                       scale: 0.95,
                       child: const PrescriptionCard(
@@ -42,6 +44,8 @@ class UploadTimeline extends StatelessWidget {
                         month: 'May',
                         isOlder: true,
                         showShadow: false,
+                        headingFontSize: 16,
+                        subheadingFontSize: 12,
                       ),
                     ),
                   ),
@@ -50,11 +54,13 @@ class UploadTimeline extends StatelessWidget {
                   top: 65,
                   left: 12,
                   right: 12,
-                  child: Opacity(
-                    opacity: 0.8,
-                    child: Transform.scale(
-                      scale: 0.97,
-                      child: const PrescriptionCard(day: '01', month: 'Aug'),
+                  child: Transform.scale(
+                    scale: 0.97,
+                    child: const PrescriptionCard(
+                      day: '01',
+                      month: 'Aug',
+                      headingFontSize: 17,
+                      subheadingFontSize: 13,
                     ),
                   ),
                 ),
@@ -62,7 +68,12 @@ class UploadTimeline extends StatelessWidget {
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: const PrescriptionCard(day: '09', month: 'Aug'),
+                  child: const PrescriptionCard(
+                    day: '09',
+                    month: 'Aug',
+                    headingFontSize: 18,
+                    subheadingFontSize: 14,
+                  ),
                 ),
               ],
             ),
@@ -78,6 +89,8 @@ class PrescriptionCard extends StatelessWidget {
   final String month;
   final bool isOlder;
   final bool showShadow;
+  final double headingFontSize;
+  final double subheadingFontSize;
 
   const PrescriptionCard({
     super.key,
@@ -85,12 +98,14 @@ class PrescriptionCard extends StatelessWidget {
     required this.month,
     this.isOlder = false,
     this.showShadow = true,
+    this.headingFontSize = 18,
+    this.subheadingFontSize = 14,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -117,8 +132,8 @@ class PrescriptionCard extends StatelessWidget {
                   day,
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isOlder ? Colors.grey[400] : Colors.black87,
+                    fontWeight: FontWeight.w500,
+                    color: isOlder ? Colors.grey[400] : Color(0xff424242),
                   ),
                 ),
                 Text(
@@ -158,7 +173,7 @@ class PrescriptionCard extends StatelessWidget {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.medication, size: 10),
+                        Icon(Icons.abc, size: 10),
                         SizedBox(width: 2),
                       ],
                     ),
@@ -188,35 +203,29 @@ class PrescriptionCard extends StatelessWidget {
                 Text(
                   'Prescription.pdf',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isOlder ? Colors.grey[500] : Colors.black87,
+                    fontSize: headingFontSize,
+                    fontWeight: FontWeight.w500,
+                    color: isOlder ? Colors.grey[500] : Color(0xff424242),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Prescription',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: isOlder ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: subheadingFontSize,
+                    fontWeight: FontWeight.w400,
+                    color: isOlder ? Colors.grey[400] : Color(0xff8E8E8E),
                   ),
                 ),
               ],
             ),
           ),
 
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isOlder ? Colors.grey[300] : Colors.orange[400],
-              borderRadius: BorderRadius.circular(12),
+          SvgPicture.asset(EcliniqIcons.healthIcon.assetPath,
+              width: 32,
+              height: 32,
+              
             ),
-            child: const Icon(
-              Icons.insert_drive_file,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
         ],
       ),
     );

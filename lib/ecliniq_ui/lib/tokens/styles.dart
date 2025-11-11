@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class EcliniqTextStyles {
   EcliniqTextStyles._();
 
-  static const fontFamily = 'Regular';
+  static const fontFamily = 'Inter';
 
 
   static const TextStyle headlineLarge = TextStyle(
@@ -33,6 +33,13 @@ class EcliniqTextStyles {
   static const TextStyle headlineXMedium = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w400,
+    fontFamily: fontFamily,
+    fontStyle: FontStyle.normal,
+    decoration: TextDecoration.none,
+  );
+  static const TextStyle headlineXLMedium = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w300,
     fontFamily: fontFamily,
     fontStyle: FontStyle.normal,
     decoration: TextDecoration.none,

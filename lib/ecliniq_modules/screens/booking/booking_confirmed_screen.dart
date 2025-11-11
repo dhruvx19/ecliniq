@@ -1,9 +1,26 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class BookingConfirmedScreen extends StatelessWidget {
-  const BookingConfirmedScreen({super.key});
+  final String? doctorName;
+  final String? doctorSpecialization;
+  final String selectedSlot;
+  final String selectedDate;
+  final String? hospitalAddress;
+  final String? tokenNumber;
+
+  const BookingConfirmedScreen({
+    super.key,
+    this.doctorName,
+    this.doctorSpecialization,
+    required this.selectedSlot,
+    required this.selectedDate,
+    this.hospitalAddress,
+    this.tokenNumber,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,27 +42,26 @@ class BookingConfirmedScreen extends StatelessWidget {
                 ),
               ),
 
-              const Text(
+              Text(
                 'Booking Confirmed',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                style: EcliniqTextStyles.headlineLarge.copyWith(
+                  color: Color(0xff424242),
                 ),
               ),
 
               RichText(
                 textAlign: TextAlign.center,
-                text: const TextSpan(
+                text: TextSpan(
                   text: 'With ',
-                  style: TextStyle(fontSize: 24, color: Colors.black),
+                  style: EcliniqTextStyles.headlineLarge.copyWith(
+                    color: Color(0xff424242),
+                  ),
                   children: [
                     TextSpan(
-                      text: 'Dr. Milind Chauhan',
-                      style: TextStyle(
-                        fontSize: 24,
+                      text: doctorName ?? 'Doctor',
+                      style: EcliniqTextStyles.headlineLarge.copyWith(
+                        color: Color(0xFFF0D47A1),
                         fontWeight: FontWeight.w600,
-                        color: Color(0xfff0d47a1),
                       ),
                     ),
                   ],
@@ -59,16 +75,18 @@ class BookingConfirmedScreen extends StatelessWidget {
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
                     Text(
                       'Your Token Number',
-                      style: TextStyle(fontSize: 18, color: Colors.black54),
+                      style: EcliniqTextStyles.headlineMedium.copyWith(
+                        color: Color(0xff424242),
+                      ),
                     ),
-
+                    const SizedBox(height: 4),
                     Text(
-                      '76',
-                      style: TextStyle(
+                      tokenNumber ?? '--',
+                      style: EcliniqTextStyles.headlineLarge.copyWith(
                         fontSize: 32,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF4CAF50),
@@ -87,23 +105,36 @@ class BookingConfirmedScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildDetailRow(
-                      Icons.person_outline,
-                      'Ketan Patni',
-                      'Male, 02/02/1996 (29Y)',
+                    AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.user.assetPath,
+                      title: 'Ketan Patni',
+                      subtitle: 'Male, 02/02/1996 (29Y)',
                       badge: 'You',
+                      showEdit: false,
                     ),
-                    const Divider(height: 24),
-                    _buildDetailRow(
-                      Icons.calendar_today_outlined,
-                      '10:00am - 12:00pm',
-                      'Today, 2 March 2025',
+                    Divider(
+                      thickness: 0.5,
+                      color: Color(0xffB8B8B8),
+                      indent: 15,
+                      endIndent: 15,
                     ),
-                    const Divider(height: 24),
-                    _buildDetailRow(
-                      Icons.business_outlined,
-                      'In-Clinic Consultation',
-                      'Amore Clinic, 15, Indrayani River Road, Pune - 411047',
+                    AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.calendar.assetPath,
+                      title: selectedSlot,
+                      subtitle: selectedDate,
+                      showEdit: false,
+                    ),
+                    Divider(
+                      thickness: 0.5,
+                      color: Color(0xffB8B8B8),
+                      indent: 15,
+                      endIndent: 15,
+                    ),
+                    AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.quick2.assetPath,
+                      title: 'In-Clinic Consultation',
+                      subtitle: hospitalAddress ?? 'Address not available',
+                      showEdit: false,
                     ),
                   ],
                 ),
@@ -115,7 +146,8 @@ class BookingConfirmedScreen extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF1565C0)),
+                    side: const BorderSide(color: Color(0xFF96BFFF)),
+                    backgroundColor: Color(0xffF2F7FF),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -126,14 +158,21 @@ class BookingConfirmedScreen extends StatelessWidget {
                       Text(
                         'View Details',
                         style: EcliniqTextStyles.headlineMedium.copyWith(
-                          color: Color(0xFF1565C0),
+                          color: Color(0xFF2372EC),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
-                        Icons.arrow_forward,
-                        color: Color(0xFF1565C0),
-                        size: 20,
+                      Transform.rotate(
+                        angle: 3.14159, // 180 degrees rotation for forward arrow
+                        child: SvgPicture.asset(
+                          EcliniqIcons.backArrow.assetPath,
+                          width: 24,
+                          height: 24,
+                          colorFilter: const ColorFilter.mode(
+                            Color(0xFF2372EC),
+                            BlendMode.srcIn,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -146,66 +185,4 @@ class BookingConfirmedScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(
-    IconData icon,
-    String title,
-    String subtitle, {
-    String? badge,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-
-          child: Icon(icon, color: const Color(0xFF1565C0), size: 20),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    title,
-                    style: EcliniqTextStyles.headlineMedium.copyWith(
-                      color: Colors.black87,
-                    ),
-                  ),
-                  if (badge != null) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1565C0),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        badge,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: EcliniqTextStyles.titleXLarge.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }

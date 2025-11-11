@@ -1,10 +1,28 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/booking_confirmed_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class AppointmentRequestScreen extends StatefulWidget {
-  const AppointmentRequestScreen({super.key});
+  final String? doctorName;
+  final String? doctorSpecialization;
+  final String selectedSlot;
+  final String selectedDate;
+  final String? hospitalAddress;
+  final String? tokenNumber;
+
+  const AppointmentRequestScreen({
+    super.key,
+    this.doctorName,
+    this.doctorSpecialization,
+    required this.selectedSlot,
+    required this.selectedDate,
+    this.hospitalAddress,
+    this.tokenNumber,
+  });
 
   @override
   State<AppointmentRequestScreen> createState() =>
@@ -26,7 +44,14 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const BookingConfirmedScreen(),
+          builder: (context) => BookingConfirmedScreen(
+            doctorName: widget.doctorName,
+            doctorSpecialization: widget.doctorSpecialization,
+            selectedSlot: widget.selectedSlot,
+            selectedDate: widget.selectedDate,
+            hospitalAddress: widget.hospitalAddress,
+            tokenNumber: widget.tokenNumber,
+          ),
         ),
       );
     }
@@ -63,32 +88,26 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
               const SizedBox(height: 24),
 
 
-              const Text(
+              Text(
                 'Appointment Request',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                style: EcliniqTextStyles.headlineLarge.copyWith(
+                  color: Color(0xff424242),
                 ),
               ),
 
 
               RichText(
                 textAlign: TextAlign.center,
-                text: const TextSpan(
+                text: TextSpan(
                   text: 'sent to ',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                  style: EcliniqTextStyles.headlineLarge.copyWith(
+                    color: Color(0xff424242),
                   ),
                   children: [
                     TextSpan(
-                      text: 'Dr. Milind Chauhan',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xfff0d47a1),
+                      text: widget.doctorName ?? 'Doctor',
+                      style: EcliniqTextStyles.headlineLarge.copyWith(
+                        color: Color(0xFFF0D47A1),
                       ),
                     ),
                   ],
@@ -113,10 +132,10 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
-                        Icons.info_outline,
-                        color: Color(0xFF1565C0),
-                        size: 24,
+                      child: SvgPicture.asset(
+                        EcliniqIcons.verify.assetPath,
+                        width: 24,
+                        height: 24,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -144,23 +163,36 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                 ),
                 child: Column(
                   children: [
-                    _buildDetailRow(
-                      Icons.person_outline,
-                      'Ketan Patni',
-                      'Male, 02/02/1996 (29Y)',
+                    AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.user.assetPath,
+                      title: 'Ketan Patni',
+                      subtitle: 'Male, 02/02/1996 (29Y)',
                       badge: 'You',
+                      showEdit: false,
                     ),
-                    const Divider(height: 24),
-                    _buildDetailRow(
-                      Icons.calendar_today_outlined,
-                      '10:00am - 12:00pm',
-                      'Today, 2 March 2025',
+                    Divider(
+                      thickness: 0.5,
+                      color: Color(0xffB8B8B8),
+                      indent: 15,
+                      endIndent: 15,
                     ),
-                    const Divider(height: 24),
-                    _buildDetailRow(
-                      Icons.business_outlined,
-                      'In-Clinic Consultation',
-                      'Amore Clinic, 15, Indrayani River Road, Pune - 411047',
+                    AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.calendar.assetPath,
+                      title: widget.selectedSlot,
+                      subtitle: widget.selectedDate,
+                      showEdit: false,
+                    ),
+                    Divider(
+                      thickness: 0.5,
+                      color: Color(0xffB8B8B8),
+                      indent: 15,
+                      endIndent: 15,
+                    ),
+                    AppointmentDetailItem(
+                      iconAssetPath: EcliniqIcons.quick2.assetPath,
+                      title: 'In-Clinic Consultation',
+                      subtitle: widget.hospitalAddress ?? 'Address not available',
+                      showEdit: false,
                     ),
                   ],
                 ),
@@ -196,66 +228,4 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
     );
   }
 
-  Widget _buildDetailRow(
-    IconData icon,
-    String title,
-    String subtitle, {
-    String? badge,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          
-          child: Icon(icon, color: const Color(0xFF1565C0), size: 20),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    title,
-                    style: EcliniqTextStyles.headlineMedium.copyWith(
-                      color: Colors.black87,
-                    ),
-                  ),
-                  if (badge != null) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1565C0),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        badge,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: EcliniqTextStyles.titleXLarge.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }

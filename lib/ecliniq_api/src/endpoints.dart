@@ -15,5 +15,6 @@ class Endpoints {
   static String hospitalDetails(String hospitalId) => '$localhost/api/hospitals/getHospitalDetailsByIdbyPatient/$hospitalId';
   static String getAllDoctorHospital(String hospitalId) => '$localhost/api/doctors/getAllDoctorsByHospitalIdForPatient/$hospitalId';
   static String get getSlotsByDate => '$localhost/api/slots/find-slots-by-doctor-and-date';
+  static String get bookAppointment => '$localhost/api/appointments/book';
 
 }

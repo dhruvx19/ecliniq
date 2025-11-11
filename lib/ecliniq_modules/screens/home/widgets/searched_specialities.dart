@@ -18,7 +18,7 @@ class MostSearchedSpecialities extends StatelessWidget {
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
         final isSmallScreen = screenWidth < 360;
-        final cardSpacing = isSmallScreen ? 8.0 : 12.0;
+        final cardSpacing = isSmallScreen ? 8.0 : 18.0;
         final cardHeight = isSmallScreen ? 85.0 : 100.0;
         final cardWidth = (screenWidth - (isSmallScreen ? 40 : 48)) / 3;
 
@@ -48,17 +48,18 @@ class MostSearchedSpecialities extends StatelessWidget {
                       Text(
                         'Most Searched Specialties',
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 16.0 : 18.0,
+                          fontSize: 20.0,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: Color(0xff424242),
                         ),
                       ),
-                      SizedBox(height: isSmallScreen ? 2.0 : 4.0),
+                      SizedBox(height: 4.0),
                       Text(
                         'At your location',
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 12.0 : 14.0,
-                          color: Colors.grey.shade600,
+                          fontSize: 13.0,
+                          color: Color(0xff8E8E8E),
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -66,21 +67,27 @@ class MostSearchedSpecialities extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'View All',
                         style: TextStyle(
-                          color: Colors.blue.shade600,
-                          fontWeight: FontWeight.w500,
-                          fontSize: isSmallScreen ? 12.0 : 14.0,
+                          color: Color(0xFF2372EC),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 18.0,
                         ),
                       ),
+                      SizedBox(width: 4),
                       Icon(
                         Icons.arrow_forward_ios,
-                        size: isSmallScreen ? 12 : 14,
-                        color: Colors.blue.shade600,
+                        size: 16,
+                        color: Color(0xFF2372EC),
                       ),
                     ],
                   ),
@@ -89,75 +96,86 @@ class MostSearchedSpecialities extends StatelessWidget {
             ),
             SizedBox(height: isSmallScreen ? 12.0 : 16.0),
 
-
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30.0),
+              padding: EdgeInsets.symmetric(horizontal: 28.0),
               child: Column(
                 children: [
                   Row(
                     children: [
-                      _buildSpecialtyCard(
-                        context,
-                        cardWidth: cardWidth,
-                        cardHeight: cardHeight,
-                        iconPath: EcliniqIcons.general.assetPath,
+                      Expanded(
+                        child: _buildSpecialtyCard(
+                          context,
+                          cardWidth: cardWidth,
+                          cardHeight: cardHeight,
+                          iconPath: EcliniqIcons.general.assetPath,
 
-                        title: 'General\nPhysician',
-                        onTap: () => EcliniqRouter(),
+                          title: 'General\nPhysician',
+                          onTap: () => EcliniqRouter(),
+                        ),
                       ),
                       SizedBox(width: cardSpacing),
-                      _buildSpecialtyCard(
-                        context,
-                        cardWidth: cardWidth,
-                        cardHeight: cardHeight,
-                        iconPath: EcliniqIcons.gynecology.assetPath,
+                      Expanded(
+                        child: _buildSpecialtyCard(
+                          context,
+                          cardWidth: cardWidth,
+                          cardHeight: cardHeight,
+                          iconPath: EcliniqIcons.gynecology.assetPath,
 
-                        title: 'Women\'s\nHealth',
-                        onTap: () => EcliniqRouter(),
+                          title: 'Women\'s\nHealth',
+                          onTap: () => EcliniqRouter(),
+                        ),
                       ),
                       SizedBox(width: cardSpacing),
-                      _buildSpecialtyCard(
-                        context,
-                        cardWidth: cardWidth,
-                        cardHeight: cardHeight,
-                        iconPath: EcliniqIcons.eye.assetPath,
+                      Expanded(
+                        child: _buildSpecialtyCard(
+                          context,
+                          cardWidth: cardWidth,
+                          cardHeight: cardHeight,
+                          iconPath: EcliniqIcons.eye.assetPath,
 
-                        title: 'Eye\nCare',
-                        onTap: () => EcliniqRouter(),
+                          title: 'Eye\nCare',
+                          onTap: () => EcliniqRouter(),
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 16),
                   Row(
                     children: [
-                      _buildSpecialtyCard(
-                        context,
-                        cardWidth: cardWidth,
-                        cardHeight: cardHeight,
-                        iconPath: EcliniqIcons.dentist.assetPath,
+                      Expanded(
+                        child: _buildSpecialtyCard(
+                          context,
+                          cardWidth: cardWidth,
+                          cardHeight: cardHeight,
+                          iconPath: EcliniqIcons.dentist.assetPath,
 
-                        title: 'Dental\nCare',
-                        onTap: () => EcliniqRouter(),
+                          title: 'Dental\nCare',
+                          onTap: () => EcliniqRouter(),
+                        ),
                       ),
                       SizedBox(width: cardSpacing),
-                      _buildSpecialtyCard(
-                        context,
-                        cardWidth: cardWidth,
-                        cardHeight: cardHeight,
-                        iconPath: EcliniqIcons.child.assetPath,
+                      Expanded(
+                        child: _buildSpecialtyCard(
+                          context,
+                          cardWidth: cardWidth,
+                          cardHeight: cardHeight,
+                          iconPath: EcliniqIcons.child.assetPath,
 
-                        title: 'Child\nSpecialist',
-                        onTap: () => EcliniqRouter(),
+                          title: 'Child\nSpecialist',
+                          onTap: () => EcliniqRouter(),
+                        ),
                       ),
                       SizedBox(width: cardSpacing),
-                      _buildSpecialtyCard(
-                        context,
-                        cardWidth: cardWidth,
-                        cardHeight: cardHeight,
-                        iconPath: EcliniqIcons.ent.assetPath,
+                      Expanded(
+                        child: _buildSpecialtyCard(
+                          context,
+                          cardWidth: cardWidth,
+                          cardHeight: cardHeight,
+                          iconPath: EcliniqIcons.ent.assetPath,
 
-                        title: 'Ear, Nose\n& Throat',
-                        onTap: () => EcliniqRouter(),
+                          title: 'Ear, Nose\n& Throat',
+                          onTap: () => EcliniqRouter(),
+                        ),
                       ),
                     ],
                   ),
@@ -188,8 +206,8 @@ class MostSearchedSpecialities extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12.0),
         child: Container(
-          width: 116,
-          height: 140,
+          width: cardWidth,
+          height: cardHeight,
           padding: EdgeInsets.all(isSmallScreen ? 8.0 : 12.0),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -239,7 +257,6 @@ class MostSearchedSpecialities extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Row(
           children: [
             Container(

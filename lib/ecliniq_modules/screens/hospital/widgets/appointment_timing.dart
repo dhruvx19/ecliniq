@@ -1,22 +1,23 @@
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AppointmentTimingWidget extends StatefulWidget {
   const AppointmentTimingWidget({super.key});
 
   @override
-  State<AppointmentTimingWidget> createState() => _AppointmentTimingWidgetState();
+  State<AppointmentTimingWidget> createState() =>
+      _AppointmentTimingWidgetState();
 }
 
 class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
- 
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -40,7 +41,7 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                       style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: Color(0xff424242),
                       ),
                     ),
                   ],
@@ -48,15 +49,19 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
               ),
             ],
           ),
-      
+
           Padding(
-           padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.calendar_today, color: Colors.blue[600], size: 20),
+                    SvgPicture.asset(
+                      EcliniqIcons.calendar1.assetPath,
+                      width: 26,
+                      height: 26,
+                    ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,15 +69,18 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                         const Text(
                           '10:30 AM - 4:00 PM',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xff424242),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'Monday to Saturday',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xff8E8E8E),
+                          ),
                         ),
                       ],
                     ),
@@ -80,21 +88,33 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                 ),
                 ElevatedButton(
                   onPressed: () {},
+                  
                   style: ElevatedButton.styleFrom(
+                    
                     backgroundColor: Colors.blue[50],
                     foregroundColor: Colors.blue[700],
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
+                      horizontal: 14,
                       vertical: 12,
                     ),
+                  
+                    
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(4),
+                      side: BorderSide(
+                        color: Color(0xff96BFFF),
+                        width: 0.5,
+                      ),
                     ),
                   ),
                   child: const Text(
                     'Inquire Now',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xff2372EC),
+                    ),
                   ),
                 ),
               ],

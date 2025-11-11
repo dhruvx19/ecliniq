@@ -1,13 +1,18 @@
+import 'package:ecliniq/ecliniq_core/router/navigation_helper.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/my_files.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/recently_uploaded.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/search_bar.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/upload_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/upload_timeline.dart';
-import 'package:ecliniq/ecliniq_modules/screens/home/widgets/top_bar_widgets/search_bar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigation.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
+import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 class HealthFiles extends StatefulWidget {
   const HealthFiles({super.key});
@@ -17,21 +22,38 @@ class HealthFiles extends StatefulWidget {
 }
 
 class _HealthFilesState extends State<HealthFiles> {
-  int _currentIndex = 2;
+  final int _currentIndex = 2;
   bool isLoading = false;
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
+  @override
+  void initState() {
+    super.initState();
+    // Load files when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HealthFilesProvider>().loadFiles();
     });
+  }
 
-    if (index != 2) {
-
+  void _onTabTapped(int index) {
+    // Don't navigate if already on the same tab
+    if (index == _currentIndex) {
+      return;
     }
+
+    // Navigate using the navigation helper with smooth left-to-right transitions
+    NavigationHelper.navigateToTab(context, index, _currentIndex);
   }
 
   void _showUploadBottomSheet(BuildContext context) {
-    EcliniqBottomSheet.show(context: context, child: UploadBottomSheet());
+    EcliniqBottomSheet.show(
+      context: context,
+      child: UploadBottomSheet(
+        onFileUploaded: () {
+          // Refresh files after upload
+          context.read<HealthFilesProvider>().refresh();
+        },
+      ),
+    );
   }
 
   @override
@@ -73,96 +95,48 @@ class _HealthFilesState extends State<HealthFiles> {
                               children: [
                                 SearchBarWidget(
                                   hintText: 'Search File',
-                                  onSearch: (query) {
-
-                                  },
-                                  onClear: () {
-
-                                  },
-                                  onVoiceSearch: () {
-
-                                  },
+                                  onSearch: (query) {},
+                                  onClear: () {},
+                                  onVoiceSearch: () {},
                                 ),
                                 const MyFilesWidget(),
                                 const RecentlyUploadedWidget(),
                                 UploadTimeline(),
+                                const SizedBox(height: 30),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Expand Timeline',
+                                      style: EcliniqTextStyles.headlineXMedium
+                                          .copyWith(
+                                            color: EcliniqScaffold.darkBlue,
+                                          ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Container(
+                                      width: 1,
+                                      height: 20,
+                                      color: EcliniqScaffold.darkBlue,
+                                    ),
+                                     SizedBox(width: 8),
+                                    SvgPicture.asset(
+                                      EcliniqIcons.arrowDown.assetPath,
+                                      width: 20,
+                                      height: 20,
+                                      color: EcliniqScaffold.darkBlue,
+                                    ),
+                                  ],
+                                ),
+
                                 const SizedBox(height: 100),
                               ],
                             ),
                           ),
                         ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: EcliniqScaffold.primaryBlue,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, -2),
-                              ),
-                            ],
-                          ),
-                          child: SafeArea(
-                            top: false,
-                            child: Container(
-                              height: 70,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => _onTabTapped(0),
-                                      behavior: HitTestBehavior.opaque,
-                                      child: _buildNavItem(
-                                        iconPath: EcliniqIcons.home.assetPath,
-                                        isSelected: _currentIndex == 0,
-                                        label: 'Explore',
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => _onTabTapped(1),
-                                      behavior: HitTestBehavior.opaque,
-                                      child: _buildNavItem(
-                                        iconPath:
-                                            EcliniqIcons.appointment.assetPath,
-                                        isSelected: _currentIndex == 1,
-                                        label: 'My Visits',
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => _onTabTapped(2),
-                                      behavior: HitTestBehavior.opaque,
-                                      child: _buildNavItem(
-                                        iconPath:
-                                            EcliniqIcons.library.assetPath,
-                                        isSelected: _currentIndex == 2,
-                                        label: 'Health Files',
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => _onTabTapped(3),
-                                      behavior: HitTestBehavior.opaque,
-                                      child: _buildNavItem(
-                                        iconPath: EcliniqIcons.user.assetPath,
-                                        isSelected: _currentIndex == 3,
-                                        label: 'Profile',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                        EcliniqBottomNavigationBar(
+                          currentIndex: _currentIndex,
+                          onTap: _onTabTapped,
                         ),
                       ],
                     ),
@@ -212,50 +186,6 @@ class _HealthFilesState extends State<HealthFiles> {
             child: const Center(child: CircularProgressIndicator()),
           ),
       ],
-    );
-  }
-
-  Widget _buildNavItem({
-    required String iconPath,
-    required bool isSelected,
-    required String label,
-  }) {
-    return Container(
-      width: 80,
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF0E4395) : Colors.transparent,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(8),
-          bottomRight: Radius.circular(8),
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 4,
-            width: 90,
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF96BFFF) : Colors.transparent,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Image.asset(
-            iconPath,
-            width: 24,
-            height: 24,
-            color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

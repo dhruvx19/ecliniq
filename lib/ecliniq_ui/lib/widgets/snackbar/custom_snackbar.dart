@@ -1,10 +1,12 @@
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CustomSuccessSnackBar extends SnackBar {
-  CustomSuccessSnackBar({
+  CustomSuccessSnackBar({super.key, 
     required String title,
     required String subtitle,
-    Duration duration = const Duration(seconds: 3),
+    super.duration = const Duration(seconds: 3),
   }) : super(
           content: _SuccessSnackBarContent(
             title: title,
@@ -15,7 +17,6 @@ class CustomSuccessSnackBar extends SnackBar {
           margin: const EdgeInsets.all(16),
           padding: EdgeInsets.zero,
           elevation: 8,
-          duration: duration,
         );
 }
 
@@ -50,28 +51,10 @@ class _SuccessSnackBarContent extends StatelessWidget {
             children: [
               const SizedBox(width: 16),
               // Icon Container
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE0E0E0), // Dark gray outer ring
-                    width: 2,
-                  ),
-                ),
-                child: Container(
-                  margin: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF4CAF50), // Light green
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
+              SvgPicture.asset(
+                EcliniqIcons.snackbar.assetPath,
+                width: 32,
+                height: 32,
               ),
               const SizedBox(width: 16),
               // Text Content

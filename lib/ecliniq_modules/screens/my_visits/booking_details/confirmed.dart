@@ -430,13 +430,15 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
               if (result == true && mounted && _appointment != null) {
                 // Navigate to slot screen for reschedule
                 final appointment = _appointment!;
-                if (appointment.doctorId != null && appointment.hospitalId != null) {
+                if (appointment.doctorId != null && 
+                    (appointment.hospitalId != null || appointment.clinicId != null)) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ClinicVisitSlotScreen(
                         doctorId: appointment.doctorId!,
-                        hospitalId: appointment.hospitalId!,
+                        hospitalId: appointment.hospitalId,
+                        clinicId: appointment.clinicId,
                         doctorName: appointment.doctor.name,
                         doctorSpecialization: appointment.doctor.specialization,
                         appointmentId: appointment.id,

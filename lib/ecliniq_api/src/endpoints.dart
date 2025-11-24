@@ -20,6 +20,7 @@ class Endpoints {
   static String hospitalDetails(String hospitalId) => '$localhost/api/hospitals/getHospitalDetailsByIdbyPatient/$hospitalId';
   static String getAllDoctorHospital(String hospitalId) => '$localhost/api/doctors/getAllDoctorsByHospitalIdForPatient/$hospitalId';
   static String get getSlotsByDate => '$localhost/api/slots/patient/find-slots';
+  static String get findWeeklySlots => '$localhost/api/slots/patient/find-weekly-slots';
   static String get holdToken => '$localhost/api/slots/patient/hold-token';
   static String get bookAppointment => '$localhost/api/appointments/book';
   static String get scheduledAppointments => '$localhost/api/appointments/scheduledAppointments';
@@ -27,6 +28,7 @@ class Endpoints {
   static String appointmentDetail(String appointmentId) => '$localhost/api/appointments/appointment/$appointmentId';
   static String cancelAppointment(String appointmentId) => '$localhost/api/appointments/cancel/$appointmentId';
   static String get rescheduleAppointment => '$localhost/api/appointments/reschedule';
+  static String get verifyAppointment => '$localhost/api/appointments/verify';
   static String get getPatientDetails => '$localhost/api/patients/get-patient-details';
   static String get addDependent => '$localhost/api/patients/add-dependent';
   static String get getDependents => '$localhost/api/patients/get-dependents';

@@ -274,4 +274,52 @@ class AppointmentService {
       );
     }
   }
+
+  Future<VerifyAppointmentResponse> verifyAppointment({
+    required VerifyAppointmentRequest request,
+    String? authToken,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.verifyAppointment);
+
+      final headers = <String, String>{'Content-Type': 'application/json'};
+
+      if (authToken != null) {
+        headers['Authorization'] = 'Bearer $authToken';
+        headers['x-access-token'] = authToken;
+      }
+
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: jsonEncode(request.toJson()),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return VerifyAppointmentResponse.fromJson(responseData);
+      } else {
+        final responseData = jsonDecode(response.body);
+        return VerifyAppointmentResponse(
+          success: false,
+          message:
+              responseData['message'] ??
+              'Failed to verify appointment: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      return VerifyAppointmentResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
 }

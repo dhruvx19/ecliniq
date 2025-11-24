@@ -9,12 +9,17 @@ import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ClinicLocationCard extends StatefulWidget {
-  final String hospitalId;
+  final String? hospitalId;
+  final String? clinicId;
 
   const ClinicLocationCard({
     super.key,
-    required this.hospitalId,
-  });
+    this.hospitalId,
+    this.clinicId,
+  }) : assert(
+          hospitalId != null || clinicId != null,
+          'Either hospitalId or clinicId must be provided',
+        );
 
   @override
   State<ClinicLocationCard> createState() => _ClinicLocationCardState();
@@ -29,14 +34,23 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
   @override
   void initState() {
     super.initState();
-    _fetchHospitalDetails();
-    _getUserLocationAndCalculateDistance();
+    if (widget.hospitalId != null) {
+      _fetchHospitalDetails();
+      _getUserLocationAndCalculateDistance();
+    } else {
+      // For clinics, we don't fetch details, just mark as loaded
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchHospitalDetails() async {
+    if (widget.hospitalId == null) return;
+    
     try {
       final response = await _hospitalService.getHospitalDetails(
-        hospitalId: widget.hospitalId,
+        hospitalId: widget.hospitalId!,
       );
 
       if (mounted) {
@@ -233,6 +247,11 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
   }
 
   String _getHospitalAddress() {
+    if (widget.clinicId != null) {
+      // For clinics, return a generic message
+      return 'Clinic location details';
+    }
+    
     if (_hospitalDetail == null) {
       return 'Loading...';
     }
@@ -308,7 +327,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         ),
         const SizedBox(height: 12),
         InkWell(
-          onTap: _hospitalDetail != null ? _openMapsDirections : null,
+          onTap: (widget.clinicId == null && _hospitalDetail != null) ? _openMapsDirections : null,
           borderRadius: BorderRadius.circular(12),
           child: Container(
           decoration: BoxDecoration(
@@ -409,34 +428,57 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
                   ),
                 ),
               ),
-                InkWell(
-                  onTap: _hospitalDetail != null ? _openMapsDirections : null,
-                  child: Container(
+                if (widget.clinicId == null)
+                  InkWell(
+                    onTap: _hospitalDetail != null ? _openMapsDirections : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.directions,
+                            size: 18,
+                            color: _hospitalDetail != null
+                                ? Color(0xff2372EC)
+                                : Colors.grey,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Tap to get directions',
+                    style: EcliniqTextStyles.bodySmall.copyWith(
+                              color: _hospitalDetail != null
+                                  ? Color(0xff2372EC)
+                                  : Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.directions,
+                          Icons.location_on,
                           size: 18,
-                          color: _hospitalDetail != null
-                              ? Color(0xff2372EC)
-                              : Colors.grey,
+                          color: Colors.grey,
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Tap to get directions',
+                          'Clinic location',
                   style: EcliniqTextStyles.bodySmall.copyWith(
-                            color: _hospitalDetail != null
-                                ? Color(0xff2372EC)
-                                : Colors.grey,
+                            color: Colors.grey,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
                 const SizedBox(height: 4),
               ],
             ),

@@ -52,6 +52,51 @@ class SlotService {
     }
   }
 
+  Future<WeeklySlotResponse> findWeeklySlots({
+    required String doctorId,
+    String? hospitalId,
+    String? clinicId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.findWeeklySlots);
+
+      final requestBody = FindWeeklySlotsRequest(
+        doctorId: doctorId,
+        hospitalId: hospitalId,
+        clinicId: clinicId,
+      );
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return WeeklySlotResponse.fromJson(responseData);
+      } else {
+        return WeeklySlotResponse(
+          success: false,
+          message: 'Failed to fetch weekly slots: ${response.statusCode}',
+          data: [],
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      return WeeklySlotResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: [],
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+
   Future<HoldTokenResponse> holdToken({
     required String slotId,
     required String authToken,

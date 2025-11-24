@@ -20,24 +20,15 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
   void initState() {
     super.initState();
     _locations = widget.doctor.locations;
-    // Select first location by default
-    if (_locations.isNotEmpty) {
-      _selectedLocationId = _locations.first.id;
-    }
+    // Keep default state unselected
+    _selectedLocationId = null;
   }
 
   void _onLocationTap(String locationId) {
-    setState(() {
-      _selectedLocationId = locationId;
-    });
-  }
-
-  void _onConfirm() {
-    if (_selectedLocationId == null) return;
-
     final selected = _locations.firstWhere(
-      (loc) => loc.id == _selectedLocationId,
+      (loc) => loc.id == locationId,
     );
+    // Automatically navigate when location is selected
     Navigator.pop(context, selected);
   }
 
@@ -96,11 +87,6 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                       ),
                     ),
                   ),
-
-                const SizedBox(height: 8),
-
-                // Confirm button
-                if (_locations.isNotEmpty) _buildConfirmButton(),
               ],
             ),
           ),
@@ -117,30 +103,6 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
     } else {
       return '${widget.doctor.name} is available at multiple locations. Select where you want to book an appointment.';
     }
-  }
-
-  Widget _buildConfirmButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: _selectedLocationId != null ? _onConfirm : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2372EC),
-          disabledBackgroundColor: const Color(0xFFE0E0E0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          elevation: 0,
-        ),
-        child: const Text(
-          'Confirm Location',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
   }
 }
 

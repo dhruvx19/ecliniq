@@ -20,7 +20,8 @@ class ReviewDetailsScreen extends StatefulWidget {
   final String selectedSlot;
   final String selectedDate;
   final String doctorId;
-  final String hospitalId;
+  final String? hospitalId;
+  final String? clinicId;
   final String slotId;
   final String? doctorName;
   final String? doctorSpecialization;
@@ -33,14 +34,18 @@ class ReviewDetailsScreen extends StatefulWidget {
     required this.selectedSlot,
     required this.selectedDate,
     required this.doctorId,
-    required this.hospitalId,
+    this.hospitalId,
+    this.clinicId,
     required this.slotId,
     this.doctorName,
     this.doctorSpecialization,
     this.appointmentId,
     this.previousAppointment,
     this.isReschedule = false,
-  });
+  }) : assert(
+          hospitalId != null || clinicId != null,
+          'Either hospitalId or clinicId must be provided',
+        );
 
   @override
   State<ReviewDetailsScreen> createState() => _ReviewDetailsScreenState();
@@ -83,11 +88,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   }
 
   Future<void> _fetchHospitalAddress() async {
-    if (widget.hospitalId.isEmpty) return;
+    // Only fetch hospital address if hospitalId is provided (not for clinics)
+    if (widget.hospitalId == null || widget.hospitalId!.isEmpty) return;
 
     try {
       final response = await _hospitalService.getHospitalDetails(
-        hospitalId: widget.hospitalId,
+        hospitalId: widget.hospitalId!,
       );
 
       if (mounted && response.success && response.data != null) {
@@ -253,9 +259,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: ClinicLocationCard(
-                        hospitalId: widget.hospitalId.isNotEmpty
-                            ? widget.hospitalId
-                            : '',
+                        hospitalId: widget.hospitalId ?? '',
+                        clinicId: widget.clinicId,
                       ),
                     ),
                   ),
@@ -553,6 +558,19 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
         if (mounted) {
           if (response.success && response.data != null) {
+            final appointmentId = response.data!.id;
+            
+            // Verify appointment payment
+            final verifyRequest = VerifyAppointmentRequest(
+              appointmentId: appointmentId,
+              paymentStatus: 'COMPLETED',
+            );
+
+            await _appointmentService.verifyAppointment(
+              request: verifyRequest,
+              authToken: _authToken,
+            );
+
             final tokenNumber = response.data!.tokenNo.toString();
 
             Navigator.pushReplacement(

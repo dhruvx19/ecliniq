@@ -944,3 +944,62 @@ class RescheduleAppointmentResponse {
     };
   }
 }
+
+class VerifyAppointmentRequest {
+  final String appointmentId;
+  final String paymentStatus;
+
+  VerifyAppointmentRequest({
+    required this.appointmentId,
+    required this.paymentStatus,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'appointmentId': appointmentId,
+      'paymentStatus': paymentStatus,
+    };
+  }
+}
+
+class VerifyAppointmentResponse {
+  final bool success;
+  final String message;
+  final AppointmentData? data;
+  final dynamic errors;
+  final dynamic meta;
+  final String timestamp;
+
+  VerifyAppointmentResponse({
+    required this.success,
+    required this.message,
+    this.data,
+    required this.errors,
+    required this.meta,
+    required this.timestamp,
+  });
+
+  factory VerifyAppointmentResponse.fromJson(Map<String, dynamic> json) {
+    return VerifyAppointmentResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: json['data'] != null
+          ? AppointmentData.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
+      errors: json['errors'],
+      meta: json['meta'],
+      timestamp: json['timestamp'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+      if (data != null) 'data': data!.toJson(),
+      'errors': errors,
+      'meta': meta,
+      'timestamp': timestamp,
+    };
+  }
+}

@@ -5,12 +5,14 @@ class DateSelector extends StatelessWidget {
   final String selectedDate;
   final DateTime? selectedDateValue;
   final Function(DateTime) onDateChanged;
+  final Map<DateTime, int>? tokenCounts; // Map of date to token count
 
   const DateSelector({
     super.key,
     required this.selectedDate,
     this.selectedDateValue,
     required this.onDateChanged,
+    this.tokenCounts,
   });
 
   @override
@@ -33,6 +35,19 @@ class DateSelector extends StatelessWidget {
               date.day == selectedDateValue!.day;
           
           final label = _formatDateLabel(date);
+          
+          // Find matching token count for this date
+          int? tokenCount;
+          if (tokenCounts != null) {
+            final dateOnly = DateTime(date.year, date.month, date.day);
+            for (final key in tokenCounts!.keys) {
+              final keyDateOnly = DateTime(key.year, key.month, key.day);
+              if (keyDateOnly == dateOnly) {
+                tokenCount = tokenCounts![key];
+                break;
+              }
+            }
+          }
           
           return Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -62,7 +77,9 @@ class DateSelector extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Tap to view slots',
+                      tokenCount != null
+                          ? '$tokenCount tokens'
+                          : 'Tap to view slots',
                       style: EcliniqTextStyles.bodySmall.copyWith(
                         color: isSelected
                             ? Colors.white.withOpacity(0.9)

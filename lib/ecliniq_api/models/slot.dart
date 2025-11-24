@@ -346,3 +346,129 @@ class HoldTokenResponse {
   }
 }
 
+class WeeklySlotData {
+  final DateTime date;
+  final int totalAvailableTokens;
+
+  WeeklySlotData({
+    required this.date,
+    required this.totalAvailableTokens,
+  });
+
+  factory WeeklySlotData.fromJson(Map<String, dynamic> json) {
+    final parseTime = (dynamic timeValue) {
+      if (timeValue == null) {
+        return DateTime.utc(1970, 1, 1);
+      }
+      final timeStr = timeValue is String ? timeValue : timeValue.toString();
+      try {
+        final parsed = DateTime.parse(timeStr);
+        return parsed.isUtc ? parsed : DateTime.utc(
+          parsed.year,
+          parsed.month,
+          parsed.day,
+          parsed.hour,
+          parsed.minute,
+          parsed.second,
+          parsed.millisecond,
+          parsed.microsecond,
+        );
+      } catch (e) {
+        return DateTime.utc(1970, 1, 1);
+      }
+    };
+
+    final toInt = (dynamic value, int defaultValue) {
+      if (value == null) return defaultValue;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? defaultValue;
+      if (value is double) return value.toInt();
+      return defaultValue;
+    };
+
+    return WeeklySlotData(
+      date: parseTime(json['date']),
+      totalAvailableTokens: toInt(json['totalAvailableTokens'], 0),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'date': date.toIso8601String(),
+      'totalAvailableTokens': totalAvailableTokens,
+    };
+  }
+}
+
+class WeeklySlotResponse {
+  final bool success;
+  final String message;
+  final List<WeeklySlotData> data;
+  final dynamic errors;
+  final dynamic meta;
+  final String timestamp;
+
+  WeeklySlotResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+    required this.errors,
+    required this.meta,
+    required this.timestamp,
+  });
+
+  factory WeeklySlotResponse.fromJson(Map<String, dynamic> json) {
+    return WeeklySlotResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((item) => WeeklySlotData.fromJson(item))
+          .toList() ?? [],
+      errors: json['errors'],
+      meta: json['meta'],
+      timestamp: json['timestamp'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+      'data': data.map((slot) => slot.toJson()).toList(),
+      'errors': errors,
+      'meta': meta,
+      'timestamp': timestamp,
+    };
+  }
+}
+
+class FindWeeklySlotsRequest {
+  final String doctorId;
+  final String? hospitalId;
+  final String? clinicId;
+
+  FindWeeklySlotsRequest({
+    required this.doctorId,
+    this.hospitalId,
+    this.clinicId,
+  }) : assert(
+          hospitalId != null || clinicId != null,
+          'Either hospitalId or clinicId must be provided',
+        );
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{
+      'doctorId': doctorId,
+    };
+    
+    if (hospitalId != null) {
+      json['hospitalId'] = hospitalId;
+    }
+    if (clinicId != null) {
+      json['clinicId'] = clinicId;
+    }
+    
+    return json;
+  }
+}
+

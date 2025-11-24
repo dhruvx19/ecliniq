@@ -56,11 +56,13 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
   List<Slot> _slots = [];
   Map<String, List<Slot>> _groupedSlots = {};
+  Map<DateTime, int> _weeklyTokenCounts = {}; // Map of date to token count
 
   @override
   void initState() {
     super.initState();
     _initializeDates();
+    _fetchWeeklySlots();
     _fetchSlots();
   }
 
@@ -106,6 +108,36 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
   String _formatDateForApi(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _fetchWeeklySlots() async {
+    try {
+      final response = await _slotService.findWeeklySlots(
+        doctorId: widget.doctorId,
+        hospitalId: widget.hospitalId,
+        clinicId: widget.clinicId,
+      );
+
+      if (mounted && response.success) {
+        setState(() {
+          _weeklyTokenCounts.clear();
+          for (final weeklySlot in response.data) {
+            // Normalize the date to local date (remove time component)
+            final dateOnly = DateTime(
+              weeklySlot.date.year,
+              weeklySlot.date.month,
+              weeklySlot.date.day,
+            );
+            _weeklyTokenCounts[dateOnly] = weeklySlot.totalAvailableTokens;
+          }
+        });
+      }
+    } catch (e) {
+      // Silently fail - weekly slots are not critical for functionality
+      if (mounted) {
+        debugPrint('Failed to fetch weekly slots: $e');
+      }
+    }
   }
 
   Future<void> _fetchSlots() async {
@@ -304,11 +336,13 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       if (mounted) {
         if (holdTokenResponse.success && holdTokenResponse.data != null) {
           // Token held successfully, navigate to review screen
-          // Use hospitalId from slot if available, otherwise fallback to widget.hospitalId
-          // Note: ReviewDetailsScreen may need to be updated to support clinicId as well
+          // Use hospitalId/clinicId from slot if available, otherwise fallback to widget values
           final hospitalIdFromSlot = slot.hospitalId.isNotEmpty
               ? slot.hospitalId
-              : (widget.hospitalId ?? '');
+              : widget.hospitalId;
+          final clinicIdFromSlot = slot.clinicId != null && slot.clinicId!.isNotEmpty
+              ? slot.clinicId
+              : widget.clinicId;
 
           Navigator.push(
             context,
@@ -320,6 +354,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                     ? slot.doctorId
                     : widget.doctorId,
                 hospitalId: hospitalIdFromSlot,
+                clinicId: clinicIdFromSlot,
                 slotId: slot.id,
                 doctorName: widget.doctorName,
                 doctorSpecialization: widget.doctorSpecialization,
@@ -790,6 +825,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                       selectedDate: selectedDateLabel,
                       selectedDateValue: selectedDate,
                       onDateChanged: _onDateChanged,
+                      tokenCounts: _weeklyTokenCounts,
                     ),
                   ),
                   const SizedBox(height: 14),

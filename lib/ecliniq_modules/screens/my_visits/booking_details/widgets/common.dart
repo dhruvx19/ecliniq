@@ -22,6 +22,7 @@ class AppointmentDetailModel {
   final int? rating;
   final String? doctorId;
   final String? hospitalId;
+  final String? clinicId;
   final bool? _isRescheduled;
 
   AppointmentDetailModel({
@@ -38,6 +39,7 @@ class AppointmentDetailModel {
     this.rating,
     this.doctorId,
     this.hospitalId,
+    this.clinicId,
     bool? isRescheduled,
   }) : _isRescheduled = isRescheduled;
 
@@ -58,6 +60,7 @@ class AppointmentDetailModel {
       rating: json['rating'],
       doctorId: json['doctor_id'],
       hospitalId: json['hospital_id'],
+      clinicId: json['clinic_id'],
       isRescheduled: json['is_rescheduled'] == null ? null : (json['is_rescheduled'] == true || json['is_rescheduled'] == 'true' || json['is_rescheduled'] == 1),
     );
   }
@@ -163,14 +166,17 @@ class AppointmentDetailModel {
     final serviceFee = 0.0; // Service fee not in API response
     final totalPayable = consultationFee + serviceFee;
 
-    // Extract doctorId and hospitalId
+    // Extract doctorId, hospitalId, and clinicId
     final doctorId = apiData.doctor.userId;
     String? hospitalId;
+    String? clinicId;
     
     if (location.type == 'HOSPITAL') {
       hospitalId = location.id;
-    } else if (location.type == 'CLINIC' && apiData.doctor.primaryClinic != null) {
-      hospitalId = apiData.doctor.primaryClinic!.id;
+      clinicId = null;
+    } else if (location.type == 'CLINIC') {
+      clinicId = location.id;
+      hospitalId = null;
     }
 
     return AppointmentDetailModel(
@@ -226,6 +232,7 @@ class AppointmentDetailModel {
       rating: null, // Not available in API response
       doctorId: doctorId,
       hospitalId: hospitalId,
+      clinicId: clinicId,
       isRescheduled: apiData.isRescheduled,
     );
   }
@@ -245,6 +252,7 @@ class AppointmentDetailModel {
       'rating': rating,
       if (doctorId != null) 'doctor_id': doctorId,
       if (hospitalId != null) 'hospital_id': hospitalId,
+      if (clinicId != null) 'clinic_id': clinicId,
       'is_rescheduled': isRescheduled,
     };
   }

@@ -9,6 +9,7 @@ import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/address_d
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/common_widget.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/easy_to_book.dart';
 import 'package:ecliniq/ecliniq_modules/screens/hospital/widgets/appointment_timing.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -81,10 +82,18 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if (_isLoading || _doctorDetails == null) {
       return Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => EcliniqRouter.pop(),
+          ),
+        ),
+        body: _buildShimmerLoading(),
       );
     }
 
@@ -116,19 +125,6 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             ],
           ),
         ),
-      );
-    }
-
-    if (_doctorDetails == null) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () => EcliniqRouter.pop(),
-          ),
-        ),
-        body: Center(child: Text('Doctor details not found')),
       );
     }
 
@@ -567,6 +563,186 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             ),
           ),
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header image shimmer
+              ShimmerLoading(
+                height: 280,
+                borderRadius: BorderRadius.zero,
+              ),
+              const SizedBox(height: 16),
+              // Doctor info section shimmer
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.only(top: 80, left: 16, right: 16, bottom: 24),
+                child: Column(
+                  children: [
+                    // Profile picture shimmer (circular)
+                    Center(
+                      child: ShimmerLoading(
+                        width: 100,
+                        height: 100,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Name shimmer
+                    ShimmerLoading(
+                      width: 200,
+                      height: 24,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 12),
+                    // Specialization shimmer
+                    ShimmerLoading(
+                      width: 150,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 8),
+                    // Education shimmer
+                    ShimmerLoading(
+                      width: 180,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 16),
+                    // Location shimmer
+                    ShimmerLoading(
+                      width: 120,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Stats cards shimmer
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      _buildStatCardShimmer(),
+                      Container(
+                        width: 1,
+                        height: 80,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        color: Colors.grey[200],
+                      ),
+                      _buildStatCardShimmer(),
+                      Container(
+                        width: 1,
+                        height: 80,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        color: Colors.grey[200],
+                      ),
+                      _buildStatCardShimmer(),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Appointment timing shimmer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ShimmerLoading(
+                  height: 150,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Address section shimmer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ShimmerLoading(
+                  height: 120,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // About section shimmer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ShimmerLoading(
+                  height: 100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Additional sections shimmer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ShimmerLoading(
+                  height: 200,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ShimmerLoading(
+                  height: 150,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
+          // Profile picture positioned shimmer
+          Positioned(
+            top: 230,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ShimmerLoading(
+                width: 100,
+                height: 100,
+                borderRadius: BorderRadius.circular(50),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCardShimmer() {
+    return SizedBox(
+      width: 120,
+      child: Column(
+        children: [
+          ShimmerLoading(
+            width: 32,
+            height: 32,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          const SizedBox(height: 8),
+          ShimmerLoading(
+            width: 80,
+            height: 12,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          const SizedBox(height: 6),
+          ShimmerLoading(
+            width: 60,
+            height: 20,
+            borderRadius: BorderRadius.circular(4),
+          ),
         ],
       ),
     );

@@ -572,6 +572,88 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
   Widget _buildPreviousAppointmentBanner() {
     final appointment = widget.previousAppointment!;
+    
+    // Parse date from timeInfo.date (format: "dd MMM, yyyy" or similar)
+    String dateLabel = 'Today';
+    String dateDisplay = '';
+    
+    try {
+      // Try to parse the date string
+      final dateStr = appointment.timeInfo.date;
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      
+      // Try different date formats
+      DateTime? appointmentDate;
+      try {
+        // Try parsing as "dd MMM, yyyy" format
+        final parts = dateStr.split(',');
+        if (parts.length == 2) {
+          final datePart = parts[0].trim();
+          final yearPart = parts[1].trim();
+          final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          final dateParts = datePart.split(' ');
+          if (dateParts.length == 2) {
+            final day = int.tryParse(dateParts[0]);
+            final monthName = dateParts[1];
+            final month = monthNames.indexOf(monthName) + 1;
+            final year = int.tryParse(yearPart);
+            if (day != null && month > 0 && year != null) {
+              appointmentDate = DateTime(year, month, day);
+            }
+          }
+        }
+      } catch (e) {
+        // If parsing fails, try ISO format
+        try {
+          appointmentDate = DateTime.parse(dateStr);
+        } catch (e2) {
+          // If all parsing fails, use today
+          appointmentDate = today;
+        }
+      }
+      
+      if (appointmentDate != null) {
+        final dateOnly = DateTime(appointmentDate.year, appointmentDate.month, appointmentDate.day);
+        final tomorrow = today.add(const Duration(days: 1));
+        
+        if (dateOnly == today) {
+          dateLabel = 'Today';
+        } else if (dateOnly == tomorrow) {
+          dateLabel = 'Tomorrow';
+        } else {
+          final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          dateLabel = weekdays[dateOnly.weekday - 1];
+        }
+        
+        // Format as "DD MMM"
+        final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        dateDisplay = '${dateOnly.day} ${monthNames[dateOnly.month - 1]}';
+      } else {
+        dateLabel = 'Today';
+        final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        dateDisplay = '${today.day} ${monthNames[today.month - 1]}';
+      }
+    } catch (e) {
+      // Fallback to today's date
+      final now = DateTime.now();
+      dateLabel = 'Today';
+      final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      dateDisplay = '${now.day} ${monthNames[now.month - 1]}';
+    }
+    
+    // Format token and time
+    final tokenText = appointment.tokenNumber != null 
+        ? 'Your Token #${appointment.tokenNumber}'
+        : 'Your booking';
+    final timeText = appointment.timeInfo.time.isNotEmpty
+        ? ' (Time: ${appointment.timeInfo.time})'
+        : '';
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
@@ -587,7 +669,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             child: Column(
               children: [
                 Text(
-                  'Today',
+                  dateLabel,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w400,
@@ -595,7 +677,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                   ),
                 ),
                 Text(
-                  '12 Nov',
+                  dateDisplay,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -622,7 +704,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
               ),
               FittedBox(
                 child: Text(
-                  'Your Token #76 (Time: 10:45AM)',
+                  '$tokenText$timeText',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,

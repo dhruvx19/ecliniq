@@ -1,7 +1,6 @@
 import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_api/hospital_service.dart';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
-import 'package:ecliniq/ecliniq_api/models/hospital.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
@@ -9,15 +8,13 @@ import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/clinic_location_
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/reason_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/top_bar_widgets/easy_way_book.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart' hide DoctorInfoCard, ClinicLocationCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// Commented out - using only SharedPreferences data from API responses
-// import 'package:provider/provider.dart';
-// import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 
 class ReviewDetailsScreen extends StatefulWidget {
   final String selectedSlot;
@@ -27,6 +24,9 @@ class ReviewDetailsScreen extends StatefulWidget {
   final String slotId;
   final String? doctorName;
   final String? doctorSpecialization;
+  final String? appointmentId;
+  final AppointmentDetailModel? previousAppointment;
+  final bool isReschedule;
 
   const ReviewDetailsScreen({
     super.key,
@@ -37,6 +37,9 @@ class ReviewDetailsScreen extends StatefulWidget {
     required this.slotId,
     this.doctorName,
     this.doctorSpecialization,
+    this.appointmentId,
+    this.previousAppointment,
+    this.isReschedule = false,
   });
 
   @override
@@ -52,7 +55,6 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   String? selectedReason;
   bool receiveUpdates = true;
   bool _isBooking = false;
-  String? _errorMessage;
   String? _patientId;
   String? _authToken;
   String? _hospitalAddress;
@@ -72,11 +74,17 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     super.initState();
     _loadPatientId();
     _fetchHospitalAddress();
+    
+    // Pre-fill reason from previous appointment if rescheduling
+    if (widget.isReschedule && widget.previousAppointment != null) {
+      // The reason might be stored in the appointment, but it's not in AppointmentDetailModel
+      // So we'll leave it empty for now
+    }
   }
 
   Future<void> _fetchHospitalAddress() async {
     if (widget.hospitalId.isEmpty) return;
-    
+
     try {
       final response = await _hospitalService.getHospitalDetails(
         hospitalId: widget.hospitalId,
@@ -86,7 +94,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         final hospitalDetail = response.data!;
         final address = hospitalDetail.address;
         final parts = <String>[];
-        
+
         if (address.street != null && address.street!.isNotEmpty) {
           parts.add(address.street!);
         }
@@ -104,7 +112,9 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         }
 
         setState(() {
-          _hospitalAddress = parts.isEmpty ? 'Address not available' : parts.join(', ');
+          _hospitalAddress = parts.isEmpty
+              ? 'Address not available'
+              : parts.join(', ');
         });
       }
     } catch (e) {
@@ -120,8 +130,6 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   }
 
   Future<void> _loadPatientId() async {
-    // For now, use hardcoded patientId - login requirement removed
-    // TODO: Add login requirement later
     final prefs = await SharedPreferences.getInstance();
     final patientId =
         prefs.getString('patient_id') ??
@@ -130,10 +138,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     final authToken = prefs.getString('auth_token');
 
     setState(() {
-      // Use hardcoded patientId for now - will get from API response later
-      _patientId =
-          patientId ??
-          'b938b18a-acef-40e1-aca8-1cd971580eb8'; // Hardcoded for now
+      _patientId = patientId ?? '2ccb2364-9e21-40ad-a1f2-274b73553e44';
       _authToken = authToken;
     });
   }
@@ -167,7 +172,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Review Details',
+            widget.isReschedule ? 'Reschedule' : 'Review Details',
             style: EcliniqTextStyles.headlineMedium.copyWith(
               color: Color(0xff424242),
             ),
@@ -364,7 +369,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                                     .copyWith(color: Color(0xff626060)),
                               ),
                               Text(
-                                '₹700',
+                                'Pay at Clinic',
                                 style: EcliniqTextStyles.headlineXMedium
                                     .copyWith(color: Color(0xff424242)),
                               ),
@@ -424,7 +429,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                                 ),
                               ),
                               Text(
-                                '₹700',
+                                'Pay at Clinic',
                                 style: EcliniqTextStyles.headlineLarge.copyWith(
                                   color: Color(0xff424242),
                                 ),
@@ -463,13 +468,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   }
 
   Future<void> _onConfirmVisit() async {
-    // Prevent multiple taps
     if (_isBooking) {
       return;
     }
 
-    // Validate reason first - only requirement for now
-    if (selectedReason == null || selectedReason!.isEmpty) {
+    // Reason is only required for new appointments, not for reschedule
+    if (!widget.isReschedule && (selectedReason == null || selectedReason!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select a reason for visit'),
@@ -479,79 +483,118 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
       return;
     }
 
-    // For now, use hardcoded patientId - login requirement removed
-    // TODO: Add login requirement later
     await _loadPatientId();
-    final finalPatientId = _patientId ?? 'b938b18a-acef-40e1-aca8-1cd971580eb8';
+    final finalPatientId = _patientId ?? '2ccb2364-9e21-40ad-a1f2-274b73553e44';
 
     setState(() {
       _isBooking = true;
-      _errorMessage = null;
     });
 
     try {
-      // Use the slot ID from get slots API response as doctorSlotScheduleId
-      final request = BookAppointmentRequest(
-        patientId:
-            finalPatientId, // Use finalPatientId (with fallback to hardcoded)
-        doctorId: widget.doctorId,
-        doctorSlotScheduleId:
-            widget.slotId, // Slot ID from get slots API response
-        reason: selectedReason,
-        referBy: _referByController.text.trim().isEmpty
-            ? null
-            : _referByController.text.trim(),
-        bookedFor: 'SELF',
-      );
+      if (widget.isReschedule && widget.appointmentId != null) {
+        // Reschedule appointment
+        final rescheduleRequest = RescheduleAppointmentRequest(
+          appointmentId: widget.appointmentId!,
+          newSlotId: widget.slotId,
+        );
 
-      final response = await _appointmentService.bookAppointment(
-        request: request,
-        authToken: _authToken,
-      );
+        final response = await _appointmentService.rescheduleAppointment(
+          request: rescheduleRequest,
+          authToken: _authToken,
+        );
 
-      if (mounted) {
-        if (response.success && response.data != null) {
-          // Get token number from API response
-          final tokenNumber = response.data!.tokenNo.toString();
-          
-          // Navigate to request sent screen with doctor details
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AppointmentRequestScreen(
-                doctorName: widget.doctorName,
-                doctorSpecialization: widget.doctorSpecialization,
-                selectedSlot: widget.selectedSlot,
-                selectedDate: widget.selectedDate,
-                hospitalAddress: _hospitalAddress,
-                tokenNumber: tokenNumber,
+        if (mounted) {
+          if (response.success && response.data != null) {
+            final tokenNumber = response.data!.tokenNo.toString();
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AppointmentRequestScreen(
+                  doctorName: widget.doctorName,
+                  doctorSpecialization: widget.doctorSpecialization,
+                  selectedSlot: widget.selectedSlot,
+                  selectedDate: widget.selectedDate,
+                  hospitalAddress: _hospitalAddress,
+                  tokenNumber: tokenNumber,
+                ),
               ),
-            ),
-          );
-        } else {
-          setState(() {
-            _isBooking = false;
-            _errorMessage = response.message;
-          });
+            );
+          } else {
+            setState(() {
+              _isBooking = false;
+            });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message),
-              backgroundColor: Colors.red,
-            ),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(response.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } else {
+        // Book new appointment
+        final request = BookAppointmentRequest(
+          patientId: finalPatientId,
+          doctorId: widget.doctorId,
+          doctorSlotScheduleId: widget.slotId,
+          reason: selectedReason,
+          referBy: _referByController.text.trim().isEmpty
+              ? null
+              : _referByController.text.trim(),
+          bookedFor: 'SELF',
+        );
+
+        final response = await _appointmentService.bookAppointment(
+          request: request,
+          authToken: _authToken,
+        );
+
+        if (mounted) {
+          if (response.success && response.data != null) {
+            final tokenNumber = response.data!.tokenNo.toString();
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AppointmentRequestScreen(
+                  doctorName: widget.doctorName,
+                  doctorSpecialization: widget.doctorSpecialization,
+                  selectedSlot: widget.selectedSlot,
+                  selectedDate: widget.selectedDate,
+                  hospitalAddress: _hospitalAddress,
+                  tokenNumber: tokenNumber,
+                ),
+              ),
+            );
+          } else {
+            setState(() {
+              _isBooking = false;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(response.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isBooking = false;
-          _errorMessage = e.toString();
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to book appointment: ${e.toString()}'),
+            content: Text(
+              widget.isReschedule
+                  ? 'Failed to reschedule appointment: ${e.toString()}'
+                  : 'Failed to book appointment: ${e.toString()}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -592,7 +635,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 )
               else ...[
                 Text(
-                  'Confirm Visit',
+                  widget.isReschedule ? 'Confirm Reschedule' : 'Confirm Visit',
                   style: EcliniqTextStyles.headlineMedium.copyWith(
                     color: Colors.white,
                   ),

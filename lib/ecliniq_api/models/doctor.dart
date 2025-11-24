@@ -104,3 +104,367 @@ class TopDoctorsRequest {
     };
   }
 }
+
+// Doctor Details Models
+class ClinicDetails {
+  final String id;
+  final String name;
+  final String address;
+  final String city;
+  final String state;
+  final String pincode;
+  final double? latitude;
+  final double? longitude;
+  final String? contactEmail;
+  final String? contactNumber;
+  final List<String>? photos;
+  final String? image;
+  final String? about;
+
+  ClinicDetails({
+    required this.id,
+    required this.name,
+    required this.address,
+    required this.city,
+    required this.state,
+    required this.pincode,
+    this.latitude,
+    this.longitude,
+    this.contactEmail,
+    this.contactNumber,
+    this.photos,
+    this.image,
+    this.about,
+  });
+
+  factory ClinicDetails.fromJson(Map<String, dynamic> json) {
+    return ClinicDetails(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      address: json['address'] ?? '',
+      city: json['city'] ?? '',
+      state: json['state'] ?? '',
+      pincode: json['pincode'] ?? '',
+      latitude: json['latitude']?.toDouble(),
+      longitude: json['longitude']?.toDouble(),
+      contactEmail: json['contactEmail'],
+      contactNumber: json['contactNumber'],
+      photos: (json['photos'] as List<dynamic>?)
+          ?.map((item) => item.toString())
+          .toList(),
+      image: json['image'],
+      about: json['about'],
+    );
+  }
+}
+
+class ContactDetails {
+  final String? email;
+  final String? phone;
+  final List<String>? languages;
+
+  ContactDetails({
+    this.email,
+    this.phone,
+    this.languages,
+  });
+
+  factory ContactDetails.fromJson(Map<String, dynamic> json) {
+    return ContactDetails(
+      email: json['email'],
+      phone: json['phone'],
+      languages: (json['languages'] as List<dynamic>?)
+          ?.map((item) => item.toString())
+          .toList(),
+    );
+  }
+}
+
+class ProfessionalInformation {
+  final String? registrationCouncil;
+  final String? registrationNumber;
+  final String? registrationYear;
+  final List<SpecializationInfo>? specializations;
+  final List<String>? symptoms;
+
+  ProfessionalInformation({
+    this.registrationCouncil,
+    this.registrationNumber,
+    this.registrationYear,
+    this.specializations,
+    this.symptoms,
+  });
+
+  factory ProfessionalInformation.fromJson(Map<String, dynamic> json) {
+    return ProfessionalInformation(
+      registrationCouncil: json['registrationCouncil'],
+      registrationNumber: json['registrationNumber'],
+      registrationYear: json['registrationYear'],
+      specializations: (json['specializations'] as List<dynamic>?)
+          ?.map((item) => SpecializationInfo.fromJson(item))
+          .toList(),
+      symptoms: (json['symptoms'] as List<dynamic>?)
+          ?.map((item) => item.toString())
+          .toList(),
+    );
+  }
+}
+
+class SpecializationInfo {
+  final String name;
+  final int expYears;
+
+  SpecializationInfo({
+    required this.name,
+    required this.expYears,
+  });
+
+  factory SpecializationInfo.fromJson(Map<String, dynamic> json) {
+    return SpecializationInfo(
+      name: json['name'] ?? '',
+      expYears: json['expYears'] ?? 0,
+    );
+  }
+}
+
+class EducationalInformation {
+  final String id;
+  final String instituteName;
+  final String graduationType;
+  final String degree;
+  final String? fieldOfStudy;
+  final int startYear;
+  final int completionYear;
+
+  EducationalInformation({
+    required this.id,
+    required this.instituteName,
+    required this.graduationType,
+    required this.degree,
+    this.fieldOfStudy,
+    required this.startYear,
+    required this.completionYear,
+  });
+
+  factory EducationalInformation.fromJson(Map<String, dynamic> json) {
+    return EducationalInformation(
+      id: json['id'] ?? '',
+      instituteName: json['instituteName'] ?? '',
+      graduationType: json['graduationType'] ?? '',
+      degree: json['degree'] ?? '',
+      fieldOfStudy: json['fieldOfStudy'],
+      startYear: json['startYear'] ?? 0,
+      completionYear: json['completionYear'] ?? 0,
+    );
+  }
+}
+
+class CertificateAndAccreditation {
+  final String id;
+  final String name;
+  final String issuer;
+  final String? associatedWith;
+  final String? issueDate;
+  final String? url;
+  final String? description;
+
+  CertificateAndAccreditation({
+    required this.id,
+    required this.name,
+    required this.issuer,
+    this.associatedWith,
+    this.issueDate,
+    this.url,
+    this.description,
+  });
+
+  factory CertificateAndAccreditation.fromJson(Map<String, dynamic> json) {
+    return CertificateAndAccreditation(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      issuer: json['issuer'] ?? '',
+      associatedWith: json['associatedWith'],
+      issueDate: json['issueDate'],
+      url: json['url'],
+      description: json['description'],
+    );
+  }
+}
+
+class Experience {
+  final String id;
+  final String jobTitle;
+  final String employmentType;
+  final String hospitalOrClinicName;
+  final bool isCurrentlyWorking;
+  final String? startDate;
+  final String? endDate;
+  final String? description;
+
+  Experience({
+    required this.id,
+    required this.jobTitle,
+    required this.employmentType,
+    required this.hospitalOrClinicName,
+    required this.isCurrentlyWorking,
+    this.startDate,
+    this.endDate,
+    this.description,
+  });
+
+  factory Experience.fromJson(Map<String, dynamic> json) {
+    return Experience(
+      id: json['id'] ?? '',
+      jobTitle: json['jobTitle'] ?? '',
+      employmentType: json['employmentType'] ?? '',
+      hospitalOrClinicName: json['hospitalOrClinicName'] ?? '',
+      isCurrentlyWorking: json['isCurrentlyWorking'] ?? false,
+      startDate: json['startDate'],
+      endDate: json['endDate'],
+      description: json['description'],
+    );
+  }
+}
+
+class Publication {
+  final String id;
+  final String title;
+  final String? publisher;
+  final String? publicationDate;
+  final String? url;
+  final String? description;
+
+  Publication({
+    required this.id,
+    required this.title,
+    this.publisher,
+    this.publicationDate,
+    this.url,
+    this.description,
+  });
+
+  factory Publication.fromJson(Map<String, dynamic> json) {
+    return Publication(
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      publisher: json['publisher'],
+      publicationDate: json['publicationDate'],
+      url: json['url'],
+      description: json['description'],
+    );
+  }
+}
+
+class DoctorDetails {
+  final String userId;
+  final String name;
+  final String? profilePhoto;
+  final String? headline;
+  final String? about;
+  final List<String>? specializations;
+  final ClinicDetails? clinicDetails;
+  final List<dynamic>? doctorHospitals;
+  final int? workExperience;
+  final int? patientsServed;
+  final double? rating;
+  final int? currentTokenNumber;
+  final ContactDetails? contactDetails;
+  final ProfessionalInformation? professionalInformation;
+  final List<EducationalInformation>? educationalInformation;
+  final List<CertificateAndAccreditation>? certificatesAndAccreditations;
+  final List<Experience>? experiences;
+  final List<Publication>? publications;
+
+  DoctorDetails({
+    required this.userId,
+    required this.name,
+    this.profilePhoto,
+    this.headline,
+    this.about,
+    this.specializations,
+    this.clinicDetails,
+    this.doctorHospitals,
+    this.workExperience,
+    this.patientsServed,
+    this.rating,
+    this.currentTokenNumber,
+    this.contactDetails,
+    this.professionalInformation,
+    this.educationalInformation,
+    this.certificatesAndAccreditations,
+    this.experiences,
+    this.publications,
+  });
+
+  factory DoctorDetails.fromJson(Map<String, dynamic> json) {
+    return DoctorDetails(
+      userId: json['userId'] ?? '',
+      name: json['name'] ?? '',
+      profilePhoto: json['profilePhoto'],
+      headline: json['headline'],
+      about: json['about'],
+      specializations: (json['specializations'] as List<dynamic>?)
+          ?.map((item) => item.toString())
+          .toList(),
+      clinicDetails: json['clinicDetails'] != null
+          ? ClinicDetails.fromJson(json['clinicDetails'])
+          : null,
+      doctorHospitals: json['doctorHospitals'],
+      workExperience: json['workExperience'],
+      patientsServed: json['patientsServed'],
+      rating: json['rating']?.toDouble(),
+      currentTokenNumber: json['currentTokenNumber'],
+      contactDetails: json['contactDetails'] != null
+          ? ContactDetails.fromJson(json['contactDetails'])
+          : null,
+      professionalInformation: json['professionalInformation'] != null
+          ? ProfessionalInformation.fromJson(json['professionalInformation'])
+          : null,
+      educationalInformation:
+          (json['educationalInformation'] as List<dynamic>?)
+              ?.map((item) => EducationalInformation.fromJson(item))
+              .toList(),
+      certificatesAndAccreditations:
+          (json['certificatesAndAccreditations'] as List<dynamic>?)
+              ?.map((item) => CertificateAndAccreditation.fromJson(item))
+              .toList(),
+      experiences: (json['experiences'] as List<dynamic>?)
+          ?.map((item) => Experience.fromJson(item))
+          .toList(),
+      publications: (json['publications'] as List<dynamic>?)
+          ?.map((item) => Publication.fromJson(item))
+          .toList(),
+    );
+  }
+}
+
+class DoctorDetailsResponse {
+  final bool success;
+  final String message;
+  final DoctorDetails? data;
+  final dynamic errors;
+  final dynamic meta;
+  final String timestamp;
+
+  DoctorDetailsResponse({
+    required this.success,
+    required this.message,
+    this.data,
+    required this.errors,
+    required this.meta,
+    required this.timestamp,
+  });
+
+  factory DoctorDetailsResponse.fromJson(Map<String, dynamic> json) {
+    return DoctorDetailsResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: json['data'] != null
+          ? DoctorDetails.fromJson(json['data'])
+          : null,
+      errors: json['errors'],
+      meta: json['meta'],
+      timestamp: json['timestamp'] ?? '',
+    );
+  }
+}

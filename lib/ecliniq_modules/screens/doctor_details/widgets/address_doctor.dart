@@ -1,8 +1,11 @@
+import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 
 class AddressWidget extends StatelessWidget {
-  const AddressWidget({super.key});
+  final ClinicDetails clinic;
+
+  const AddressWidget({super.key, required this.clinic});
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +52,10 @@ class AddressWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
+                  clinic.address,
                   maxLines: 8,
-                  'Survey No 111/11/1, Veerbhadra Nagar Road, Mhalunge Main Road, Baner, Pune, Maharashtra - 411045.',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w400,
                     color: Color(0xff626060),

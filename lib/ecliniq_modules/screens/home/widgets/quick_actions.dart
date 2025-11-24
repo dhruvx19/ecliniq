@@ -72,7 +72,7 @@ class QuickActionsWidget extends StatelessWidget {
                   context,
                   width: itemWidth,
                   height: itemHeight,
-                  assetPath: EcliniqIcons.quick2.assetPath,
+                  assetPath: EcliniqIcons.hospitalBuilding.assetPath,
                   title: 'Visit Hospitals',
                   onTap: () => EcliniqRouter(),
                 ),

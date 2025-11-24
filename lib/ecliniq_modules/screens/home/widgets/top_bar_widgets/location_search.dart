@@ -1,4 +1,5 @@
 import 'package:ecliniq/ecliniq_core/location/location_service.dart';
+import 'package:ecliniq/ecliniq_core/location/location_permission_manager.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/provider/doctor_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/provider/hospital_provider.dart';
@@ -6,6 +7,7 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
@@ -35,11 +37,10 @@ class LocationSelectorWidget extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Image.asset(
-                  EcliniqIcons.location.assetPath,
+                SvgPicture.asset(
+                  EcliniqIcons.map.assetPath,
                   width: 24,
                   height: 24,
-                  color: Colors.white,
                 ),
                 const SizedBox(width: 8.0),
                 Text(
@@ -90,6 +91,8 @@ class LocationBottomSheet extends StatefulWidget {
 
 class _LocationBottomSheetState extends State<LocationBottomSheet> {
   final LocationService _locationService = LocationService();
+  final LocationPermissionManager _permissionManager =
+      LocationPermissionManager();
   bool _isButtonPressed = false;
 
   @override
@@ -105,9 +108,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-
           const SizedBox(height: 10),
-
 
           Container(
             width: 80,
@@ -169,7 +170,6 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
           ),
           const SizedBox(height: 10),
 
-
           GestureDetector(
             onTap: () {},
             child: Container(
@@ -202,7 +202,26 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
 
   Future<void> _enableLocation() async {
     try {
+      // Check if permission is already granted
+      final isGranted = await LocationPermissionManager.isPermissionGranted();
+      if (isGranted) {
+        // Permission already granted, get location directly
+        final position = await _permissionManager.getCurrentLocationIfGranted();
+        if (position != null) {
+          await _handleLocationReceived(position);
+          return;
+        }
+      }
 
+      // Check if permission was denied forever
+      final isDeniedForever =
+          await LocationPermissionManager.isPermissionDeniedForever();
+      if (isDeniedForever) {
+        _showSettingsDialog();
+        return;
+      }
+
+      // Check if location services are enabled
       bool serviceEnabled = await _locationService.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _showErrorDialog(
@@ -211,76 +230,29 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
         return;
       }
 
+      // Request permission if needed
+      final permissionStatus =
+          await LocationPermissionManager.requestPermissionIfNeeded();
 
-      LocationPermission permission = await _locationService
-          .checkLocationPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await _locationService.requestLocationPermission();
-        if (permission == LocationPermission.denied) {
+      if (permissionStatus == LocationPermissionStatus.granted) {
+        // Permission granted, get location
+        final position = await _permissionManager.getCurrentLocationIfGranted();
+        if (position != null) {
+          await _handleLocationReceived(position);
+        } else {
           _showErrorDialog(
-            'Location permission denied. Please enable location permission to continue.',
+            'Unable to get your current location. Please try again.',
           );
-          return;
         }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
+      } else if (permissionStatus == LocationPermissionStatus.deniedForever) {
         _showSettingsDialog();
-        return;
-      }
-
-
-      final position = await _locationService.getCurrentPosition();
-      if (position != null) {
-
-        final locationName = await _locationService.getLocationName(
-          position.latitude,
-          position.longitude,
+      } else if (permissionStatus == LocationPermissionStatus.denied) {
+        _showErrorDialog(
+          'Location permission denied. Please enable location permission to continue.',
         );
-
-
-        if (mounted) {
-          final hospitalProvider = Provider.of<HospitalProvider>(
-            context,
-            listen: false,
-          );
-          final doctorProvider = Provider.of<DoctorProvider>(
-            context,
-            listen: false,
-          );
-
-          hospitalProvider.setLocation(
-            latitude: position.latitude,
-            longitude: position.longitude,
-            locationName: locationName,
-          );
-
-          doctorProvider.setLocation(
-            latitude: position.latitude,
-            longitude: position.longitude,
-            locationName: locationName,
-          );
-
-
-          await hospitalProvider.fetchTopHospitals(
-            latitude: position.latitude,
-            longitude: position.longitude,
-            isRefresh: true,
-          );
-
-
-          await doctorProvider.fetchTopDoctors(
-            latitude: position.latitude,
-            longitude: position.longitude,
-            isRefresh: true,
-          );
-
-
-          Navigator.of(context).pop();
-        }
       } else {
         _showErrorDialog(
-          'Unable to get your current location. Please try again.',
+          'Error requesting location permission. Please try again.',
         );
       }
     } catch (e) {
@@ -291,6 +263,50 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
           _isButtonPressed = false;
         });
       }
+    }
+  }
+
+  Future<void> _handleLocationReceived(Position position) async {
+    final locationName = await _locationService.getLocationName(
+      position.latitude,
+      position.longitude,
+    );
+
+    if (mounted) {
+      final hospitalProvider = Provider.of<HospitalProvider>(
+        context,
+        listen: false,
+      );
+      final doctorProvider = Provider.of<DoctorProvider>(
+        context,
+        listen: false,
+      );
+
+      hospitalProvider.setLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        locationName: locationName,
+      );
+
+      doctorProvider.setLocation(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        locationName: locationName,
+      );
+
+      await hospitalProvider.fetchTopHospitals(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        isRefresh: true,
+      );
+
+      await doctorProvider.fetchTopDoctors(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        isRefresh: true,
+      );
+
+      Navigator.of(context).pop();
     }
   }
 
@@ -333,7 +349,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
           ),
           TextButton(
             onPressed: () {
-
+              _locationService.openAppSettings();
               Navigator.of(context).pop();
             },
             child: const Text('Open Settings'),

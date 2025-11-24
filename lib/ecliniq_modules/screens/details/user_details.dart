@@ -1,8 +1,13 @@
 import 'dart:io';
+
+import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/details/widgets/add_profile_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/details/widgets/date_picker_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/home_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/profile_help.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
@@ -10,6 +15,7 @@ import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -97,39 +103,30 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
 
       try {
         String? profilePhotoKey;
-        
 
         if (_selectedProfilePhoto != null && authProvider.authToken != null) {
-          print('📤 Uploading profile photo...');
-          profilePhotoKey = await authProvider.uploadProfileImage(_selectedProfilePhoto!);
-          
+          profilePhotoKey = await authProvider.uploadProfileImage(
+            _selectedProfilePhoto!,
+          );
+
           if (profilePhotoKey == null) {
             throw Exception('Failed to upload profile photo');
           }
-          print('✅ Profile photo uploaded successfully: $profilePhotoKey');
         }
-        
 
         final dobParts = _dobController.text.split('/');
         final formattedDob = '${dobParts[2]}-${dobParts[1]}-${dobParts[0]}';
-        
 
-        print('📤 Saving patient details...');
-        print('📤 First Name: ${_firstNameController.text}');
-        print('📤 Last Name: ${_lastNameController.text}');
-        print('📤 DOB: $formattedDob');
-        print('📤 Gender: $_selectedGender');
-        print('📤 Profile Photo Key: $profilePhotoKey');
-        
         final success = await authProvider.savePatientDetails(
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           dob: formattedDob,
           gender: _selectedGender,
         );
-        
+
         if (success && mounted) {
-          print('✅ Patient details saved successfully');
+          // Mark onboarding as complete
+          await SessionService.setOnboardingComplete(true);
 
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -138,7 +135,6 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
           throw Exception('Failed to save patient details');
         }
       } catch (e) {
-        print('❌ Error saving details: $e');
         if (mounted) {
           setState(() {
             _isButtonPressed = false;
@@ -160,14 +156,13 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
       context: context,
       child: const ProfilePhotoSelector(),
     );
-    
+
     if (action != null) {
       final ImagePicker picker = ImagePicker();
       XFile? pickedFile;
-      
+
       try {
         if (action == 'take_photo') {
-
           pickedFile = await picker.pickImage(
             source: ImageSource.camera,
             imageQuality: 85,
@@ -175,7 +170,6 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
             maxHeight: 1024,
           );
         } else if (action == 'upload_photo') {
-
           pickedFile = await picker.pickImage(
             source: ImageSource.gallery,
             imageQuality: 85,
@@ -183,19 +177,17 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
             maxHeight: 1024,
           );
         }
-        
+
         if (pickedFile != null) {
           setState(() {
             _selectedProfilePhoto = File(pickedFile!.path);
           });
-          print('✅ Profile photo selected: ${pickedFile!.path}');
         }
       } catch (e) {
-        print('❌ Error picking image: $e');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error picking image: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
         }
       }
     }
@@ -275,47 +267,41 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
-        return EcliniqScaffold(
-          backgroundColor: EcliniqScaffold.primaryBlue,
-          body: Column(
-            children: [
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 128),
-                      const Text(
-                        'Profile Details',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.help_outline,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        label: const Text(
-                          'Help',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: EcliniqScaffold.primaryBlue,
+            title: Text(
+              'Clinic Visit Slot',
+              style: EcliniqTextStyles.headlineMedium.copyWith(
+                color: Colors.white,
+              ),
+            ),
+            actions: [
+              GestureDetector(
+                onTap: () {
+                  EcliniqRouter.push(ProfileHelpPage());
+                },
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      EcliniqIcons.questionMark.assetPath,
+                      width: 24,
+                      height: 24,
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Help',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                 ),
               ),
+            ],
+          ),
 
-
+          body: Column(
+            children: [
               Expanded(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -334,7 +320,6 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-
                                 Center(
                                   child: GestureDetector(
                                     onTap: () {
@@ -353,7 +338,9 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
                                             ),
                                             image: _selectedProfilePhoto != null
                                                 ? DecorationImage(
-                                                    image: FileImage(_selectedProfilePhoto!),
+                                                    image: FileImage(
+                                                      _selectedProfilePhoto!,
+                                                    ),
                                                     fit: BoxFit.cover,
                                                   )
                                                 : null,
@@ -369,7 +356,8 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
                                                     Icon(
                                                       Icons.add,
                                                       size: 34,
-                                                      color: Primitives.brightBlue,
+                                                      color:
+                                                          Primitives.brightBlue,
                                                     ),
                                                     const SizedBox(height: 4),
                                                     EcliniqText(
@@ -377,7 +365,8 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
                                                       style: EcliniqTextStyles
                                                           .headlineXMedium
                                                           .copyWith(
-                                                            color: Primitives.brightBlue,
+                                                            color: Primitives
+                                                                .brightBlue,
                                                           ),
                                                     ),
                                                   ],
@@ -414,7 +403,6 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
 
                                 const SizedBox(height: 32),
 
-
                                 _buildFormField(
                                   label: 'First Name',
                                   controller: _firstNameController,
@@ -429,7 +417,6 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
                                 ),
 
                                 const SizedBox(height: 20),
-
 
                                 _buildFormField(
                                   label: 'Last Name',
@@ -446,18 +433,15 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
 
                                 const SizedBox(height: 20),
 
-
                                 _buildDateField(),
 
                                 const SizedBox(height: 20),
-
 
                                 _buildGenderField(),
                               ],
                             ),
                           ),
                         ),
-
 
                         Container(
                           padding: const EdgeInsets.all(24),

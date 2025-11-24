@@ -143,8 +143,8 @@ class _DatePickerBottomSheetState extends State<DatePickerBottomSheet> {
                   EcliniqText(
                     widget.title ?? 'Select Date Of Birth',
                     style: EcliniqTextStyles.headlineMedium.copyWith(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
+                      color: Color(0xff424242),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],

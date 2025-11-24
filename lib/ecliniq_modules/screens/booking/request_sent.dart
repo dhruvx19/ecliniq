@@ -189,7 +189,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                       endIndent: 15,
                     ),
                     AppointmentDetailItem(
-                      iconAssetPath: EcliniqIcons.quick2.assetPath,
+                      iconAssetPath: EcliniqIcons.hospitalBuilding.assetPath,
                       title: 'In-Clinic Consultation',
                       subtitle: widget.hospitalAddress ?? 'Address not available',
                       showEdit: false,

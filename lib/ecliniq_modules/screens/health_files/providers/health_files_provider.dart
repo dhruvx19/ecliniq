@@ -9,6 +9,8 @@ class HealthFilesProvider extends ChangeNotifier {
   List<HealthFile> _allFiles = [];
   bool _isLoading = false;
   String? _errorMessage;
+  Map<HealthFileType, int>? _fileCountCache;
+  List<HealthFile>? _recentFilesCache;
 
   List<HealthFile> get allFiles => _allFiles;
   bool get isLoading => _isLoading;
@@ -22,6 +24,7 @@ class HealthFilesProvider extends ChangeNotifier {
     try {
       _allFiles = await _storageService.getAllFiles();
       _allFiles.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _invalidateCache();
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to load files: $e';
@@ -31,22 +34,64 @@ class HealthFilesProvider extends ChangeNotifier {
     }
   }
 
-  /// Get files by type
-  List<HealthFile> getFilesByType(HealthFileType fileType) {
-    return _allFiles
-        .where((file) => file.fileType == fileType)
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  /// Get files by type (null means all types)
+  List<HealthFile> getFilesByType(HealthFileType? fileType, {String? recordFor}) {
+    Iterable<HealthFile> files = _allFiles;
+    
+    // Filter by file type if provided
+    if (fileType != null) {
+      files = files.where((file) => file.fileType == fileType);
+    }
+    
+    // Filter by recordFor if provided
+    if (recordFor != null && recordFor.isNotEmpty) {
+      files = files.where((file) => file.recordFor == recordFor);
+    }
+    
+    final result = files.toList();
+    result.sort((a, b) {
+      // Sort by fileDate if available, otherwise by createdAt
+      final dateA = a.fileDate ?? a.createdAt;
+      final dateB = b.fileDate ?? b.createdAt;
+      return dateB.compareTo(dateA);
+    });
+    
+    return result;
   }
 
-  /// Get file count by type
+  /// Get all unique recordFor values for a given file type (null means all types)
+  List<String> getRecordForOptions(HealthFileType? fileType) {
+    Iterable<HealthFile> files = _allFiles;
+    
+    // Filter by file type if provided
+    if (fileType != null) {
+      files = files.where((file) => file.fileType == fileType);
+    }
+    
+    final recordForSet = files
+        .where((file) => file.recordFor != null && file.recordFor!.isNotEmpty)
+        .map((file) => file.recordFor!)
+        .toSet();
+    return recordForSet.toList()..sort();
+  }
+
+  /// Get file count by type (cached for performance)
   int getFileCountByType(HealthFileType fileType) {
-    return getFilesByType(fileType).length;
+    _fileCountCache ??= {};
+    return _fileCountCache!.putIfAbsent(
+      fileType,
+      () => _allFiles.where((file) => file.fileType == fileType).length,
+    );
   }
 
-  /// Get recently uploaded files
+  /// Get recently uploaded files (cached for performance)
   List<HealthFile> getRecentlyUploadedFiles({int limit = 10}) {
-    return _allFiles.take(limit).toList();
+    if (_recentFilesCache != null && _recentFilesCache!.length >= limit) {
+      return _recentFilesCache!.take(limit).toList();
+    }
+    // Files are already sorted by createdAt desc, so just take the first N
+    _recentFilesCache = _allFiles.take(limit).toList();
+    return _recentFilesCache!;
   }
 
   /// Add a new file
@@ -87,6 +132,7 @@ class HealthFilesProvider extends ChangeNotifier {
       final success = await _storageService.deleteFile(file);
       if (success) {
         _allFiles.removeWhere((f) => f.id == file.id);
+        _invalidateCache();
         notifyListeners();
         return true;
       }
@@ -101,6 +147,12 @@ class HealthFilesProvider extends ChangeNotifier {
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
+  }
+
+  /// Invalidate cache when files change
+  void _invalidateCache() {
+    _fileCountCache = null;
+    _recentFilesCache = null;
   }
 
   /// Refresh files from storage

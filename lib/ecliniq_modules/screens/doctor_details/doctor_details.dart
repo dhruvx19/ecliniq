@@ -1,16 +1,150 @@
+import 'package:ecliniq/ecliniq_api/doctor_service.dart';
+import 'package:ecliniq/ecliniq_api/models/doctor.dart';
+import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/about_doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/address_doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/common_widget.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/easy_to_book.dart';
 import 'package:ecliniq/ecliniq_modules/screens/hospital/widgets/appointment_timing.dart';
-import 'package:ecliniq/ecliniq_modules/screens/hospital/widgets/specialities.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
-class DoctorDetailScreen extends StatelessWidget {
-  const DoctorDetailScreen({super.key});
+class DoctorDetailScreen extends StatefulWidget {
+  final String doctorId;
+
+  const DoctorDetailScreen({super.key, required this.doctorId});
+
+  @override
+  State<DoctorDetailScreen> createState() => _DoctorDetailScreenState();
+}
+
+class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
+  final DoctorService _doctorService = DoctorService();
+  DoctorDetails? _doctorDetails;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDoctorDetails();
+  }
+
+  Future<void> _fetchDoctorDetails() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authToken = authProvider.authToken;
+
+      final response = await _doctorService.getDoctorDetailsById(
+        doctorId: widget.doctorId,
+        authToken: authToken,
+      );
+
+      if (!mounted) return;
+
+      if (response.success && response.data != null) {
+        setState(() {
+          _doctorDetails = response.data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = response.message;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to load doctor details: $e';
+      });
+    }
+  }
+
+  String _getImageUrl(String? imageKey) {
+    if (imageKey == null || imageKey.isEmpty) {
+      return 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80';
+    }
+    // Construct full URL from image key
+    return '${Endpoints.localhost}/$imageKey';
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => EcliniqRouter.pop(),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red),
+              SizedBox(height: 16),
+              Text(
+                _errorMessage!,
+                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _fetchDoctorDetails,
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_doctorDetails == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => EcliniqRouter.pop(),
+          ),
+        ),
+        body: Center(child: Text('Doctor details not found')),
+      );
+    }
+
+    final doctor = _doctorDetails!;
+    final clinic = doctor.clinicDetails;
+    final specialization = doctor.specializations?.isNotEmpty == true
+        ? doctor.specializations!.first
+        : 'Doctor';
+    final education = doctor.educationalInformation?.isNotEmpty == true
+        ? doctor.educationalInformation!.map((e) => e.degree).join(', ')
+        : '';
+    final location = clinic != null
+        ? '${clinic.city}, ${clinic.state}'
+        : 'Location not available';
+    final initial = doctor.name.isNotEmpty ? doctor.name[0].toUpperCase() : 'D';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -22,37 +156,65 @@ class DoctorDetailScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeaderImage(),
+                    _buildHeaderImage(clinic?.image),
                     const SizedBox(height: 16),
-                    _buildHospitalInfo(),
+                    _buildDoctorInfo(
+                      doctor.name,
+                      specialization,
+                      education,
+                      location,
+                    ),
                     const SizedBox(height: 16),
 
-                    _buildStatsCards(),
+                    _buildStatsCards(
+                      doctor.patientsServed ?? 0,
+                      doctor.workExperience ?? 0,
+                      doctor.rating ?? 0.0,
+                    ),
                     const SizedBox(height: 16),
 
                     AppointmentTimingWidget(),
                     const SizedBox(height: 16),
 
-                    AddressWidget(),
+                    if (clinic != null) AddressWidget(clinic: clinic),
                     const SizedBox(height: 16),
 
-                    AboutHospital(),
+                    if (doctor.about != null)
+                      AboutHospital(about: doctor.about!),
                     const SizedBox(height: 16),
 
-                    ClinicalDetailsWidget(),
+                    if (doctor.professionalInformation != null)
+                      ClinicalDetailsWidget(
+                        professionalInfo: doctor.professionalInformation!,
+                      ),
                     const SizedBox(height: 16),
 
-                    ProfessionalInformationWidget(),
+                    if (doctor.professionalInformation != null)
+                      ProfessionalInformationWidget(
+                        professionalInfo: doctor.professionalInformation!,
+                      ),
                     const SizedBox(height: 16),
-                    DoctorContactDetailsWidget(),
+                    if (doctor.contactDetails != null)
+                      DoctorContactDetailsWidget(
+                        contactDetails: doctor.contactDetails!,
+                      ),
 
                     const SizedBox(height: 16),
-                    EducationalInformationWidget(),
+                    if (doctor.educationalInformation != null &&
+                        doctor.educationalInformation!.isNotEmpty)
+                      EducationalInformationWidget(
+                        educationList: doctor.educationalInformation!,
+                      ),
 
                     const SizedBox(height: 16),
-                    DoctorCertificatesWidget(),
+                    if (doctor.certificatesAndAccreditations != null &&
+                        doctor.certificatesAndAccreditations!.isNotEmpty)
+                      DoctorCertificatesWidget(
+                        certificates: doctor.certificatesAndAccreditations!,
+                      ),
                     const SizedBox(height: 16),
-                    ClinicPhotosWidget(),
+                    if (clinic?.photos != null && clinic!.photos!.isNotEmpty)
+                      ClinicPhotosWidget(photos: clinic.photos!),
                     const SizedBox(height: 16),
                     EasyWayToBookWidget(),
 
@@ -61,49 +223,53 @@ class DoctorDetailScreen extends StatelessWidget {
                 ),
 
                 Positioned(
-                  top: 220,
+                  top: 230,
                   left: 0,
                   right: 0,
                   child: Center(
                     child: Container(
-                      width: 120,
-                      height: 120,
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue, width: 5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                        border: Border.all(color: Colors.blue, width: 3),
                       ),
                       child: Stack(
                         children: [
                           Center(
-                            child: Icon(
-                              Icons.people,
-                              size: 60,
-                              color: Colors.orange[700],
-                            ),
+                            child:
+                                doctor.profilePhoto != null &&
+                                    doctor.profilePhoto!.isNotEmpty
+                                ? ClipOval(
+                                    child: Image.network(
+                                      _getImageUrl(doctor.profilePhoto),
+                                      width: 94,
+                                      height: 94,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.local_hospital,
+                                              size: 60,
+                                              color: Colors.orange[700],
+                                            );
+                                          },
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.local_hospital,
+                                    size: 60,
+                                    color: Colors.orange[700],
+                                  ),
                           ),
                           Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              width: 28,
-                              height: 28,
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                size: 18,
-                                color: Colors.white,
-                              ),
+                            top: 0,
+                            right: 0,
+                            child: SvgPicture.asset(
+                              EcliniqIcons.verified.assetPath,
+                              width: 24,
+                              height: 24,
                             ),
                           ),
                         ],
@@ -133,13 +299,15 @@ class DoctorDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderImage() {
+  Widget _buildHeaderImage(String? imageUrl) {
     return Container(
       height: 280,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: NetworkImage(
-            'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
+            imageUrl != null
+                ? _getImageUrl(imageUrl)
+                : 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
           ),
           fit: BoxFit.cover,
         ),
@@ -153,12 +321,12 @@ class DoctorDetailScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildCircleButton(Icons.arrow_back),
+                _buildCircleButton(Icons.arrow_back, () => EcliniqRouter.pop()),
                 Row(
                   children: [
-                    _buildCircleButton(Icons.favorite_border),
+                    _buildCircleButton(Icons.favorite_border, () {}),
                     const SizedBox(width: 8),
-                    _buildCircleButton(Icons.share),
+                    _buildCircleButton(Icons.share, () {}),
                   ],
                 ),
               ],
@@ -169,37 +337,46 @@ class DoctorDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCircleButton(IconData icon) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+  Widget _buildCircleButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(icon, size: 20),
       ),
-      child: Icon(icon, size: 20),
     );
   }
 
-  Widget _buildHospitalInfo() {
+  Widget _buildDoctorInfo(
+    String name,
+    String specialization,
+    String education,
+    String location,
+  ) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.only(top: 80, left: 16, right: 16, bottom: 24),
       child: Column(
         children: [
-          const Text(
-            'Dr. Milind Chauhan',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Color(0xff424242),
             ),
             textAlign: TextAlign.center,
           ),
@@ -208,51 +385,40 @@ class DoctorDetailScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'General Physician',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                specialization,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xff424242),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'MBBS, MD - General Medicine',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
+          if (education.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              education,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Color(0xff424242),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.location_on, size: 20, color: Colors.blue[400]),
+              SvgPicture.asset(
+                EcliniqIcons.mapPoint.assetPath,
+                width: 24,
+                height: 24,
+                color: Color(0xff96BFFF),
+              ),
               const SizedBox(width: 6),
               Text(
-                'Baner, Pune',
+                location,
                 style: TextStyle(fontSize: 16, color: Colors.grey[800]),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      '4 KM',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(Icons.navigation, size: 14, color: Colors.grey[600]),
-                  ],
-                ),
               ),
             ],
           ),
@@ -261,7 +427,7 @@ class DoctorDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCards() {
+  Widget _buildStatsCards(int patientsServed, int experience, double rating) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 24),
@@ -270,7 +436,11 @@ class DoctorDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            _buildStatCard(Icons.people, 'Patients Served', '50,000'),
+            _buildStatCard(
+              Icons.people,
+              'Patients Served',
+              patientsServed > 0 ? _formatNumber(patientsServed) : 'N/A',
+            ),
             Container(
               width: 1,
               height: 80,
@@ -280,7 +450,7 @@ class DoctorDetailScreen extends StatelessWidget {
             _buildStatCard(
               Icons.medical_services_outlined,
               'Experience',
-              '22 Yrs',
+              experience > 0 ? '$experience Yrs' : 'N/A',
             ),
             Container(
               width: 1,
@@ -288,11 +458,24 @@ class DoctorDetailScreen extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 20),
               color: Colors.grey[200],
             ),
-            _buildStatCard(Icons.rate_review_outlined, 'Rating', '4 Star'),
+            _buildStatCard(
+              Icons.rate_review_outlined,
+              'Rating',
+              rating > 0 ? '${rating.toStringAsFixed(1)} Star' : 'N/A',
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toString();
   }
 
   Widget _buildStatCard(IconData icon, String label, String value) {

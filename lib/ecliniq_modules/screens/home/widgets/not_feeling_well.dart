@@ -1,9 +1,15 @@
+import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/filter_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/search_specialities/search_specialities_page.dart';
+import 'package:ecliniq/ecliniq_modules/screens/search_specialities/speciality_doctors_list.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class NotFeelingWell extends StatelessWidget {
   final bool showShimmer;
-  
+
   const NotFeelingWell({super.key, this.showShimmer = false});
 
   @override
@@ -60,7 +66,9 @@ class NotFeelingWell extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    EcliniqRouter.push(SearchSpecialities());
+                  },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     minimumSize: Size.zero,
@@ -94,7 +102,7 @@ class NotFeelingWell extends StatelessWidget {
               padding: const EdgeInsets.all(12.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-               
+
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -110,7 +118,6 @@ class NotFeelingWell extends StatelessWidget {
                     SizedBox(width: 16),
                     _buildSymptomButton(context, 'Acidity', () {}),
                     SizedBox(width: 16),
-                    
                   ],
                 ),
               ),
@@ -135,32 +142,40 @@ class NotFeelingWell extends StatelessWidget {
 
         child: Container(
           width: 120,
-          height: 100,
+          height: 110,
           decoration: BoxDecoration(
             color: Color(0xFfF8FAFF),
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(6.0),
+            padding: const EdgeInsets.all(10.0),
             child: Column(
-                   
               children: [
                 Container(
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: Color(0xFF1E88E5),
+                    color: Color(0xFF2372EC),
                     shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Image.asset(
+                      EcliniqIcons.generalMedicine.assetPath,
+                      width: 52,
+                      height: 52,
+                    ),
                   ),
                 ),
                 SizedBox(height: 8),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w500,
+                FittedBox(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xff424242),
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ],
@@ -175,7 +190,6 @@ class NotFeelingWell extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Row(
           children: [
             Container(

@@ -1,3 +1,5 @@
+import 'package:ecliniq/ecliniq_api/appointment_service.dart';
+import 'package:ecliniq/ecliniq_api/models/appointment.dart';
 import 'package:ecliniq/ecliniq_core/router/navigation_helper.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
@@ -5,12 +7,13 @@ import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/cancel
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/completed.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/confirmed.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/requested.dart';
-import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigation.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AppointmentData {
@@ -48,62 +51,20 @@ class MyVisits extends StatefulWidget {
 
 class _MyVisitsState extends State<MyVisits>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  int _currentIndex = 1;
+  final int _currentIndex = 1;
   int _selectedTabIndex = 0;
   int _selectedFilterIndex = 0;
-  final _apiService = AppointmentApiService();
-  bool _isLoading = false;
+  final _appointmentService = AppointmentService();
+  bool _isLoadingAppointments = false;
+// Key counter for hot reload
 
-  final List<AppointmentData> _scheduledAppointments = [
-    AppointmentData(
-      id: '1',
-      doctorName: 'Dr. Milind Chauhan',
-      specialization: 'General Physician',
-      qualification: 'MBBS, MD - General Medicine',
-      date: '04 Apr, 2025',
-      time: '12:30 PM',
-      patientName: 'Ketan Patni (You)',
-      status: AppointmentStatus.confirmed,
-      tokenNumber: '76',
-    ),
-    AppointmentData(
-      id: '2',
-      doctorName: 'Dr. Milind Chauhan',
-      specialization: 'General Physician',
-      qualification: 'MBBS, MD - General Medicine',
-      date: '04 Apr, 2025',
-      time: '12:30 PM',
-      patientName: 'Ketan Patni (You)',
-      status: AppointmentStatus.requested,
-    ),
-  ];
-
-  final List<AppointmentData> _historyAppointments = [
-    AppointmentData(
-      id: '3',
-      doctorName: 'Dr. Milind Chauhan',
-      specialization: 'General Physician',
-      qualification: 'MBBS, MD - General Medicine',
-      date: '04 Apr, 2025',
-      time: '12:30 PM',
-      patientName: 'Ketan Patni (You)',
-      status: AppointmentStatus.cancelled,
-    ),
-    AppointmentData(
-      id: '4',
-      doctorName: 'Dr. Milind Chauhan',
-      specialization: 'General Physician',
-      qualification: 'MBBS, MD - General Medicine',
-      date: '04 Apr, 2025',
-      time: '12:30 PM',
-      patientName: 'Ketan Patni (You)',
-      status: AppointmentStatus.completed,
-    ),
-  ];
+  List<AppointmentData> _scheduledAppointments = [];
+  List<AppointmentData> _historyAppointments = [];
 
   @override
   void initState() {
     super.initState();
+    _loadAppointments();
   }
 
   void _onTabTapped(int index) {
@@ -116,55 +77,179 @@ class _MyVisitsState extends State<MyVisits>
     NavigationHelper.navigateToTab(context, index, _currentIndex);
   }
 
+  Future<void> _loadAppointments() async {
+    if (!mounted) return;
 
-  Future<void> _navigateToDetailPage(AppointmentData appointment) async {
-    setState(() => _isLoading = true);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authToken = authProvider.authToken;
+
+    if (authToken == null) {
+      if (mounted) {
+        _showErrorSnackBar('Authentication required. Please login again.');
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _isLoadingAppointments = true;
+    });
 
     try {
-
-      final appointmentDetail = await _apiService.fetchAppointmentDetail(
-        appointment.id,
-      );
+      // Load both scheduled and history appointments
+      final results = await Future.wait([
+        _appointmentService.getScheduledAppointments(authToken: authToken),
+        _appointmentService.getAppointmentHistory(authToken: authToken),
+      ]);
 
       if (!mounted) return;
 
+      final scheduledResponse = results[0];
+      final historyResponse = results[1];
 
-      Widget detailPage;
-      switch (appointmentDetail.status) {
-        case 'confirmed':
-          detailPage = BookingConfirmedDetail(appointment: appointmentDetail);
-          break;
-        case 'requested':
-          detailPage = BookingRequestedDetail(appointment: appointmentDetail);
-          break;
-        case 'cancelled':
-          detailPage = BookingCancelledDetail(appointment: appointmentDetail);
-          break;
-        case 'completed':
-          detailPage = BookingCompletedDetail(appointment: appointmentDetail);
-          break;
-        default:
-          _showErrorSnackBar('Unknown appointment status');
-          return;
-      }
+      if (!mounted) return;
+      setState(() {
+        if (scheduledResponse.success) {
+          _scheduledAppointments = scheduledResponse.data
+              .map((item) => _mapToAppointmentData(item))
+              .toList();
+        } else {
+          if (mounted) {
+            _showErrorSnackBar(scheduledResponse.message);
+          }
+        }
 
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => detailPage),
-      );
-
-
-      if (result == true) {
-        _refreshAppointments();
-      }
+        if (historyResponse.success) {
+          _historyAppointments = historyResponse.data
+              .map((item) => _mapToAppointmentData(item))
+              .toList();
+        } else {
+          if (mounted) {
+            _showErrorSnackBar(historyResponse.message);
+          }
+        }
+      });
     } catch (e) {
       if (mounted) {
-        _showErrorSnackBar('Failed to load appointment details: $e');
+        _showErrorSnackBar('Failed to load appointments: $e');
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoadingAppointments = false;
+        });
       }
+    }
+  }
+
+  AppointmentData _mapToAppointmentData(AppointmentListItem item) {
+    // Map API status to local enum
+    AppointmentStatus status;
+    switch (item.status.toUpperCase()) {
+      case 'CONFIRMED':
+        status = AppointmentStatus.confirmed;
+        break;
+      case 'PENDING':
+        status = AppointmentStatus.requested;
+        break;
+      case 'CANCELLED':
+      case 'FAILED':
+        status = AppointmentStatus.cancelled;
+        break;
+      case 'COMPLETED':
+      case 'SERVED':
+        status = AppointmentStatus.completed;
+        break;
+      default:
+        status = AppointmentStatus.requested;
+    }
+
+    // Format date
+    final dateFormat = DateFormat('dd MMM, yyyy');
+    final date = dateFormat.format(item.appointmentDate);
+
+    // Format time
+    final timeFormat = DateFormat('hh:mm a');
+    final time = timeFormat.format(item.appointmentTime.startTime);
+
+    // Format specialization (join list)
+    final specialization = item.speciality.isNotEmpty
+        ? item.speciality.join(', ')
+        : 'General Physician';
+
+    // Format qualification (join degrees)
+    final qualification = item.degrees.isNotEmpty
+        ? item.degrees.join(', ')
+        : 'MBBS';
+
+    // Format patient name
+    final patientName = item.bookedFor == 'SELF'
+        ? '${item.patientName} (You)'
+        : item.patientName;
+
+    return AppointmentData(
+      id: item.appointmentId,
+      doctorName: item.doctorName,
+      specialization: specialization,
+      qualification: qualification,
+      date: date,
+      time: time,
+      patientName: patientName,
+      status: status,
+      tokenNumber: item.tokenNo?.toString(),
+    );
+  }
+
+  Future<void> _navigateToDetailPage(AppointmentData appointment) async {
+    // Navigate immediately with appointment ID and status
+    // The detail page will handle its own loading state
+    Widget detailPage;
+    
+    // Determine status from appointment data
+    String status = appointment.status.name;
+    if (status == 'served') {
+      status = 'completed';
+    } else if (status == 'pending') {
+      status = 'requested';
+    }
+    
+    switch (status) {
+      case 'confirmed':
+        detailPage = BookingConfirmedDetail(appointmentId: appointment.id);
+        break;
+      case 'requested':
+        detailPage = BookingRequestedDetail(appointmentId: appointment.id);
+        break;
+      case 'cancelled':
+      case 'failed':
+        detailPage = BookingCancelledDetail(appointmentId: appointment.id);
+        break;
+      case 'completed':
+        detailPage = BookingCompletedDetail(appointmentId: appointment.id);
+        break;
+      default:
+        // Fallback: try to determine from status enum
+        if (appointment.status == AppointmentStatus.confirmed) {
+          detailPage = BookingConfirmedDetail(appointmentId: appointment.id);
+        } else if (appointment.status == AppointmentStatus.requested) {
+          detailPage = BookingRequestedDetail(appointmentId: appointment.id);
+        } else if (appointment.status == AppointmentStatus.cancelled) {
+          detailPage = BookingCancelledDetail(appointmentId: appointment.id);
+        } else if (appointment.status == AppointmentStatus.completed) {
+          detailPage = BookingCompletedDetail(appointmentId: appointment.id);
+        } else {
+          _showErrorSnackBar('Unknown appointment status: ${appointment.status}');
+          return;
+        }
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => detailPage),
+    );
+
+    if (result == true && mounted) {
+      _refreshAppointments();
     }
   }
 
@@ -179,12 +264,12 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Future<void> _refreshAppointments() async {
-
+    // Reload appointments from API
+    await _loadAppointments();
     setState(() {
-
+// Increment key to trigger hot reload
     });
   }
-
 
   Widget _buildTopTabs() {
     return Container(
@@ -205,13 +290,15 @@ class _MyVisitsState extends State<MyVisits>
         setState(() {
           _selectedTabIndex = index;
         });
+        // Reload appointments when switching tabs
+        _loadAppointments();
       },
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? Color(0xFF4A90E2) : Colors.transparent,
+              color: isSelected ? Color(0xFF2372EC) : Colors.transparent,
               width: 2,
             ),
           ),
@@ -222,7 +309,7 @@ class _MyVisitsState extends State<MyVisits>
           style: TextStyle(
             fontSize: 18,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected ? Color(0xFF4A90E2) : Color(0xFF666666),
+            color: isSelected ? Color(0xFF2372EC) : Color(0xFF626060),
           ),
         ),
       ),
@@ -292,7 +379,7 @@ class _MyVisitsState extends State<MyVisits>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200, width: 1.0),
+          border: Border.all(color: Color(0xffD6D6D6), width: 0.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,11 +417,11 @@ class _MyVisitsState extends State<MyVisits>
         statusText = 'Booking Confirmed';
         break;
       case AppointmentStatus.requested:
-        statusColor = Color(0xFFF57C00);
+        statusColor = Color(0xFFBE8B00);
         statusText = 'Requested';
         break;
       case AppointmentStatus.cancelled:
-        statusColor = Color(0xFFF44336);
+        statusColor = Color(0xFFF04248);
         statusText = 'Cancelled';
         break;
       case AppointmentStatus.completed:
@@ -364,23 +451,51 @@ class _MyVisitsState extends State<MyVisits>
                 ),
                 const Spacer(),
                 if (appointment.tokenNumber != null)
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Token Number ',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFF424242),
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                        TextSpan(
+                          text: appointment.tokenNumber,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFF3EAF3F),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  statusText,
+                  style: EcliniqTextStyles.headlineZMedium.copyWith(
+                    color: statusColor,
+                  ),
+                ),
+                if (appointment.tokenNumber != null) ...[
+                  const SizedBox(width: 8),
                   Text(
                     'Token Number ${appointment.tokenNumber}',
                     style: TextStyle(
                       fontSize: 18,
                       color: Color(0xFF424242),
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w300,
                     ),
                   ),
+                ],
               ],
-            )
-          : Center(
-              child: Text(
-                statusText,
-                style: EcliniqTextStyles.headlineMedium.copyWith(
-                  color: statusColor,
-                ),
-              ),
             ),
     );
   }
@@ -388,23 +503,42 @@ class _MyVisitsState extends State<MyVisits>
   Widget _buildDoctorInfo(AppointmentData appointment) {
     return Row(
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Color(0xFF4A90E2),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Center(
-            child: Text(
-              appointment.doctorName.split(' ')[1][0],
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Stack(
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF8FAFF),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Color(0xFF96BFFF), width: 0.5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'D',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2196F3),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: -2,
+                  right: 0,
+                  child: SvgPicture.asset(
+                    EcliniqIcons.verified.assetPath,
+                    width: 24,
+                    height: 24,
+                  ),
+                ),
+              ],
             ),
-          ),
+          ],
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -414,16 +548,24 @@ class _MyVisitsState extends State<MyVisits>
               Text(
                 appointment.doctorName,
                 style: EcliniqTextStyles.headlineLarge.copyWith(
-                  color: Color(0xFF333333),
+                  color: Color(0xFF424242),
                 ),
               ),
               Text(
                 appointment.specialization,
-                style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF424242),
+                ),
               ),
               Text(
                 appointment.qualification,
-                style: TextStyle(fontSize: 14, color: Color(0xFF999999)),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF424242),
+                ),
               ),
             ],
           ),
@@ -435,11 +577,19 @@ class _MyVisitsState extends State<MyVisits>
   Widget _buildAppointmentDetails(AppointmentData appointment) {
     return Row(
       children: [
-        Icon(Icons.calendar_today_outlined, size: 24, color: Color(0xFF666666)),
+        SvgPicture.asset(
+          EcliniqIcons.appointmentReminder.assetPath,
+          width: 24,
+          height: 24,
+        ),
         const SizedBox(width: 8),
         Text(
           '${appointment.date} | ${appointment.time}',
-          style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFF626060),
+          ),
         ),
       ],
     );
@@ -469,7 +619,11 @@ class _MyVisitsState extends State<MyVisits>
         const SizedBox(width: 8),
         Text(
           appointment.patientName,
-          style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFF626060),
+          ),
         ),
       ],
     );
@@ -486,7 +640,7 @@ class _MyVisitsState extends State<MyVisits>
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: Color(0xFF8E8E8E)),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
               ),
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
@@ -502,7 +656,12 @@ class _MyVisitsState extends State<MyVisits>
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 18, color: Color(0xFF626060)),
+                SvgPicture.asset(
+                  EcliniqIcons.arrowRight.assetPath,
+                  width: 24,
+                  height: 24,
+                  color: Color(0xFF424242),
+                ),
               ],
             ),
           ),
@@ -530,13 +689,11 @@ class _MyVisitsState extends State<MyVisits>
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-
-                },
+                onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF2372EC),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
@@ -608,8 +765,8 @@ class _MyVisitsState extends State<MyVisits>
                             width: 140,
                           ),
                           const Spacer(),
-                          Image.asset(
-                            EcliniqIcons.bell.assetPath,
+                          SvgPicture.asset(
+                            EcliniqIcons.notificationBell.assetPath,
                             height: 32,
                             width: 32,
                           ),
@@ -624,26 +781,35 @@ class _MyVisitsState extends State<MyVisits>
                             _buildTopTabs(),
                             _buildFilterTabs(),
                             Expanded(
-                              child: currentAppointments.isEmpty
-                                  ? Center(
-                                      child: Text(
-                                        'No appointments found',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Color(0xFF666666),
-                                        ),
+                              child: _isLoadingAppointments
+                                  ? const ShimmerListLoading(
+                                      itemCount: 3,
+                                      itemHeight: 200,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
                                       ),
                                     )
-                                  : ListView.builder(
-                                      itemCount: currentAppointments.length,
-                                      itemBuilder: (context, index) {
-                                        final appointment =
-                                            currentAppointments[index];
-                                        return _buildAppointmentCard(
-                                          appointment,
-                                        );
-                                      },
-                                    ),
+                                  : currentAppointments.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            'No appointments found',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFF666666),
+                                            ),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          itemCount: currentAppointments.length,
+                                          itemBuilder: (context, index) {
+                                            final appointment =
+                                                currentAppointments[index];
+                                            return _buildAppointmentCard(
+                                              appointment,
+                                            );
+                                          },
+                                        ),
                             ),
                             EcliniqBottomNavigationBar(
                               currentIndex: _currentIndex,
@@ -657,11 +823,6 @@ class _MyVisitsState extends State<MyVisits>
                 ),
               ),
             ),
-            if (_isLoading)
-              Container(
-                color: Colors.black26,
-                child: Center(child: CircularProgressIndicator()),
-              ),
           ],
         );
       },

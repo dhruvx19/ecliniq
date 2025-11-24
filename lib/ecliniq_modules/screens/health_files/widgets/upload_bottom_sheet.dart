@@ -4,6 +4,7 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/edit_doc_details.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/services/file_upload_handler.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -25,132 +26,242 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> {
   bool _isUploading = false;
 
   Future<void> _handleUpload(UploadSource source) async {
-    // Capture the parent context before closing the bottom sheet
-    // This ensures we can show dialogs and navigate after the bottom sheet is closed
-    final parentContext = Navigator.of(context, rootNavigator: true).context;
-    
-    // Close upload bottom sheet first
-    if (mounted) {
-      Navigator.pop(context);
-    }
+  final parentContext = Navigator.of(context, rootNavigator: true).context;
+  
+  // Close upload bottom sheet first
+  if (mounted) {
+    Navigator.pop(context);
+  }
 
+  // Small delay to ensure bottom sheet is fully closed
+  await Future.delayed(const Duration(milliseconds: 300));
+
+  // Check permissions for both iOS and Android
+  // On iOS: Check permission first, if granted open gallery directly, if not let image_picker request it
+  // On Android: Check and request permission manually
+  if (!kIsWeb) {
     // Determine which permission is needed
     Permission? requiredPermission;
     String permissionTitle = 'Permission Required';
-    String permissionMessage = 'Permission is required to continue.';
+    String permissionMessage = '';
 
     switch (source) {
       case UploadSource.camera:
         requiredPermission = Permission.camera;
         permissionTitle = 'Camera Permission';
-        permissionMessage = 'We need access to your camera to take photos of your health documents.';
+        permissionMessage = 'We need access to your camera to take photos of your health documents';
         break;
       case UploadSource.gallery:
-        requiredPermission = Platform.isIOS ? Permission.photos : Permission.photos;
+        requiredPermission = Permission.photos;
         permissionTitle = 'Photo Library Access';
-        permissionMessage = 'We need access to your photo library to select health documents and images.';
+        permissionMessage = 'We need access to your photo library to select health documents and images';
         break;
       case UploadSource.files:
-        // File picker handles its own permissions on modern systems
-        // For older Android, we may need storage permission
-        if (Platform.isAndroid) {
-          requiredPermission = Permission.storage;
-          permissionTitle = 'Storage Access';
-          permissionMessage = 'We need access to your device storage to select health documents.';
-        }
+        // File picker handles its own permissions
         break;
     }
 
-    // Request permission natively first (like location permissions)
+    // Handle permission if required
     if (requiredPermission != null) {
-      PermissionStatus permissionStatus = await requiredPermission.status;
-      
-      // If permission is denied (not permanently), request it natively first
-      if (permissionStatus.isDenied) {
-        // Request permission natively - this shows the OS permission dialog
-        permissionStatus = await requiredPermission.request();
+      try {
+        // Get current permission status
+        PermissionStatus status = await requiredPermission.status;
         
-        // If still denied after native request, check if permanently denied
-        if (permissionStatus.isDenied) {
-          // Re-check status to see if it's now permanently denied
-          permissionStatus = await requiredPermission.status;
-          if (permissionStatus.isPermanentlyDenied) {
-            _showPermissionDeniedDialog(parentContext, permissionTitle, permissionMessage);
-          } else {
-            ScaffoldMessenger.of(parentContext).showSnackBar(
-              SnackBar(
-                content: Text('$permissionTitle denied. Please enable it to continue.'),
-                duration: const Duration(seconds: 2),
-              ),
-            );
+        if (Platform.isIOS) {
+          // iOS: If already granted or limited, proceed directly (no delay)
+          // If not granted, image_picker will request permission automatically when called
+          // This allows the native iOS permission dialog to show, and then gallery opens immediately
+          // No need to pre-request, just proceed and let image_picker handle it
+        } else if (Platform.isAndroid) {
+          // Android: Request permission manually before proceeding
+          if (!status.isGranted && !status.isLimited) {
+            // Permission not granted, try requesting it
+            status = await requiredPermission.request();
+            
+            // Check result after request
+            if (status.isPermanentlyDenied) {
+              // Permission was permanently denied, show settings dialog
+              _showPermissionDeniedDialog(parentContext, permissionTitle, permissionMessage);
+              return;
+            }
+            
+            if (status.isDenied) {
+              // User denied but not permanently - show retry option
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(
+                  content: Text('$permissionTitle is required to continue'),
+                  action: SnackBarAction(
+                    label: 'Retry',
+                    onPressed: () => _handleUpload(source),
+                  ),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+              return;
+            }
+            
+            // If still not granted after request, something went wrong
+            if (!status.isGranted && !status.isLimited) {
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                SnackBar(
+                  content: Text('Cannot proceed without $permissionTitle'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+              return;
+            }
           }
-          return;
         }
-      }
-      
-      // If permission is permanently denied, show settings dialog
-      if (permissionStatus.isPermanentlyDenied) {
-        _showPermissionDeniedDialog(parentContext, permissionTitle, permissionMessage);
-        return;
-      }
-      
-      // If permission is limited (iOS 14+), that's acceptable
-      if (!permissionStatus.isGranted && !permissionStatus.isLimited) {
-        _showPermissionDeniedDialog(parentContext, permissionTitle, permissionMessage);
+        
+        // Permission is granted or limited (both are OK) - proceed
+        // On iOS: If not granted yet, image_picker will request it automatically when called
+      } catch (e) {
+        print('Permission check error: $e');
+        ScaffoldMessenger.of(parentContext).showSnackBar(
+          SnackBar(
+            content: Text('Permission error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
         return;
       }
     }
+  }
 
-    // Show loading indicator using parent context
-    BuildContext? loadingDialogContext;
-    try {
+  // Permission granted, proceed with upload
+  BuildContext? loadingDialogContext;
+  
+  try {
+    // Show loading dialog
+    if (mounted) {
       showDialog(
         context: parentContext,
         barrierDismissible: false,
         builder: (dialogContext) {
           loadingDialogContext = dialogContext;
-          return const Center(
-            child: CircularProgressIndicator(),
+          return WillPopScope(
+            onWillPop: () async => false,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         },
       );
-    } catch (e) {
-      // Context might be invalid, skip showing dialog
-      print('Failed to show loading dialog: $e');
     }
 
+    setState(() => _isUploading = true);
+
+    // Upload file - image_picker will handle iOS permissions automatically
+    HealthFile? healthFile;
     try {
-      if (mounted) {
-        setState(() => _isUploading = true);
-      }
-
-      // Upload file with default type (will be changed in edit screen)
-      final healthFile = await _uploadHandler.handleUpload(
+      healthFile = await _uploadHandler.handleUpload(
         source: source,
-        fileType: HealthFileType.others, // Default type, user will change in edit screen
+        fileType: HealthFileType.others,
       );
-
-      // Close loading dialog if it was shown
-      if (loadingDialogContext != null) {
-        try {
-          Navigator.of(loadingDialogContext!, rootNavigator: true).pop();
-        } catch (e) {
-          // Dialog might already be closed, ignore
-        }
-      }
-
-      if (healthFile != null) {
-        // Navigate directly to edit document details page
-        final updatedFile = await EcliniqRouter.push<HealthFile>(
-          EditDocumentDetailsPage(healthFile: healthFile),
-        );
+    } catch (e) {
+      // Handle permission errors from image_picker on iOS
+      if (!kIsWeb && Platform.isIOS && e.toString().contains('permission')) {
+        String permissionTitle = '';
+        String permissionMessage = '';
         
-        // If file was updated, notify parent to refresh
-        if (updatedFile != null) {
-          widget.onFileUploaded?.call();
+        switch (source) {
+          case UploadSource.camera:
+            permissionTitle = 'Camera Permission';
+            permissionMessage = 'We need access to your camera to take photos of your health documents';
+            break;
+          case UploadSource.gallery:
+            permissionTitle = 'Photo Library Access';
+            permissionMessage = 'We need access to your photo library to select health documents and images';
+            break;
+          default:
+            break;
         }
-      } else {
-        // User cancelled - show message using parent context
+        
+        // Close loading dialog
+        if (loadingDialogContext != null && mounted) {
+          try {
+            Navigator.of(loadingDialogContext!, rootNavigator: true).pop();
+          } catch (_) {}
+        }
+        
+        // Check permission status to see if it's permanently denied
+        if (source == UploadSource.camera || source == UploadSource.gallery) {
+          Permission? permission = source == UploadSource.camera 
+              ? Permission.camera 
+              : Permission.photos;
+          
+          final status = await permission.status;
+          
+          if (status.isPermanentlyDenied) {
+            _showPermissionDeniedDialog(parentContext, permissionTitle, permissionMessage);
+          } else {
+            ScaffoldMessenger.of(parentContext).showSnackBar(
+              SnackBar(
+                content: Text('$permissionTitle is required to continue'),
+                action: SnackBarAction(
+                  label: 'Retry',
+                  onPressed: () => _handleUpload(source),
+                ),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(parentContext).showSnackBar(
+            SnackBar(
+              content: Text('Failed to access: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        
+        return;
+      }
+      
+      // Re-throw if not a permission error
+      rethrow;
+    }
+
+    // Close loading dialog BEFORE navigating
+    if (loadingDialogContext != null) {
+      try {
+        if (Navigator.of(parentContext, rootNavigator: true).canPop()) {
+          Navigator.of(parentContext, rootNavigator: true).pop();
+        }
+        loadingDialogContext = null;
+        // Small delay to ensure dialog is fully dismissed
+        await Future.delayed(const Duration(milliseconds: 200));
+      } catch (e) {
+        print('Error closing loading dialog: $e');
+        loadingDialogContext = null;
+      }
+    }
+
+    if (healthFile != null) {
+      // Ensure loading is dismissed and state is reset before navigation
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
+      
+      // Ensure dialog is fully dismissed before navigation
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Navigate to edit page
+      final updatedFile = await EcliniqRouter.push<HealthFile>(
+        EditDocumentDetailsPage(healthFile: healthFile),
+      );
+      
+      if (updatedFile != null) {
+        // Add a small delay before calling refresh to prevent scroll issues
+        await Future.delayed(const Duration(milliseconds: 300));
+        widget.onFileUploaded?.call();
+      }
+    } else {
+      // User cancelled
+      if (mounted) {
+        setState(() => _isUploading = false);
         ScaffoldMessenger.of(parentContext).showSnackBar(
           const SnackBar(
             content: Text('Upload cancelled'),
@@ -158,42 +269,49 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> {
           ),
         );
       }
-    } on PermissionException catch (e) {
-      // Close loading dialog if it was shown
-      if (loadingDialogContext != null) {
+    }
+  } catch (e) {
+    // Close loading dialog on error
+    if (loadingDialogContext != null) {
+      try {
+        Navigator.of(parentContext, rootNavigator: true).pop(loadingDialogContext);
+        loadingDialogContext = null;
+      } catch (_) {
         try {
-          Navigator.of(loadingDialogContext!, rootNavigator: true).pop();
-        } catch (e) {
-          // Dialog might already be closed, ignore
-        }
+          if (mounted && Navigator.of(parentContext, rootNavigator: true).canPop()) {
+            Navigator.of(parentContext, rootNavigator: true).pop();
+          }
+        } catch (_) {}
       }
-      
-      // Show permission denied dialog with option to open settings
-      _showPermissionDeniedDialog(parentContext, e.message, '');
-    } catch (e) {
-      // Close loading dialog if it was shown
-      if (loadingDialogContext != null) {
-        try {
-          Navigator.of(loadingDialogContext!, rootNavigator: true).pop();
-        } catch (e) {
-          // Dialog might already be closed, ignore
-        }
-      }
+    }
 
-      // Show error message
+    // Show error
+    if (mounted) {
+      setState(() => _isUploading = false);
       ScaffoldMessenger.of(parentContext).showSnackBar(
         SnackBar(
-          content: Text('Failed to upload file: ${e.toString()}'),
+          content: Text('Upload failed: ${e.toString()}'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
+    }
+  } finally {
+    // Ensure loading state is reset
+    if (mounted) {
+      setState(() => _isUploading = false);
+    }
+    
+    // Final safety check to close any remaining dialogs
+    if (loadingDialogContext != null) {
+      try {
+        if (Navigator.of(parentContext, rootNavigator: true).canPop()) {
+          Navigator.of(parentContext, rootNavigator: true).pop();
+        }
+      } catch (_) {}
     }
   }
+}
 
 
   void _showPermissionDeniedDialog(

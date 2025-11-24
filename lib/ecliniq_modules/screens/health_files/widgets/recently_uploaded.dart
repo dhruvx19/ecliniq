@@ -61,10 +61,33 @@ class RecentlyUploadedWidget extends StatelessWidget {
   }
 }
 
-class RecentFileCard extends StatelessWidget {
+class RecentFileCard extends StatefulWidget {
   final HealthFile file;
 
   const RecentFileCard({super.key, required this.file});
+
+  @override
+  State<RecentFileCard> createState() => _RecentFileCardState();
+}
+
+class _RecentFileCardState extends State<RecentFileCard> {
+  bool? _fileExists;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check file existence asynchronously to avoid blocking build
+    _checkFileExists();
+  }
+
+  Future<void> _checkFileExists() async {
+    final exists = File(widget.file.filePath).existsSync();
+    if (mounted) {
+      setState(() {
+        _fileExists = exists;
+      });
+    }
+  }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -83,9 +106,9 @@ class RecentFileCard extends StatelessWidget {
   }
 
   String _getFileIcon() {
-    if (file.isImage) {
+    if (widget.file.isImage) {
       return EcliniqIcons.prescription.assetPath;
-    } else if (file.extension == 'pdf') {
+    } else if (widget.file.extension == 'pdf') {
       return EcliniqIcons.pdf.assetPath;
     }
     return EcliniqIcons.pdf.assetPath;
@@ -93,13 +116,14 @@ class RecentFileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fileExists = File(file.filePath).existsSync();
+    final fileExists = _fileExists ?? false;
+    final filePath = widget.file.filePath;
     
     return GestureDetector(
       onTap: () {
         // Navigate to file type screen
         EcliniqRouter.push(
-          FileTypeScreen(fileType: file.fileType),
+          FileTypeScreen(fileType: widget.file.fileType),
         );
       },
       child: Container(
@@ -128,16 +152,18 @@ class RecentFileCard extends StatelessWidget {
                       topLeft: Radius.circular(12),
                       topRight: Radius.circular(12),
                     ),
-                    child: fileExists && file.isImage
+                    child: fileExists && widget.file.isImage
                         ? Image.file(
-                            File(file.filePath),
+                            File(filePath),
                             width: double.infinity,
                             fit: BoxFit.cover,
+                            cacheWidth: 640,
                             errorBuilder: (context, error, stackTrace) {
                               return Image.asset(
                                 EcliniqIcons.prescription.assetPath,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
+                                cacheWidth: 640,
                               );
                             },
                           )
@@ -145,6 +171,7 @@ class RecentFileCard extends StatelessWidget {
                             EcliniqIcons.prescription.assetPath,
                             width: double.infinity,
                             fit: BoxFit.cover,
+                            cacheWidth: 640,
                           ),
                   ),
                 ),
@@ -170,7 +197,7 @@ class RecentFileCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            file.fileName,
+                            widget.file.fileName,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w400,
@@ -181,7 +208,7 @@ class RecentFileCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _formatDate(file.createdAt),
+                            _formatDate(widget.file.createdAt),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
@@ -195,7 +222,7 @@ class RecentFileCard extends StatelessWidget {
                     GestureDetector(
                       onTap: () => EcliniqBottomSheet.show(
                         context: context,
-                        child: ActionBottomSheet(healthFile: file),
+                        child: ActionBottomSheet(healthFile: widget.file),
                       ),
                       child: SvgPicture.asset(
                         EcliniqIcons.threeDots.assetPath,

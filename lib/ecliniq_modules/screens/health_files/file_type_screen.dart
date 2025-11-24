@@ -1,53 +1,64 @@
 import 'dart:io';
+
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/edit_doc_details.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
-import 'package:ecliniq/ecliniq_modules/screens/health_files/services/file_upload_handler.dart';
-import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/file_type_picker_dialog.dart';
-import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/upload_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/action_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/prescription_card_list.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
-/// Screen displaying files by category/type
 class FileTypeScreen extends StatefulWidget {
-  final HealthFileType fileType;
+  final HealthFileType? fileType; // null means "All"
 
-  const FileTypeScreen({
-    super.key,
-    required this.fileType,
-  });
+  const FileTypeScreen({super.key, this.fileType});
 
   @override
   State<FileTypeScreen> createState() => _FileTypeScreenState();
 }
 
 class _FileTypeScreenState extends State<FileTypeScreen> {
-  final FileUploadHandler _uploadHandler = FileUploadHandler();
+  String? _selectedRecordFor; // null means "All"
+  final List<String> _recordForOptions = ['All'];
+  HealthFileType? _selectedFileType; // null means "All"
 
   @override
   void initState() {
     super.initState();
-    // Load files when screen initializes
+    _selectedFileType = widget.fileType;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HealthFilesProvider>().loadFiles();
+      final provider = context.read<HealthFilesProvider>();
+      provider.loadFiles().then((_) {
+        _updateRecordForOptions();
+      });
     });
   }
 
-  void _showUploadBottomSheet() {
-    EcliniqBottomSheet.show(
-      context: context,
-      child: UploadBottomSheet(
-        onFileUploaded: () {
-          // Refresh files after upload
-          context.read<HealthFilesProvider>().refresh();
-        },
-      ),
-    );
+  void _updateRecordForOptions() {
+    final provider = context.read<HealthFilesProvider>();
+    final options = provider.getRecordForOptions(_selectedFileType);
+    setState(() {
+      _recordForOptions.clear();
+      _recordForOptions.add('All');
+      _recordForOptions.addAll(options);
+    });
+  }
+
+  void _onFileTypeSelected(HealthFileType? fileType) {
+    setState(() {
+      _selectedFileType = fileType;
+      _selectedRecordFor = null; // Reset filter when changing type
+    });
+    _updateRecordForOptions();
   }
 
   Future<void> _handleFileDelete(HealthFile file) async {
@@ -73,7 +84,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     if (confirmed == true && mounted) {
       final provider = context.read<HealthFilesProvider>();
       final success = await provider.deleteFile(file);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -85,271 +96,378 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     }
   }
 
-  String _getBackgroundImage() {
-    switch (widget.fileType) {
-      case HealthFileType.labReports:
-        return EcliniqIcons.blue.assetPath;
-      case HealthFileType.scanImaging:
-        return EcliniqIcons.green.assetPath;
-      case HealthFileType.prescriptions:
-        return EcliniqIcons.orange.assetPath;
-      case HealthFileType.invoices:
-        return EcliniqIcons.yellow.assetPath;
-      case HealthFileType.vaccinations:
-        return EcliniqIcons.blueDark.assetPath;
-      case HealthFileType.others:
-        return EcliniqIcons.red.assetPath;
+  Future<void> _handleFileDownload(HealthFile file) async {
+    try {
+      final sourceFile = File(file.filePath);
+      if (!await sourceFile.exists()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('File not found'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (Platform.isAndroid) {
+        final directory = Directory('/storage/emulated/0/Download');
+        if (!await directory.exists()) {
+          final externalDir = await getExternalStorageDirectory();
+          if (externalDir != null) {
+            final downloadDir = Directory(
+              path.join(externalDir.path, 'Download'),
+            );
+            if (!await downloadDir.exists()) {
+              await downloadDir.create(recursive: true);
+            }
+            final destFile = File(path.join(downloadDir.path, file.fileName));
+            await sourceFile.copy(destFile.path);
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('File downloaded successfully'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+            return;
+          }
+        } else {
+          final destFile = File(path.join(directory.path, file.fileName));
+          await sourceFile.copy(destFile.path);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('File downloaded successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      // Use share functionality as fallback
+      await _shareFile(file);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to download file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return EcliniqScaffold(
-      backgroundColor: EcliniqScaffold.primaryBlue,
-      body: SizedBox.expand(
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            // App bar
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      widget.fileType.displayName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add, color: Colors.white, size: 28),
-                    onPressed: _showUploadBottomSheet,
-                  ),
-                ],
-              ),
+  Future<void> _shareFile(HealthFile healthFile) async {
+    try {
+      final file = File(healthFile.filePath);
+      if (!await file.exists()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('File not found'),
+              backgroundColor: Colors.red,
             ),
-            // Content
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                child: Consumer<HealthFilesProvider>(
-                  builder: (context, provider, child) {
-                    if (provider.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+          );
+        }
+        return;
+      }
 
-                    final files = provider.getFilesByType(widget.fileType);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Share functionality coming soon'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to share file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
-                    if (files.isEmpty) {
-                      return _buildEmptyState();
-                    }
+  void _showFilterBottomSheet() {
+    EcliniqBottomSheet.show<String>(
+      context: context,
+      child: _FilterBottomSheet(
+        options: _recordForOptions,
+        selectedOption: _selectedRecordFor ?? 'All',
+      ),
+    ).then((selected) {
+      if (selected != null) {
+        setState(() {
+          _selectedRecordFor = selected == 'All' ? null : selected;
+        });
+      }
+    });
+  }
 
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.75,
-                      ),
-                      itemCount: files.length,
-                      itemBuilder: (context, index) {
-                        return _FileCard(
-                          file: files[index],
-                          backgroundImage: _getBackgroundImage(),
-                          onDelete: () => _handleFileDelete(files[index]),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
+  void _showFileActions(HealthFile file) {
+    EcliniqBottomSheet.show(
+      context: context,
+      child: ActionBottomSheet(
+        healthFile: file,
+        onEditDocument: () {
+          EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
+        },
+        onDownloadDocument: () => _handleFileDownload(file),
+        onDeleteDocument: () => _handleFileDelete(file),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildFileTypeTabs() {
+    final allTabs = <HealthFileType?>[null, ...HealthFileType.values];
+    final selectedIndex = allTabs.indexOf(_selectedFileType);
+
+    return Column(
+      children: [
+        Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: allTabs.asMap().entries.map((entry) {
+                final index = entry.key;
+                final fileType = entry.value;
+          final isSelected = fileType == _selectedFileType;
+                final displayName = fileType == null
+                    ? 'All'
+                    : fileType.displayName;
+
+          return GestureDetector(
+            onTap: () => _onFileTypeSelected(fileType),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: index < allTabs.length - 1 ? 16.0 : 0,
+                    ),
+            child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+              ),
+                      child: Text(
+                    displayName,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
+                      color: isSelected
+                          ? const Color(0xFF2372EC)
+                          : const Color(0xFF626060),
+                    ),
+                  ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        // Stack to overlay blue container on divider
+        Stack(
+          children: [
+            // Divider for the whole row
+            const Divider(
+              height: 1,
+              thickness: 1,
+              color: Color(0xFFB8B8B8),
+            ),
+            // Blue container for selected tab, positioned to overlay divider
+            if (selectedIndex != -1)
+              Positioned(
+                bottom: 0,
+                left: _calculateSelectedTabLeftPosition(selectedIndex, allTabs),
+                child: Container(
+                      height: 3,
+                      width: 120,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2372EC),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  double _calculateSelectedTabLeftPosition(
+    int selectedIndex,
+    List<HealthFileType?> allTabs,
+  ) {
+    double position = 16.0; 
+
+    for (int i = 0; i < selectedIndex; i++) {
+      final tab = allTabs[i];
+      final displayName = tab == null ? 'All' : tab.displayName;
+      final textWidth = displayName.length * 10.0;
+      position += textWidth + 32.0 + 16.0;
+    }
+
+    final selectedTab = allTabs[selectedIndex];
+    final selectedDisplayName = selectedTab == null ? 'All' : selectedTab.displayName;
+    final selectedTextWidth = selectedDisplayName.length * 10.0;
+    final selectedTabWidth = selectedTextWidth + 32.0; 
+    position += (selectedTabWidth - 120) / 2; 
+
+    return position;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: SvgPicture.asset(
+            EcliniqIcons.backArrow.assetPath,
+            width: 32,
+            height: 32,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'My Files',
+            style: EcliniqTextStyles.headlineMedium.copyWith(
+              color: const Color(0xff424242),
+            ),
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.2),
+          child: Container(color: const Color(0xFFB8B8B8), height: 1.0),
+        ),
+        actions: [
+          IconButton(
+            icon: Image.asset(
+              EcliniqIcons.magnifierMyDoctor.assetPath,
+              width: 24,
+              height: 24,
+            ),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Column(
         children: [
-          SvgPicture.asset(
-            _getBackgroundImage(),
-            width: 120,
-            height: 120,
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'No ${widget.fileType.displayName} yet',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF424242),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Upload your first file to get started',
-            style: TextStyle(
-              fontSize: 16,
-              color: Color(0xFF8E8E8E),
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: _showUploadBottomSheet,
-            icon: const Icon(Icons.upload_file),
-            label: const Text('Upload File'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: EcliniqScaffold.darkBlue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          _buildFileTypeTabs(),
+
+          Expanded(
+            child: Consumer<HealthFilesProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final files = provider.getFilesByType(
+                  _selectedFileType,
+                  recordFor: _selectedRecordFor,
+                );
+
+                if (files.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: _showFilterBottomSheet,
+                            child: Row(
+                              children: [
+                                SvgPicture.asset(
+                                  EcliniqIcons.filter.assetPath,
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Filters',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Color(0xFF424242),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                SvgPicture.asset(
+                                  EcliniqIcons.arrowDown.assetPath,
+                                  width: 24,
+                                  height: 24,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${files.length} ${files.length == 1 ? 'File' : 'Files'}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF424242),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        itemCount: files.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          return PrescriptionCardList(
+                            file: files[index],
+                            isOlder: false,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      _FileViewerScreen(file: files[index]),
+                                ),
+                              );
+                            },
+                            onMenuTap: () => _showFileActions(files[index]),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
       ),
     );
-  }
-}
-
-class _FileCard extends StatelessWidget {
-  final HealthFile file;
-  final String backgroundImage;
-  final VoidCallback onDelete;
-
-  const _FileCard({
-    required this.file,
-    required this.backgroundImage,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Open file viewer
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => _FileViewerScreen(file: file),
-          ),
-        );
-      },
-      onLongPress: () {
-        // Show delete option
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('File Options'),
-            actions: [
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  onDelete();
-                },
-                icon: const Icon(Icons.delete, color: Colors.red),
-                label: const Text('Delete', style: TextStyle(color: Colors.red)),
-              ),
-            ],
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Image preview
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  color: Colors.grey.shade100,
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: file.isImage && File(file.filePath).existsSync()
-                      ? Image.file(
-                          File(file.filePath),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildPlaceholder();
-                          },
-                        )
-                      : _buildPlaceholder(),
-                ),
-              ),
-            ),
-            // File info
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    file.fileName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF424242),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatDate(file.createdAt),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF8E8E8E),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Container(
-      color: Colors.grey.shade200,
-      child: Center(
-        child: SvgPicture.asset(
-          backgroundImage,
-          width: 60,
-          height: 60,
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
@@ -367,9 +485,7 @@ class _FileViewerScreen extends StatelessWidget {
       ),
       body: file.isImage && File(file.filePath).existsSync()
           ? Center(
-              child: InteractiveViewer(
-                child: Image.file(File(file.filePath)),
-              ),
+              child: InteractiveViewer(child: Image.file(File(file.filePath))),
             )
           : Center(
               child: Column(
@@ -399,3 +515,98 @@ class _FileViewerScreen extends StatelessWidget {
   }
 }
 
+class _FilterBottomSheet extends StatelessWidget {
+  final List<String> options;
+  final String selectedOption;
+
+  const _FilterBottomSheet({
+    required this.options,
+    required this.selectedOption,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filter by Person',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF424242),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: options.length,
+              itemBuilder: (context, index) {
+                final option = options[index];
+                final isSelected = option == selectedOption;
+
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context, option),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFE3F2FD)
+                            : Colors.white,
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF2B7FFF)
+                              : const Color(0xFFE0E0E0),
+                          width: isSelected ? 2 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              option,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: const Color(0xFF424242),
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF2B7FFF),
+                              size: 24,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}

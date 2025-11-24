@@ -1,9 +1,12 @@
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/phone_input.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/login_trouble.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class EcliniqWelcomeScreen extends StatefulWidget {
   const EcliniqWelcomeScreen({super.key});
@@ -135,7 +138,15 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Column(
         children: [
-          Image.asset(EcliniqIcons.main.assetPath, width: 280, height: 280),
+          // Optimize: Use cacheWidth/cacheHeight for better performance
+          Image.asset(
+            EcliniqIcons.main.assetPath,
+            width: 280,
+            height: 280,
+            cacheWidth: 560,
+            cacheHeight: 560,
+            filterQuality: FilterQuality.medium,
+          ),
           const Text(
             'Welcome To eClinic-Q',
             style: TextStyle(
@@ -160,23 +171,29 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
           ),
           const SizedBox(height: 20),
 
+          // Optimize: Pre-build list items instead of generating on each build
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: index == 0 ? 12 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: index == 0 ? Colors.white : Colors.white38,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              );
-            }),
+            children: _buildIndicatorDots(),
           ),
         ],
       ),
     );
+  }
+
+  // Cache indicator dots to avoid rebuilding
+  List<Widget> _buildIndicatorDots() {
+    return List.generate(5, (index) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: index == 0 ? 12 : 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: index == 0 ? Colors.white : Colors.white38,
+          borderRadius: BorderRadius.circular(4),
+        ),
+      );
+    });
   }
 
   Widget _buildPhoneInputSection() {
@@ -185,93 +202,100 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
       decoration: const BoxDecoration(color: Colors.white),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              EcliniqText(
-                'Enter Your Mobile Number',
-                style: EcliniqTextStyles.headlineXMedium.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 6),
-
-              GestureDetector(
-                onTap: _openFullScreenInput,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                EcliniqText(
+                  'Enter Your Mobile Number',
+                  style: EcliniqTextStyles.headlineXMedium.copyWith(
+                    color: Color(0xff626060),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            right: BorderSide(color: Colors.grey.shade300),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Text(
-                              '+91',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Colors.grey.shade600,
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
+                ),
+                const SizedBox(height: 6),
 
-                      Expanded(
-                        child: Container(
+                GestureDetector(
+                  onTap: _openFullScreenInput,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Color(0xff626060), width: 0.5),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 16,
+                            vertical: 6,
                           ),
-                          child: Text(
-                            _phoneController.text.isEmpty
-                                ? 'Mobile Number'
-                                : _phoneController.text,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: _phoneController.text.isEmpty
-                                  ? Colors.grey
-                                  : Colors.black,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              right: BorderSide(color: Colors.grey.shade300),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text(
+                                '+91',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xff424242),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              SvgPicture.asset(
+                                EcliniqIcons.arrowDown.assetPath,
+                                width: 20,
+                                height: 20,
+                             
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            child: Text(
+                              _phoneController.text.isEmpty
+                                  ? 'Mobile Number'
+                                  : _phoneController.text,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: _phoneController.text.isEmpty
+                                    ? Colors.grey
+                                    : Colors.black,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              TextButton(
-                onPressed: () {},
-                child: EcliniqText(
-                  'Trouble signing in ?',
-                  style: EcliniqTextStyles.headlineXMedium.copyWith(
-                    color: Colors.black87,
+                TextButton(
+                  onPressed: () {
+                    EcliniqRouter.push(LoginTroublePage());
+                  },
+                  child: EcliniqText(
+                    'Trouble signing in ?',
+                    style: EcliniqTextStyles.headlineXMedium.copyWith(
+                      color: Color(0xff424242),
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 10),
-            ],
+                const SizedBox(height: 10),
+              ],
+            ),
           ),
         ),
       ),

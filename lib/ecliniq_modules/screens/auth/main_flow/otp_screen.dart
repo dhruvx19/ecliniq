@@ -1,18 +1,21 @@
 import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/mpin/set_mpin.dart';
-import 'package:ecliniq/ecliniq_modules/screens/home/home_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/login.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/custom_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 
 class OtpInputScreen extends StatefulWidget {
-  const OtpInputScreen({super.key});
+  final bool isForgotPinFlow;
+  
+  const OtpInputScreen({super.key, this.isForgotPinFlow = false});
 
   @override
   State<OtpInputScreen> createState() => _OtpInputScreenState();
@@ -106,9 +109,37 @@ class _OtpInputScreenState extends State<OtpInputScreen>
             CustomSuccessSnackBar(
               title: 'OTP verified successfully!',
               subtitle: 'Your account has been verified successfully',
+              context: context,
             ),
           );
-          EcliniqRouter.push(MPINSet());
+          
+          // Route based on flow type
+          if (widget.isForgotPinFlow) {
+            // Forgot PIN flow: OTP verified → Reset MPIN → OTP again on same number
+            EcliniqRouter.pushAndRemoveUntil(
+              const MPINSet(isResetMode: true),
+              (route) => route.isFirst,
+            );
+          } else {
+            // Normal flow: Check if user needs to set MPIN
+            final hasMPIN = await SecureStorageService.hasMPIN();
+            
+            if (!hasMPIN) {
+              // New user: No MPIN set → Set MPIN → Biometric Setup → Onboarding
+              EcliniqRouter.pushAndRemoveUntil(
+                const MPINSet(),
+                (route) => route.isFirst,
+              );
+            } else {
+              // Returning user: MPIN exists → Navigate to Login Page (not VerifyMPINPage)
+              // User can enter MPIN or use biometric on login page
+              // This handles token expiration case - user already has MPIN, just needs to re-authenticate
+              EcliniqRouter.pushAndRemoveUntil(
+                const LoginPage(),
+                (route) => route.isFirst,
+              );
+            }
+          }
         } else {
           setState(() {
             _isButtonPressed = false;

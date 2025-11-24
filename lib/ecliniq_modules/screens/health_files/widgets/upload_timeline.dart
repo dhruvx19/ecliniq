@@ -1,233 +1,152 @@
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/file_type_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/prescription_card_timeline.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
+import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 class UploadTimeline extends StatelessWidget {
   const UploadTimeline({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 16.0,
-        bottom: 16.0,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Upload Timeline',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Color(0xff424242),
-            ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 180,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  top: 130,
-                  left: 20,
-                  right: 20,
-                  child: Opacity(
-                    opacity: 0.65,
-                    child: Transform.scale(
-                      scale: 0.95,
-                      child: const PrescriptionCard(
-                        day: '23',
-                        month: 'May',
-                        isOlder: true,
-                        showShadow: false,
-                        headingFontSize: 16,
-                        subheadingFontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 65,
-                  left: 12,
-                  right: 12,
-                  child: Transform.scale(
-                    scale: 0.97,
-                    child: const PrescriptionCard(
-                      day: '01',
-                      month: 'Aug',
-                      headingFontSize: 17,
-                      subheadingFontSize: 13,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: const PrescriptionCard(
-                    day: '09',
-                    month: 'Aug',
-                    headingFontSize: 18,
-                    subheadingFontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  double _getExpandTimelineTopPadding(int fileCount) {
+    switch (fileCount) {
+      case 1:
+        return 30.0;
+      case 2:
+        return 30.0;
+      case 3:
+        return 40.0;
+      default:
+        return 30.0;
+    }
   }
-}
-
-class PrescriptionCard extends StatelessWidget {
-  final String day;
-  final String month;
-  final bool isOlder;
-  final bool showShadow;
-  final double headingFontSize;
-  final double subheadingFontSize;
-
-  const PrescriptionCard({
-    super.key,
-    required this.day,
-    required this.month,
-    this.isOlder = false,
-    this.showShadow = true,
-    this.headingFontSize = 18,
-    this.subheadingFontSize = 14,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Color(0xffD6D6D6)),
-        boxShadow: showShadow
-            ? [
-                BoxShadow(
-                  color: const Color(0x33000000),
-                  blurRadius: 10,
-                  offset: const Offset(0, 6),
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 60,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  day,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: isOlder ? Colors.grey[400] : Color(0xff424242),
-                  ),
-                ),
-                Text(
-                  month,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isOlder ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
+    return Consumer<HealthFilesProvider>(
+      builder: (context, provider, child) {
+        final recentFiles = provider.getRecentlyUploadedFiles(limit: 3);
 
-          Container(
-            width: 50,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.abc, size: 10),
-                        SizedBox(width: 2),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  ...List.generate(
-                    4,
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Container(
-                        height: 2,
-                        width: double.infinity,
-                        color: Colors.grey[400],
+        if (recentFiles.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          padding: const EdgeInsets.only(
+            left: 16.0,
+            right: 16.0,
+            top: 16.0,
+            bottom: 16.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Upload Timeline',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xff424242),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                height: 180,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Third file (oldest, if exists)
+                    if (recentFiles.length >= 3)
+                      Positioned(
+                        top: 130,
+                        left: 20,
+                        right: 20,
+                        child: Opacity(
+                          opacity: 0.65,
+                          child: Transform.scale(
+                            scale: 0.95,
+                            child: PrescriptionCardTimeline(
+                              file: recentFiles[2],
+                              isOlder: true,
+                              showShadow: false,
+                              headingFontSize: 16,
+                              subheadingFontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    // Second file (if exists)
+                    if (recentFiles.length >= 2)
+                      Positioned(
+                        top: 65,
+                        left: 12,
+                        right: 12,
+                        child: Transform.scale(
+                          scale: 0.97,
+                          child: PrescriptionCardTimeline(
+                            file: recentFiles[1],
+                            headingFontSize: 17,
+                            subheadingFontSize: 13,
+                          ),
+                        ),
+                      ),
+                    // First file (latest)
+                    if (recentFiles.isNotEmpty)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: PrescriptionCardTimeline(
+                          file: recentFiles[0],
+                          headingFontSize: 18,
+                          subheadingFontSize: 14,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+     
+              SizedBox(
+                height: _getExpandTimelineTopPadding(recentFiles.length),
+              ),
+              GestureDetector(
+                onTap: () {
+                  EcliniqRouter.push(const FileTypeScreen(fileType: null));
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Expand Timeline',
+                      style: EcliniqTextStyles.headlineXMedium.copyWith(
+                        color: EcliniqScaffold.darkBlue,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 1,
+                      height: 20,
+                      color: EcliniqScaffold.darkBlue,
+                    ),
+                    const SizedBox(width: 8),
+                    SvgPicture.asset(
+                      EcliniqIcons.arrowDown.assetPath,
+                      width: 20,
+                      height: 20,
+                      color: EcliniqScaffold.darkBlue,
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(width: 16),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Prescription.pdf',
-                  style: TextStyle(
-                    fontSize: headingFontSize,
-                    fontWeight: FontWeight.w500,
-                    color: isOlder ? Colors.grey[500] : Color(0xff424242),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Prescription',
-                  style: TextStyle(
-                    fontSize: subheadingFontSize,
-                    fontWeight: FontWeight.w400,
-                    color: isOlder ? Colors.grey[400] : Color(0xff8E8E8E),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          SvgPicture.asset(EcliniqIcons.healthIcon.assetPath,
-              width: 32,
-              height: 32,
-              
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

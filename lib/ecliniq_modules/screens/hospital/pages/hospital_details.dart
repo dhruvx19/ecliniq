@@ -1,3 +1,4 @@
+import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/easy_to_book.dart';
 import 'package:ecliniq/ecliniq_modules/screens/hospital/pages/hospital_doctors.dart';
@@ -206,6 +207,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                         EcliniqIcons.verified.assetPath,
                         width: 24,
                         height: 24,
+                      
                       ),
                     ),
                   ],
@@ -219,10 +221,52 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   }
 
   Widget _buildDoctorsContent(hospital) {
-    return HospitalDoctorsScreen(
-      hospitalId: widget.hospitalId,
-      hospitalName: hospital.name,
-      hideAppBar: true,
+    return FutureBuilder<String?>(
+      future: SessionService.getAuthToken(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        final authToken = snapshot.data ?? '';
+        
+        if (authToken.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                const SizedBox(height: 16),
+                const Text(
+                  'Authentication required',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff424242),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please log in to view doctors',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xff626060),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return HospitalDoctorsScreen(
+          hospitalId: widget.hospitalId,
+          hospitalName: hospital.name,
+          authToken: authToken,
+          hideAppBar: true,
+        );
+      },
     );
   }
 
@@ -351,6 +395,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 EcliniqIcons.mapPoint.assetPath,
                 width: 24,
                 height: 24,
+              
               ),
               const SizedBox(width: 6),
               Text(
@@ -444,7 +489,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
 
   Widget _buildFloatingTabSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 120),
+      margin: const EdgeInsets.symmetric(horizontal: 100),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
         color: const Color(0x80000000),

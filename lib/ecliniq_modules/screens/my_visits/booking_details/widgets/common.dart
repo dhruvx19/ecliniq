@@ -1,8 +1,12 @@
+import 'dart:convert';
 
-
-
+import 'package:ecliniq/ecliniq_api/models/appointment.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 
 class AppointmentDetailModel {
   final String id;
@@ -16,6 +20,9 @@ class AppointmentDetailModel {
   final ClinicInfo clinic;
   final PaymentInfo payment;
   final int? rating;
+  final String? doctorId;
+  final String? hospitalId;
+  final bool? _isRescheduled;
 
   AppointmentDetailModel({
     required this.id,
@@ -29,7 +36,12 @@ class AppointmentDetailModel {
     required this.clinic,
     required this.payment,
     this.rating,
-  });
+    this.doctorId,
+    this.hospitalId,
+    bool? isRescheduled,
+  }) : _isRescheduled = isRescheduled;
+
+  bool get isRescheduled => _isRescheduled ?? false;
 
   factory AppointmentDetailModel.fromJson(Map<String, dynamic> json) {
     return AppointmentDetailModel(
@@ -44,6 +56,175 @@ class AppointmentDetailModel {
       clinic: ClinicInfo.fromJson(json['clinic'] ?? {}),
       payment: PaymentInfo.fromJson(json['payment'] ?? {}),
       rating: json['rating'],
+      doctorId: json['doctor_id'],
+      hospitalId: json['hospital_id'],
+      isRescheduled: json['is_rescheduled'] == null ? null : (json['is_rescheduled'] == true || json['is_rescheduled'] == 'true' || json['is_rescheduled'] == 1),
+    );
+  }
+
+  /// Factory method to convert from API AppointmentDetailData
+  factory AppointmentDetailModel.fromApiData(AppointmentDetailData apiData) {
+    // Map status to lowercase for UI
+    String status = apiData.status.toLowerCase();
+    if (status == 'served') {
+      status = 'completed';
+    } else if (status == 'pending') {
+      status = 'requested';
+    }
+
+    // Combine date and time - startTime might have wrong date (1970-01-01), so use schedule.date
+    final appointmentDate = apiData.schedule.date;
+    final startTime = apiData.schedule.startTime;
+    // Create a proper DateTime by combining the date from schedule.date with time from startTime
+    final combinedDateTime = DateTime(
+      appointmentDate.year,
+      appointmentDate.month,
+      appointmentDate.day,
+      startTime.hour,
+      startTime.minute,
+    );
+
+    // Format date
+    final dateFormat = DateFormat('dd MMM, yyyy');
+    final dateStr = dateFormat.format(appointmentDate);
+
+    // Format time
+    final timeFormat = DateFormat('hh:mm a');
+    final timeStr = timeFormat.format(combinedDateTime);
+
+    // Calculate age from DOB
+    final now = DateTime.now();
+    final dob = apiData.patient.dob;
+    int age = now.year - dob.year;
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
+      age--;
+    }
+
+    // Get clinic/hospital info from location
+    final location = apiData.location;
+    final clinicName = location.name;
+
+    // Parse and format address
+    String formattedAddress = '';
+    String city = '';
+    String pincode = '';
+    double latitude = 0.0;
+    double longitude = 0.0;
+
+    if (location.type == 'CLINIC' && apiData.doctor.primaryClinic != null) {
+      final primaryClinic = apiData.doctor.primaryClinic!;
+      // For clinics, prefer primary clinic address if available, otherwise use location address
+      formattedAddress = primaryClinic.address.isNotEmpty
+          ? primaryClinic.address
+          : location.address;
+
+      // Extract city and pincode from address
+      final addressParts = formattedAddress.split(',');
+      if (addressParts.length > 2) {
+        city = addressParts[addressParts.length - 2].trim();
+      }
+      if (addressParts.isNotEmpty) {
+        final lastPart = addressParts.last.trim();
+        if (RegExp(r'^\d{6}$').hasMatch(lastPart)) {
+          pincode = lastPart;
+        }
+      }
+      latitude = double.tryParse(primaryClinic.latitude) ?? 0.0;
+      longitude = double.tryParse(primaryClinic.longitude) ?? 0.0;
+    } else if (location.type == 'HOSPITAL' &&
+        apiData.doctor.associatedHospitals.isNotEmpty) {
+      final hospital = apiData.doctor.associatedHospitals.firstWhere(
+        (h) => h.id == location.id,
+        orElse: () => apiData.doctor.associatedHospitals.first,
+      );
+      city = hospital.city;
+      pincode = hospital.pincode;
+      latitude = hospital.latitude;
+      longitude = hospital.longitude;
+
+      // Parse JSON address for hospitals
+      formattedAddress = _parseHospitalAddress(location.address, hospital);
+    } else {
+      // Fallback: use address as-is
+      formattedAddress = location.address;
+    }
+
+    // Format consultation type
+    String consultationType = apiData.type == 'ONLINE'
+        ? 'Online Consultation'
+        : 'In-Clinic Consultation';
+
+    // Get consultation fee - prefer top-level fees, fallback to doctor fees
+    final consultationFee = apiData.consultationFee ?? apiData.doctor.consultationFee ?? 0.0;
+    final followUpFee = apiData.followUpFee ?? apiData.doctor.followUpFee ?? 0.0;
+    final serviceFee = 0.0; // Service fee not in API response
+    final totalPayable = consultationFee + serviceFee;
+
+    // Extract doctorId and hospitalId
+    final doctorId = apiData.doctor.userId;
+    String? hospitalId;
+    
+    if (location.type == 'HOSPITAL') {
+      hospitalId = location.id;
+    } else if (location.type == 'CLINIC' && apiData.doctor.primaryClinic != null) {
+      hospitalId = apiData.doctor.primaryClinic!.id;
+    }
+
+    return AppointmentDetailModel(
+      id: apiData.appointmentId,
+      status: status,
+      tokenNumber: apiData.tokenNo?.toString(),
+      expectedTime: null, // Not available in API
+      currentTokenNumber: null, // Not available in API
+      doctor: DoctorInfo(
+        name: apiData.doctor.name,
+        specialization: apiData.doctor.specialties.isNotEmpty
+            ? apiData.doctor.specialties.join(', ')
+            : 'General Physician',
+        qualification: apiData.doctor.degrees.isNotEmpty
+            ? apiData.doctor.degrees.join(', ')
+            : 'MBBS',
+        rating: 0.0, // Not available in API
+        yearsOfExperience: apiData.doctor.workExperience ?? 0,
+        profileImage: apiData.doctor.profilePhoto,
+      ),
+      patient: PatientInfo(
+        name: apiData.patient.name,
+        gender: apiData.patient.gender,
+        dateOfBirth: DateFormat('dd MMM, yyyy').format(apiData.patient.dob),
+        age: age,
+        isSelf: apiData.bookedFor == 'SELF',
+      ),
+      timeInfo: AppointmentTimeInfo(
+        date: dateStr,
+        time: timeStr,
+        displayDate: dateStr,
+        consultationType: consultationType,
+      ),
+      clinic: ClinicInfo(
+        name: clinicName,
+        address: formattedAddress,
+        city: city,
+        pincode: pincode,
+        latitude: latitude,
+        longitude: longitude,
+        distanceKm: 0.0, // Not available in API
+      ),
+      payment: PaymentInfo(
+        consultationFee: consultationFee,
+        followUpFee: followUpFee,
+        serviceFee: serviceFee,
+        totalPayable: totalPayable,
+        isServiceFeeWaived: serviceFee == 0,
+        waiverMessage: serviceFee == 0
+            ? 'We care for you and provide a free booking'
+            : '',
+      ),
+      rating: null, // Not available in API response
+      doctorId: doctorId,
+      hospitalId: hospitalId,
+      isRescheduled: apiData.isRescheduled,
     );
   }
 
@@ -60,7 +241,83 @@ class AppointmentDetailModel {
       'clinic': clinic.toJson(),
       'payment': payment.toJson(),
       'rating': rating,
+      if (doctorId != null) 'doctor_id': doctorId,
+      if (hospitalId != null) 'hospital_id': hospitalId,
+      'is_rescheduled': isRescheduled,
     };
+  }
+}
+
+/// Helper function to parse and format hospital address from JSON string
+String _parseHospitalAddress(
+  String addressString,
+  AssociatedHospital hospital,
+) {
+  try {
+    // Check if address is a JSON string
+    if (addressString.trim().startsWith('{')) {
+      final addressJson = jsonDecode(addressString) as Map<String, dynamic>;
+      final parts = <String>[];
+
+      // Add street if available
+      if (addressJson['street'] != null &&
+          addressJson['street'].toString().isNotEmpty) {
+        parts.add(addressJson['street'].toString());
+      }
+
+      // Add block number if available
+      if (addressJson['blockNo'] != null &&
+          addressJson['blockNo'].toString().isNotEmpty) {
+        parts.add(addressJson['blockNo'].toString());
+      }
+
+      // Add city and state from hospital object
+      if (hospital.city.isNotEmpty) {
+        parts.add(hospital.city);
+      }
+      if (hospital.state.isNotEmpty) {
+        parts.add(hospital.state);
+      }
+
+      // Add landmark if available
+      if (addressJson['landmark'] != null &&
+          addressJson['landmark'].toString().isNotEmpty) {
+        parts.add('Near ${addressJson['landmark']}');
+      }
+
+      // Add pincode
+      if (hospital.pincode.isNotEmpty) {
+        parts.add(hospital.pincode);
+      }
+
+      return parts.isEmpty ? addressString : parts.join(', ');
+    } else {
+      // If not JSON, return as-is but append city, state, pincode if available
+      final parts = <String>[addressString];
+      if (hospital.city.isNotEmpty) {
+        parts.add(hospital.city);
+      }
+      if (hospital.state.isNotEmpty) {
+        parts.add(hospital.state);
+      }
+      if (hospital.pincode.isNotEmpty) {
+        parts.add(hospital.pincode);
+      }
+      return parts.join(', ');
+    }
+  } catch (e) {
+    // If parsing fails, return original address with hospital details appended
+    final parts = <String>[addressString];
+    if (hospital.city.isNotEmpty) {
+      parts.add(hospital.city);
+    }
+    if (hospital.state.isNotEmpty) {
+      parts.add(hospital.state);
+    }
+    if (hospital.pincode.isNotEmpty) {
+      parts.add(hospital.pincode);
+    }
+    return parts.join(', ');
   }
 }
 
@@ -189,7 +446,7 @@ class AppointmentTimeInfo {
     };
   }
 
-  String get fullDateTime => time;
+  String get fullDateTime => '$date | $time';
 }
 
 class ClinicInfo {
@@ -240,6 +497,7 @@ class ClinicInfo {
 
 class PaymentInfo {
   final double consultationFee;
+  final double followUpFee;
   final double serviceFee;
   final double totalPayable;
   final bool isServiceFeeWaived;
@@ -247,6 +505,7 @@ class PaymentInfo {
 
   PaymentInfo({
     required this.consultationFee,
+    this.followUpFee = 0.0,
     required this.serviceFee,
     required this.totalPayable,
     required this.isServiceFeeWaived,
@@ -256,6 +515,7 @@ class PaymentInfo {
   factory PaymentInfo.fromJson(Map<String, dynamic> json) {
     return PaymentInfo(
       consultationFee: (json['consultation_fee'] ?? 0).toDouble(),
+      followUpFee: (json['follow_up_fee'] ?? 0).toDouble(),
       serviceFee: (json['service_fee'] ?? 0).toDouble(),
       totalPayable: (json['total_payable'] ?? 0).toDouble(),
       isServiceFeeWaived: json['is_service_fee_waived'] ?? false,
@@ -268,6 +528,7 @@ class PaymentInfo {
   Map<String, dynamic> toJson() {
     return {
       'consultation_fee': consultationFee,
+      'follow_up_fee': followUpFee,
       'service_fee': serviceFee,
       'total_payable': totalPayable,
       'is_service_fee_waived': isServiceFeeWaived,
@@ -294,17 +555,60 @@ class StatusHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = _getStatusConfig();
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: config.backgroundColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: config.backgroundColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            ),
+          ),
+          child: _buildContent(config),
         ),
-      ),
-      child: _buildContent(config),
+        if (currentTokenNumber != null) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            decoration: BoxDecoration(
+              color: Color(0xffF8FAFF),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Token Number Currently Running',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xff626060),
+                  ),
+                ),
+                SizedBox(width: 14),
+                SvgPicture.asset(
+                  EcliniqIcons.greenDot.assetPath,
+                  width: 16,
+                  height: 16,
+                ),
+                SizedBox(width: 4),
+                Text(
+                  currentTokenNumber!,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF3EAF3F),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ],
     );
   }
 
@@ -322,66 +626,51 @@ class StatusHeader extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Your Token Number',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w300,
+                color: Color(0xff424242),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               tokenNumber!,
               style: TextStyle(
                 fontSize: 32,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: config.textColor,
               ),
             ),
             if (expectedTime != null) ...[
               const SizedBox(height: 4),
-              Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Color(0xFFB8B8B8)),
-                ),
-                child: Text(
-                  'Expected Time - $expectedTime',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-              ),
-            ],
-            if (currentTokenNumber != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Token Number Currently Running',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        currentTokenNumber!,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xffF9F9F9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Color(0xFFB8B8B8), width: 0.5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Expected Time - $expectedTime',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff424242),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      SvgPicture.asset(
+                        EcliniqIcons.info.assetPath,
+                        width: 18,
+                        height: 18,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -399,37 +688,6 @@ class StatusHeader extends StatelessWidget {
               color: config.textColor,
             ),
           ),
-          if (currentTokenNumber != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Token Number Currently Running',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    currentTokenNumber!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       );
     } else {
@@ -451,8 +709,8 @@ class StatusHeader extends StatelessWidget {
       case 'confirmed':
         return _StatusConfig(
           title: 'Booking Confirmed',
-          backgroundColor: const Color(0xFFE8F5E9),
-          textColor: const Color(0xFF2E7D32),
+          backgroundColor: const Color(0xFFF2FFF3),
+          textColor: const Color(0xFF3EAF3F),
         );
       case 'completed':
         return _StatusConfig(
@@ -464,13 +722,13 @@ class StatusHeader extends StatelessWidget {
         return _StatusConfig(
           title: 'Your booking has been cancelled',
           backgroundColor: const Color(0xFFFFEBEE),
-          textColor: const Color(0xFFD32F2F),
+          textColor: const Color(0xFFF04248),
         );
       case 'requested':
         return _StatusConfig(
           title: 'Requested',
-          backgroundColor: const Color(0xFFFFF3E0),
-          textColor: const Color(0xFFF57C00),
+          backgroundColor: const Color(0xFFFEF9E6),
+          textColor: const Color(0xFFBE8B00),
         );
       default:
         return _StatusConfig(
@@ -496,124 +754,227 @@ class _StatusConfig {
 
 class DoctorInfoCard extends StatelessWidget {
   final DoctorInfo doctor;
+  final ClinicInfo clinic;
+  final String? currentTokenNumber;
 
-  const DoctorInfoCard({super.key, required this.doctor});
+  const DoctorInfoCard({
+    super.key,
+    required this.doctor,
+    required this.clinic,
+    this.currentTokenNumber,
+  });
+
+  // Cache colors to prevent recreation on every build
+  static final Color _borderColor = const Color(0xFF1565C0).withOpacity(0.2);
+
+  String _getExperienceText(int years) {
+    return '${years}yrs of exp';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: const Color(0xFF4A90E2),
-            borderRadius: BorderRadius.circular(32),
-          ),
-          child: Center(
-            child: Text(
-              doctor.initials,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
+        Padding(
+          padding: const EdgeInsets.all(6.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                doctor.name,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF333333),
-                ),
+              Row(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: _borderColor, width: 1),
+                        ),
+                        child: Center(
+                          child: Text(
+                            doctor.initials,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1565C0),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: SvgPicture.asset(
+                          EcliniqIcons.verified.assetPath,
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          doctor.name,
+                          style: EcliniqTextStyles.headlineLarge.copyWith(
+                            color: Color(0xff424242),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          doctor.specialization,
+                          style: EcliniqTextStyles.titleXLarge.copyWith(
+                            color: Color(0xff424242),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          doctor.qualification,
+                          style: EcliniqTextStyles.titleXLarge.copyWith(
+                            color: Color(0xff424242),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                doctor.specialization,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF666666)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    EcliniqIcons.medicalKit.assetPath,
+                    width: 24,
+                    height: 24,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _getExperienceText(doctor.yearsOfExperience),
+                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                      color: Color(0xff626060),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xff8E8E8E),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Color(0xffFEF9E6),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SvgPicture.asset(
+                          EcliniqIcons.star.assetPath,
+                          width: 18,
+                          height: 18,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          doctor.rating.toStringAsFixed(1),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xffBE8B00),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xff8E8E8E),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '₹500',
+                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                      color: Color(0xff626060),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                doctor.qualification,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF999999)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    EcliniqIcons.hospitalBuilding.assetPath,
+                    width: 24,
+                    height: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      clinic.name,
+                      style: EcliniqTextStyles.titleXLarge.copyWith(
+                        color: Color(0xff626060),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    EcliniqIcons.mapPoint.assetPath,
+                    width: 24,
+                    height: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      clinic.address,
+                      style: EcliniqTextStyles.titleXLarge.copyWith(
+                        color: Color(0xff626060),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Color(0xffB8B8B8)),
+                    ),
+                    child: Text(
+                      '${clinic.distanceKm.toStringAsFixed(1)} Km',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xff424242),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class DoctorStatsRow extends StatelessWidget {
-  final DoctorInfo doctor;
-  final ClinicInfo clinic;
-
-  const DoctorStatsRow({super.key, required this.doctor, required this.clinic});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _buildStatItem(
-          icon: Icons.calendar_today_outlined,
-          text: '${doctor.yearsOfExperience}yrs of exp',
-        ),
-        const SizedBox(width: 4),
-        _buildStatItem(
-          icon: Icons.star,
-          text: doctor.rating.toString(),
-          iconColor: Colors.amber,
-        ),
-        const Spacer(),
-        _buildStatItem(
-          icon: Icons.location_on_outlined,
-          text: '${clinic.distanceKm} Km',
-          textColor: const Color(0xFF2372EC),
-        ),
-        TextButton(
-          onPressed: () {
-
-          },
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: const Size(50, 20),
-          ),
-          child: const Text(
-            'Change',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF2372EC),
-              decoration: TextDecoration.underline,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatItem({
-    required IconData icon,
-    required String text,
-    Color? iconColor,
-    Color? textColor,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: iconColor ?? const Color(0xFF666666)),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            color: textColor ?? const Color(0xFF666666),
           ),
         ),
       ],
@@ -646,30 +1007,47 @@ class AppointmentDetailsSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _buildDetailRow(
-          icon: Icons.person_outline,
+          icon: SvgPicture.asset(
+            EcliniqIcons.user.assetPath,
+            width: 32,
+            height: 32,
+          ),
           text: patient.displayName,
           subtitle:
               '${patient.gender}, ${patient.dateOfBirth} (${patient.age}Y)',
         ),
         const SizedBox(height: 12),
-        _buildDetailRow(icon: Icons.access_time, text: timeInfo.fullDateTime),
+        _buildDetailRow(
+          icon: SvgPicture.asset(
+            EcliniqIcons.calendar.assetPath,
+            width: 32,
+            height: 32,
+          ),
+          text: timeInfo.time,
+          subtitle: timeInfo.displayDate,
+        ),
         const SizedBox(height: 12),
         _buildDetailRow(
-          icon: Icons.medical_services_outlined,
+          icon: SvgPicture.asset(
+            EcliniqIcons.hospitalBuilding1.assetPath,
+            width: 32,
+            height: 32,
+          ),
           text: timeInfo.consultationType,
+          subtitle: 'Amore Clinic, 15, Indrayani River Road, Pune - 411047',
         ),
       ],
     );
   }
 
   Widget _buildDetailRow({
-    required IconData icon,
+    required Widget icon,
     required String text,
     String? subtitle,
   }) {
     return Row(
       children: [
-        Icon(icon, size: 24, color: const Color(0xFF666666)),
+        icon,
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -677,7 +1055,11 @@ class AppointmentDetailsSection extends StatelessWidget {
             children: [
               Text(
                 text,
-                style: const TextStyle(fontSize: 18, color: Color(0xFF424242)),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF424242),
+                ),
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 2),
@@ -685,7 +1067,8 @@ class AppointmentDetailsSection extends StatelessWidget {
                   subtitle,
                   style: const TextStyle(
                     fontSize: 16,
-                    color: Color(0xFF999999),
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF8E8E8E),
                   ),
                 ),
               ],
@@ -708,46 +1091,41 @@ class ClinicLocationCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Icon(Icons.location_city, size: 24, color: Color(0xFF666666)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                clinic.fullAddress,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF333333)),
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 12),
         Container(
-          height: 150,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(8),
+            color: Color(0xffF9F9F9),
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Stack(
+          child: Column(
             children: [
-              Center(child: Icon(Icons.map, size: 48, color: Colors.grey[400])),
-              Positioned(
-                bottom: 8,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: TextButton.icon(
-                    onPressed: () {
-
-                    },
-                    icon: const Icon(Icons.directions),
-                    label: const Text('Tap to get the clinic direction'),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF2372EC),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    height: 70,
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
                     ),
                   ),
                 ),
               ),
+              Center(
+                child: Text(
+                  'Tap to get the clinic direction',
+                  style: EcliniqTextStyles.bodySmall.copyWith(
+                    color: Color(0xff2372EC),
+                  ),
+                ),
+              ),
+              SizedBox(height: 4),
             ],
           ),
         ),
@@ -769,9 +1147,9 @@ class PaymentDetailsCard extends StatelessWidget {
         const Text(
           'Payment Details',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF333333),
+            color: Color(0xFF424242),
           ),
         ),
         const SizedBox(height: 16),
@@ -809,20 +1187,20 @@ class PaymentDetailsCard extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
-                    color: const Color(0xFF333333),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF626060),
                   ),
                 ),
-                if (isFree)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: Color(0xFF666666),
-                    ),
+
+                const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Color(0xFF666666),
                   ),
+                ),
               ],
             ),
             Row(
@@ -935,27 +1313,14 @@ class _RatingSectionState extends State<RatingSection> {
   }
 }
 
-
-
-
 class AppointmentApiService {
-
   static const String baseUrl = 'https://your-api-url.com/api/v1';
-
 
   Future<AppointmentDetailModel> fetchAppointmentDetail(
     String appointmentId,
   ) async {
     try {
-
-
-
-
-
-
-
       await Future.delayed(const Duration(seconds: 1));
-
 
       String status;
       String? tokenNumber;
@@ -1030,7 +1395,7 @@ class AppointmentApiService {
           'distance_km': 4.0,
         },
         'payment': {
-          'consultation_fee': 700.0,
+          'consultation_fee': 700,
           'service_fee': 0.0,
           'total_payable': 700.0,
           'is_service_fee_waived': true,
@@ -1045,15 +1410,8 @@ class AppointmentApiService {
     }
   }
 
-
   Future<bool> cancelAppointment(String appointmentId) async {
     try {
-
-
-
-
-
-
       await Future.delayed(const Duration(seconds: 1));
       return true;
     } catch (e) {
@@ -1061,20 +1419,12 @@ class AppointmentApiService {
     }
   }
 
-
   Future<bool> rescheduleAppointment(
     String appointmentId,
     String newDate,
     String newTime,
   ) async {
     try {
-
-
-
-
-
-
-
       await Future.delayed(const Duration(seconds: 1));
       return true;
     } catch (e) {
@@ -1082,16 +1432,8 @@ class AppointmentApiService {
     }
   }
 
-
   Future<bool> submitRating(String appointmentId, int rating) async {
     try {
-
-
-
-
-
-
-
       await Future.delayed(const Duration(milliseconds: 500));
       return true;
     } catch (e) {
@@ -1099,14 +1441,150 @@ class AppointmentApiService {
     }
   }
 
-
   Future<bool> requestCallback(String appointmentId) async {
     try {
-
       await Future.delayed(const Duration(seconds: 1));
       return true;
     } catch (e) {
       throw Exception('Failed to request callback: $e');
     }
+  }
+}
+
+enum BookingButtonType { reschedule, cancel, primary, outlined }
+
+class BookingActionButton extends StatefulWidget {
+  final String label;
+  final EcliniqIcons? icon;
+  final BookingButtonType type;
+  final VoidCallback? onPressed;
+  final bool isFullWidth;
+
+  const BookingActionButton({
+    super.key,
+    required this.label,
+    this.icon,
+    required this.type,
+    this.onPressed,
+    this.isFullWidth = true,
+  });
+
+  @override
+  State<BookingActionButton> createState() => _BookingActionButtonState();
+}
+
+class _BookingActionButtonState extends State<BookingActionButton> {
+  bool _isPressed = false;
+
+  Color _getBackgroundColor() {
+    if (_isPressed) {
+      switch (widget.type) {
+        case BookingButtonType.reschedule:
+          return const Color(0xFF2372EC);
+        case BookingButtonType.cancel:
+          return const Color(0xFFB71C1C);
+        case BookingButtonType.primary:
+          return const Color(0xFF0E4395);
+        case BookingButtonType.outlined:
+          return const Color(0xFF2372EC);
+      }
+    } else {
+      switch (widget.type) {
+        case BookingButtonType.reschedule:
+          return const Color(0xFFF2F7FF);
+        case BookingButtonType.cancel:
+          return const Color(0xFFFFF8F8);
+        case BookingButtonType.primary:
+          return const Color(0xFF2372EC);
+        case BookingButtonType.outlined:
+          return Colors.transparent;
+      }
+    }
+  }
+
+  Color _getBorderColor() {
+    switch (widget.type) {
+      case BookingButtonType.reschedule:
+        return const Color(0xFF96BFFF);
+      case BookingButtonType.cancel:
+        return const Color(0xFFEB8B85);
+      case BookingButtonType.primary:
+        return const Color(0xFF2372EC);
+      case BookingButtonType.outlined:
+        return const Color(0xFF2372EC);
+    }
+  }
+
+  Color _getTextColor() {
+    if (_isPressed) {
+      return Colors.white;
+    } else {
+      switch (widget.type) {
+        case BookingButtonType.reschedule:
+          return const Color(0xff2372EC);
+        case BookingButtonType.cancel:
+          return const Color(0xffF04248);
+        case BookingButtonType.primary:
+          return Colors.white;
+        case BookingButtonType.outlined:
+          return const Color(0xFF2372EC);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: widget.isFullWidth ? double.infinity : null,
+      height: 52,
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() {
+            _isPressed = true;
+          });
+        },
+        onTapUp: (_) {
+          setState(() {
+            _isPressed = false;
+          });
+        },
+        onTapCancel: () {
+          setState(() {
+            _isPressed = false;
+          });
+        },
+        onTap: widget.onPressed,
+        child: Container(
+          decoration: BoxDecoration(
+            color: _getBackgroundColor(),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _getBorderColor(), width: 0.5),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.icon != null) ...[
+                SvgPicture.asset(
+                  widget.icon!.assetPath,
+                  width: 24,
+                  height: 24,
+                  colorFilter: ColorFilter.mode(
+                    _getTextColor(),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                widget.label,
+                style: EcliniqTextStyles.headlineMedium.copyWith(
+                  color: _getTextColor(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

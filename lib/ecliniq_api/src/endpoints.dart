@@ -2,19 +2,39 @@ class Endpoints {
   static const String localhost = 'http://192.168.1.3:3000';
   static const String prod = '';
 
+  /// Get WebSocket base URL (without /api path)
+  static String get websocketBaseUrl => localhost.replaceAll('/api', '');
+
   static String get loginOrRegisterUser =>
       '$localhost/api/auth/login-or-register';
 
   static String get verifyUser => '$localhost/api/auth/verify-user';
+  
+  static String get login => '$localhost/api/auth/login';
 
-  static String get getUrl => '$localhost/api/uploads/getUploadUrl';
+  static String get getUrl => '$localhost/api/storage/upload-url';
 
   static String get patientDetails => '$localhost/api/patients/create-patient-profile';
   static String get topHospitals => '$localhost/api/hospitals/top-hospitals';
   static String get topDoctors => '$localhost/api/doctors/top-doctors';
   static String hospitalDetails(String hospitalId) => '$localhost/api/hospitals/getHospitalDetailsByIdbyPatient/$hospitalId';
   static String getAllDoctorHospital(String hospitalId) => '$localhost/api/doctors/getAllDoctorsByHospitalIdForPatient/$hospitalId';
-  static String get getSlotsByDate => '$localhost/api/slots/find-slots-by-doctor-and-date';
+  static String get getSlotsByDate => '$localhost/api/slots/patient/find-slots';
+  static String get holdToken => '$localhost/api/slots/patient/hold-token';
   static String get bookAppointment => '$localhost/api/appointments/book';
+  static String get scheduledAppointments => '$localhost/api/appointments/scheduledAppointments';
+  static String get appointmentHistory => '$localhost/api/appointments/appointmentHistory';
+  static String appointmentDetail(String appointmentId) => '$localhost/api/appointments/appointment/$appointmentId';
+  static String cancelAppointment(String appointmentId) => '$localhost/api/appointments/cancel/$appointmentId';
+  static String get rescheduleAppointment => '$localhost/api/appointments/reschedule';
+  static String get getPatientDetails => '$localhost/api/patients/get-patient-details';
+  static String get addDependent => '$localhost/api/patients/add-dependent';
+  static String get getDependents => '$localhost/api/patients/get-dependents';
+  static String doctorDetailsById(String doctorId) => '$localhost/api/doctors/doctorDetailsByIdByPatient/$doctorId';
+
+  // Change contact endpoints
+  static String get verifyExistingContact => '$localhost/api/auth/change-contact/verify-existing';
+  static String get requestNewContactOTP => '$localhost/api/auth/change-contact/request-new-otp';
+  static String get verifyNewContact => '$localhost/api/auth/change-contact/verify-new';
 
 }

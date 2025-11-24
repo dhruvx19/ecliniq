@@ -3,7 +3,7 @@ import 'package:ecliniq/ecliniq_modules/screens/details/widgets/date_picker_shee
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/custom_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -546,6 +546,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
             CustomSuccessSnackBar(
               title: 'Details saved successfully',
               subtitle: 'Your changes have been saved successfully',
+              context: context,
             ),
           );
 

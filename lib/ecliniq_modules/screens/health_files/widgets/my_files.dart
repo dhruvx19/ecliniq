@@ -3,10 +3,12 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/file_type_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/action_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
 
 class FileCategory {
   final HealthFileType fileType;
@@ -22,53 +24,49 @@ class FileCategory {
   String get title => fileType.displayName;
 }
 
-
 class MyFilesWidget extends StatelessWidget {
   const MyFilesWidget({super.key});
 
+  static final List<FileCategory> _categories = [
+    FileCategory(
+      fileType: HealthFileType.labReports,
+      backgroundImage: EcliniqIcons.blue.assetPath,
+      overlayImage: EcliniqIcons.blueGradient.assetPath,
+    ),
+    FileCategory(
+      fileType: HealthFileType.scanImaging,
+      backgroundImage: EcliniqIcons.green.assetPath,
+      overlayImage: EcliniqIcons.greenframe.assetPath,
+    ),
+    FileCategory(
+      fileType: HealthFileType.prescriptions,
+      backgroundImage: EcliniqIcons.orange.assetPath,
+      overlayImage: EcliniqIcons.orangeframe.assetPath,
+    ),
+    FileCategory(
+      fileType: HealthFileType.invoices,
+      backgroundImage: EcliniqIcons.yellow.assetPath,
+      overlayImage: EcliniqIcons.yellowframe.assetPath,
+    ),
+    FileCategory(
+      fileType: HealthFileType.vaccinations,
+      backgroundImage: EcliniqIcons.blueDark.assetPath,
+      overlayImage: EcliniqIcons.blueDarkframe.assetPath,
+    ),
+    FileCategory(
+      fileType: HealthFileType.others,
+      backgroundImage: EcliniqIcons.red.assetPath,
+      overlayImage: EcliniqIcons.redframe.assetPath,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      FileCategory(
-        fileType: HealthFileType.labReports,
-        backgroundImage: EcliniqIcons.blue.assetPath,
-        overlayImage: EcliniqIcons.blueGradient.assetPath,
-      ),
-      FileCategory(
-        fileType: HealthFileType.scanImaging,
-        backgroundImage: EcliniqIcons.green.assetPath,
-        overlayImage: EcliniqIcons.greenframe.assetPath,
-      ),
-      FileCategory(
-        fileType: HealthFileType.prescriptions,
-        backgroundImage: EcliniqIcons.orange.assetPath,
-        overlayImage: EcliniqIcons.orangeframe.assetPath,
-      ),
-      FileCategory(
-        fileType: HealthFileType.invoices,
-        backgroundImage: EcliniqIcons.yellow.assetPath,
-        overlayImage: EcliniqIcons.yellowframe.assetPath,
-      ),
-      FileCategory(
-        fileType: HealthFileType.vaccinations,
-        backgroundImage: EcliniqIcons.blueDark.assetPath,
-        overlayImage: EcliniqIcons.blueDarkframe.assetPath,
-      ),
-      FileCategory(
-        fileType: HealthFileType.others,
-        backgroundImage: EcliniqIcons.red.assetPath,
-        overlayImage: EcliniqIcons.redframe.assetPath,
-      ),
-    ];
-
     return Padding(
       padding: const EdgeInsets.all(14.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-
-
           const Text(
             'My Files',
             style: TextStyle(
@@ -79,18 +77,20 @@ class MyFilesWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-
           SizedBox(
             height: 170,
             child: Consumer<HealthFilesProvider>(
               builder: (context, provider, child) {
                 return ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 16),
+                  itemCount: _categories.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 16),
                   itemBuilder: (context, index) {
-                    final category = categories[index];
-                    final fileCount = provider.getFileCountByType(category.fileType);
+                    final category = _categories[index];
+                    final fileCount = provider.getFileCountByType(
+                      category.fileType,
+                    );
                     return FileCategoryCard(
                       category: category,
                       fileCount: fileCount,
@@ -108,7 +108,6 @@ class MyFilesWidget extends StatelessWidget {
   }
 }
 
-
 class FileCategoryCard extends StatelessWidget {
   final FileCategory category;
   final int fileCount;
@@ -123,9 +122,14 @@ class FileCategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        EcliniqRouter.push(
-          FileTypeScreen(fileType: category.fileType),
-        );
+         ScaffoldMessenger.of(context).showSnackBar(
+            CustomActionSnackBar(
+              title: 'Details saved successfully',
+              subtitle: 'Your changes have been saved successfully',
+              context: context,
+            ),
+          );
+        EcliniqRouter.push(FileTypeScreen(fileType: category.fileType));
       },
       child: Container(
         width: 200,
@@ -134,14 +138,12 @@ class FileCategoryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Stack(
             children: [
-         
               Positioned.fill(
                 child: SvgPicture.asset(
                   category.backgroundImage,
                   fit: BoxFit.cover,
                 ),
               ),
-
 
               Positioned(
                 top: 22,
@@ -170,7 +172,6 @@ class FileCategoryCard extends StatelessWidget {
                   ],
                 ),
               ),
-
 
               Positioned(
                 bottom: 8,

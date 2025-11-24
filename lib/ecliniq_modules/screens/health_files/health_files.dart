@@ -1,4 +1,5 @@
 import 'package:ecliniq/ecliniq_core/router/navigation_helper.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/my_files.dart';
@@ -6,10 +7,10 @@ import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/recently_up
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/search_bar.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/upload_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/upload_timeline.dart';
+import 'package:ecliniq/ecliniq_modules/screens/notifications/notification_screen.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigation.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
-import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -22,8 +23,8 @@ class HealthFiles extends StatefulWidget {
 }
 
 class _HealthFilesState extends State<HealthFiles> {
-  final int _currentIndex = 2;
-  bool isLoading = false;
+  static const int _currentIndex = 2;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -32,6 +33,12 @@ class _HealthFilesState extends State<HealthFiles> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthFilesProvider>().loadFiles();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _onTabTapped(int index) {
@@ -76,10 +83,15 @@ class _HealthFilesState extends State<HealthFiles> {
                         width: 140,
                       ),
                       const Spacer(),
-                      Image.asset(
-                        EcliniqIcons.bell.assetPath,
-                        height: 32,
-                        width: 32,
+                      GestureDetector(
+                        onTap: () {
+                          EcliniqRouter.push(NotificationScreen());
+                        },
+                        child: SvgPicture.asset(
+                          EcliniqIcons.notificationBell.assetPath,
+                          height: 32,
+                          width: 32,
+                        ),
                       ),
                     ],
                   ),
@@ -91,6 +103,8 @@ class _HealthFilesState extends State<HealthFiles> {
                       children: [
                         Expanded(
                           child: SingleChildScrollView(
+                            controller: _scrollController,
+                            physics: const ClampingScrollPhysics(),
                             child: Column(
                               children: [
                                 SearchBarWidget(
@@ -101,34 +115,7 @@ class _HealthFilesState extends State<HealthFiles> {
                                 ),
                                 const MyFilesWidget(),
                                 const RecentlyUploadedWidget(),
-                                UploadTimeline(),
-                                const SizedBox(height: 30),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Expand Timeline',
-                                      style: EcliniqTextStyles.headlineXMedium
-                                          .copyWith(
-                                            color: EcliniqScaffold.darkBlue,
-                                          ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Container(
-                                      width: 1,
-                                      height: 20,
-                                      color: EcliniqScaffold.darkBlue,
-                                    ),
-                                     SizedBox(width: 8),
-                                    SvgPicture.asset(
-                                      EcliniqIcons.arrowDown.assetPath,
-                                      width: 20,
-                                      height: 20,
-                                      color: EcliniqScaffold.darkBlue,
-                                    ),
-                                  ],
-                                ),
-
+                                const UploadTimeline(),
                                 const SizedBox(height: 100),
                               ],
                             ),
@@ -152,6 +139,7 @@ class _HealthFilesState extends State<HealthFiles> {
           bottom: 120,
           child: GestureDetector(
             onTap: () => _showUploadBottomSheet(context),
+            behavior: HitTestBehavior.opaque,
             child: Container(
               height: 52,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -179,12 +167,6 @@ class _HealthFilesState extends State<HealthFiles> {
             ),
           ),
         ),
-
-        if (isLoading)
-          Container(
-            color: Colors.black26,
-            child: const Center(child: CircularProgressIndicator()),
-          ),
       ],
     );
   }

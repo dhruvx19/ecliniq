@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class SearchBarWidget extends StatefulWidget {
   const SearchBarWidget({
@@ -69,7 +70,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      height: 52, 
+      height: 52,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.0),
@@ -125,32 +126,18 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                     margin: const EdgeInsets.only(right: 8.0),
                     child: GestureDetector(
                       onTap: _handleVoiceSearch,
-                      child: Image.asset(
+                      child: SvgPicture.asset(
                         EcliniqIcons.microphone.assetPath,
                         width: 32,
                         height: 32,
-                       
                       ),
                     ),
                   ),
-            prefixIcon: widget.showBackButton
-                ? IconButton(
-                    onPressed: widget.onBack,
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.grey[600],
-                      size: 22,
-                    ),
-                  )
-                : Container(
-                    margin: const EdgeInsets.only(left: 4.0),
-                      child: Image.asset(
-                        EcliniqIcons.magnifier.assetPath,
-                        width: 20,
-                        height: 20,
-                        color: Colors.black,
-                      ),
-                  ),
+            prefixIcon: Image.asset(
+              EcliniqIcons.magnifierMyDoctor.assetPath,
+              width: 2,
+              height: 2,
+            ),
             hintText: widget.hintText,
             hintStyle: TextStyle(
               color: Colors.grey[500],
@@ -173,7 +160,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           cursorColor: Colors.blue,
           cursorWidth: 1.5,
           cursorHeight: 20,
-          onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
+          onTapOutside: (event) =>
+              FocusManager.instance.primaryFocus?.unfocus(),
         ),
       ),
     );

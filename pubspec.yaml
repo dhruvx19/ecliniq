@@ -1,12 +1,13 @@
 name: ecliniq
 description: "A new Flutter project."
 
-publish_to: 'none'
+publish_to: 'none' 
 
 version: 1.0.0+1
 
 environment:
   sdk: ^3.8.1
+
 
 dependencies:
   flutter:
@@ -29,24 +30,33 @@ dependencies:
   geocoding: ^3.0.0
   shimmer: ^3.0.0
   permission_handler: ^11.3.1
-  file_picker: ^10.3.3
-  url_launcher: ^6.3.2
+  device_info_plus: ^9.1.0
+  url_launcher: ^6.3.1
+  path_provider: ^2.1.5
+  file_picker: ^8.1.4
+  path: ^1.9.0
+  intl: ^0.19.0
+  socket_io_client: ^2.0.3+1
+
+  #### Firebase Plugins ####
+  firebase_core: ^4.2.0
+  firebase_messaging: ^16.0.3
+  phonepe_payment_sdk: ^3.0.2
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner:
 
+  
   flutter_lints: ^5.0.0
 flutter:
   uses-material-design: true
 
   assets:
-  - lib/ecliniq_icons/assets/
-  - lib/ecliniq_icons/assets/mpin.gif
-  - lib/ecliniq_icons/assets/Login_Man_frame.png
-  - lib/ecliniq_icons/assets/cut.png
-  - lib/ecliniq_icons/assets/Clip_path_group.png
-  - lib/ecliniq_icons/assets/Vector_Question.png
-  - lib/ecliniq_icons/assets/Vector_msg.png
-  - lib/ecliniq_icons/assets/Vector_chat.png
+    - lib/ecliniq_icons/assets/
+    - lib/ecliniq_icons/assets/specs/
+    - lib/ecliniq_icons/assets/mpin.gif
+
+

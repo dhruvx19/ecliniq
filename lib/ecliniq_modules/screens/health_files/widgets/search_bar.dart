@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SearchBarWidget extends StatefulWidget {
   const SearchBarWidget({
@@ -69,11 +71,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      height: 52, 
+      height: 52,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.0),
-       border: Border.all(color: Color(0xff626060)),  
+        border: Border.all(color: Color(0xff626060)),
       ),
       child: Animate(
         effects: const [
@@ -119,11 +121,10 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                     margin: const EdgeInsets.only(right: 8.0),
                     child: GestureDetector(
                       onTap: _handleVoiceSearch,
-                      child: Image.asset(
-                        EcliniqIcons.microphone.assetPath,
-                        width: 32,
-                        height: 32,
-                       
+                      child: SvgPicture.asset(
+                        EcliniqIcons.microphoneMyDoctor.assetPath,
+                        width: 22,
+                        height: 22,
                       ),
                     ),
                   ),
@@ -138,12 +139,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                   )
                 : Container(
                     margin: const EdgeInsets.only(left: 4.0),
-                      child: Image.asset(
-                        EcliniqIcons.magnifier.assetPath,
-                        width: 20,
-                        height: 20,
-                        color: Colors.black,
-                      ),
+                    child: Image.asset(
+                      EcliniqIcons.magnifierMyDoctor.assetPath,
+                      width: 20,
+                      height: 20,
+                    ),
                   ),
             hintText: widget.hintText,
             hintStyle: TextStyle(
@@ -167,7 +167,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           cursorColor: Colors.blue,
           cursorWidth: 1.5,
           cursorHeight: 20,
-          onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
+          onTapOutside: (event) =>
+              FocusManager.instance.primaryFocus?.unfocus(),
         ),
       ),
     );

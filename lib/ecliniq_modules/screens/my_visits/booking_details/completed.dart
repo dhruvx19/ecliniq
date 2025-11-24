@@ -1,23 +1,96 @@
+import 'package:ecliniq/ecliniq_api/appointment_service.dart';
+import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class BookingCompletedDetail extends StatefulWidget {
-  final AppointmentDetailModel appointment;
+  final String appointmentId;
+  final AppointmentDetailModel?
+  appointment; // Optional for backward compatibility
 
-  const BookingCompletedDetail({Key? key, required this.appointment})
-    : super(key: key);
+  const BookingCompletedDetail({
+    Key? key,
+    required this.appointmentId,
+    this.appointment,
+  }) : super(key: key);
 
   @override
   State<BookingCompletedDetail> createState() => _BookingCompletedDetailState();
 }
 
 class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
+  AppointmentDetailModel? _appointment;
+  bool _isLoading = true;
+  String? _errorMessage;
   int _userRating = 0;
+  final _appointmentService = AppointmentService();
 
   @override
   void initState() {
     super.initState();
-    _userRating = widget.appointment.rating ?? 0;
+    // If appointment is provided, use it directly (backward compatibility)
+    if (widget.appointment != null) {
+      _appointment = widget.appointment;
+      _isLoading = false;
+      _userRating = _appointment!.rating ?? 0;
+    } else {
+      _loadAppointmentDetails();
+    }
+  }
+
+  Future<void> _loadAppointmentDetails() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authToken = authProvider.authToken;
+
+      if (authToken == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Authentication required. Please login again.';
+          });
+        }
+        return;
+      }
+
+      final response = await _appointmentService.getAppointmentDetail(
+        appointmentId: widget.appointmentId,
+        authToken: authToken,
+      );
+
+      if (!mounted) return;
+
+      if (!response.success || response.data == null) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = response.message;
+        });
+        return;
+      }
+
+      // Convert API response to UI model
+      final appointmentDetail = AppointmentDetailModel.fromApiData(
+        response.data!,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _appointment = appointmentDetail;
+        _isLoading = false;
+        _userRating = appointmentDetail.rating ?? 0;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Failed to load appointment details: $e';
+        });
+      }
+    }
   }
 
   @override
@@ -32,7 +105,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Align(
-           alignment: Alignment.centerLeft,
+          alignment: Alignment.centerLeft,
           child: const Text(
             'Booking Detail',
             style: TextStyle(
@@ -44,56 +117,168 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
         ),
         actions: [
           IconButton(
-        
             icon: const Icon(Icons.help_outline, color: Colors.black),
             onPressed: () {},
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? _buildShimmerLoading()
+          : _errorMessage != null
+          ? _buildErrorWidget()
+          : _appointment == null
+          ? _buildErrorWidget()
+          : _buildContent(),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Status header shimmer
+          Container(
+            height: 120,
+            margin: const EdgeInsets.all(16),
+            child: ShimmerLoading(borderRadius: BorderRadius.circular(12)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Doctor info card shimmer
+                Container(
+                  height: 150,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Rating section shimmer
+                Container(
+                  height: 100,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Appointment details shimmer
+                Container(
+                  height: 200,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Clinic location shimmer
+                Container(
+                  height: 120,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Prescription section shimmer
+                Container(
+                  height: 100,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Payment details shimmer
+                Container(
+                  height: 100,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            StatusHeader(status: widget.appointment.status),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DoctorInfoCard(doctor: widget.appointment.doctor),
-                  const SizedBox(height: 12),
-                  DoctorStatsRow(
-                    doctor: widget.appointment.doctor,
-                    clinic: widget.appointment.clinic,
-                  ),
-                  const SizedBox(height: 24),
-                  RatingSection(
-                    initialRating: _userRating,
-                    onRatingChanged: (rating) {
-                      setState(() {
-                        _userRating = rating;
-                      });
-                      _submitRating(rating);
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  AppointmentDetailsSection(
-                    patient: widget.appointment.patient,
-                    timeInfo: widget.appointment.timeInfo,
-                  ),
-                  const SizedBox(height: 24),
-                  ClinicLocationCard(clinic: widget.appointment.clinic),
-                  const SizedBox(height: 24),
-                  _buildPrescriptionSection(),
-                  const SizedBox(height: 24),
-                  PaymentDetailsCard(payment: widget.appointment.payment),
-                  const SizedBox(height: 80),
-                ],
-              ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage ?? 'Failed to load appointment details',
+              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _errorMessage = null;
+                });
+                _loadAppointmentDetails();
+              },
+              child: const Text('Retry'),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomButtons(context),
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          StatusHeader(status: _appointment!.status),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DoctorInfoCard(
+                  doctor: _appointment!.doctor,
+                  clinic: _appointment!.clinic,
+                ),
+                const SizedBox(height: 12),
+
+                const SizedBox(height: 24),
+                RatingSection(
+                  initialRating: _userRating,
+                  onRatingChanged: (rating) {
+                    setState(() {
+                      _userRating = rating;
+                    });
+                    _submitRating(rating);
+                  },
+                ),
+                const SizedBox(height: 24),
+                _buildFeesSection(),
+                const SizedBox(height: 24),
+                AppointmentDetailsSection(
+                  patient: _appointment!.patient,
+                  timeInfo: _appointment!.timeInfo,
+                ),
+                const SizedBox(height: 24),
+                ClinicLocationCard(clinic: _appointment!.clinic),
+                const SizedBox(height: 24),
+                _buildPrescriptionSection(),
+                const SizedBox(height: 24),
+                PaymentDetailsCard(payment: _appointment!.payment),
+                const SizedBox(height: 24),
+                _buildBottomButtons(context),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -129,9 +314,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-
-            },
+            onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2372EC),
             ),
@@ -144,53 +327,129 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
 
   Widget _buildBottomButtons(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(color: Colors.white),
+      child: Row(
+        children: [
+          Expanded(
+            child: BookingActionButton(
+              label: 'View Prescription',
+
+              type: BookingButtonType.outlined,
+              onPressed: () {
+                // Handle view prescription
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: BookingActionButton(
+              label: 'Book Follow-up',
+
+              type: BookingButtonType.primary,
+              onPressed: () {
+                // Handle book follow-up
+              },
+            ),
           ),
         ],
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () {
+    );
+  }
 
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF2372EC),
-                  side: const BorderSide(color: Color(0xFF2372EC)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Text('View Prescription'),
-              ),
+  Widget _buildFeesSection() {
+    final consultationFee = _appointment?.payment.consultationFee ?? 0.0;
+    final followUpFee = _appointment?.payment.followUpFee ?? 0.0;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Fees',
+            style: EcliniqTextStyles.headlineLarge.copyWith(
+              color: const Color(0xff424242),
+              fontWeight: FontWeight.w600,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2372EC),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Consultation Fee',
+                style: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: const Color(0xff626060),
                 ),
-                child: const Text('Book Follow-up'),
               ),
+              Text(
+                '₹${consultationFee.toStringAsFixed(0)}',
+                style: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: const Color(0xff424242),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          if (followUpFee > 0) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Follow-up Fee',
+                  style: EcliniqTextStyles.headlineXMedium.copyWith(
+                    color: const Color(0xff626060),
+                  ),
+                ),
+                Text(
+                  '₹${followUpFee.toStringAsFixed(0)}',
+                  style: EcliniqTextStyles.headlineXMedium.copyWith(
+                    color: const Color(0xff424242),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
+          const Divider(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Total',
+                style: EcliniqTextStyles.headlineLarge.copyWith(
+                  color: const Color(0xff424242),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                '₹${_appointment?.payment.totalPayable.toStringAsFixed(0) ?? consultationFee.toStringAsFixed(0)}',
+                style: EcliniqTextStyles.headlineLarge.copyWith(
+                  color: const Color(0xff424242),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
-  Future<void> _submitRating(int rating) async {
 
-    print('Submitting rating: $rating for appointment: ${widget.appointment.id}');
+  Future<void> _submitRating(int rating) async {
+    print(
+      'Submitting rating: $rating for appointment: ${_appointment?.id ?? widget.appointmentId}',
+    );
   }
 }

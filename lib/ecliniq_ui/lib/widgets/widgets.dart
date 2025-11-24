@@ -4,5 +4,5 @@ export 'appbar/appbar.dart';
 export 'bottom_sheet/bottom_sheet.dart';
 export 'bottom_navigation/bottom_navigation.dart';
 export 'text/text.dart';
-export 'snackbar/custom_snackbar.dart';
+export 'snackbar/success_snackbar.dart';
 

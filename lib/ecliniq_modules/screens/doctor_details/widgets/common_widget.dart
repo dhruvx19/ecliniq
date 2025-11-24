@@ -1,11 +1,21 @@
+import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+String _getImageUrl(String? imageKey) {
+  if (imageKey == null || imageKey.isEmpty) {
+    return 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80';
+  }
+  return '${Endpoints.localhost}/$imageKey';
+}
 
 class ClinicalDetailsWidget extends StatelessWidget {
-  const ClinicalDetailsWidget({super.key});
+  final ProfessionalInformation professionalInfo;
+
+  const ClinicalDetailsWidget({super.key, required this.professionalInfo});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +24,6 @@ class ClinicalDetailsWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -44,27 +53,35 @@ class ClinicalDetailsWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailItem(
-                  label: 'Clinic Name:',
-                  value: 'Sunrise Family Clinic',
-                ),
-                const SizedBox(height: 12),
-                _buildDetailItem(
-                  label: 'Establishment Year:',
-                  value: 'Aug, 2015',
-                ),
-                const SizedBox(height: 12),
-                _buildDetailItem(
-                  label: 'Clinic Contact Email:',
-                  value: 'contact@sunrisefamilyclinic.com',
-                ),
-                const SizedBox(height: 12),
-                _buildDetailItemWithIcon(
-                  label: 'Clinic Contact Number:',
-                  value: '9876543210',
-                  icon: Icons.phone_outlined,
-                  onIconTap: () {},
-                ),
+                if (professionalInfo.registrationNumber != null)
+                  _buildDetailItem(
+                    label: 'Registration Number:',
+                    value: professionalInfo.registrationNumber!,
+                  ),
+                if (professionalInfo.registrationNumber != null)
+                  const SizedBox(height: 12),
+                if (professionalInfo.registrationCouncil != null)
+                  _buildDetailItem(
+                    label: 'Registration Council:',
+                    value: professionalInfo.registrationCouncil!,
+                  ),
+                if (professionalInfo.registrationCouncil != null)
+                  const SizedBox(height: 12),
+                if (professionalInfo.registrationYear != null)
+                  _buildDetailItem(
+                    label: 'Registration Year:',
+                    value: professionalInfo.registrationYear!,
+                  ),
+                if (professionalInfo.registrationYear != null)
+                  const SizedBox(height: 12),
+                if (professionalInfo.specializations != null &&
+                    professionalInfo.specializations!.isNotEmpty)
+                  _buildDetailItem(
+                    label: 'Specializations:',
+                    value: professionalInfo.specializations!
+                        .map((s) => '${s.name} (Exp: ${s.expYears}years)')
+                        .join(', '),
+                  ),
               ],
             ),
           ),
@@ -143,9 +160,13 @@ class ClinicalDetailsWidget extends StatelessWidget {
   }
 }
 
-
 class ProfessionalInformationWidget extends StatelessWidget {
-  const ProfessionalInformationWidget({super.key});
+  final ProfessionalInformation professionalInfo;
+
+  const ProfessionalInformationWidget({
+    super.key,
+    required this.professionalInfo,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +175,6 @@ class ProfessionalInformationWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -184,23 +204,36 @@ class ProfessionalInformationWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailItem(
-                  label: 'MRN Number:',
-                  value: '29AACCC2943F1ZS',
-                  hasVerification: true,
-                ),
-                const SizedBox(height: 12),
-                _buildDetailItem(
-                  label: 'Registration Council:',
-                  value: 'Maharashtra State Council',
-                ),
-                const SizedBox(height: 12),
-                _buildDetailItem(label: 'Registration Year:', value: '2008'),
-                const SizedBox(height: 12),
-                _buildDetailItem(
-                  label: 'Specialization:',
-                  value: 'General Medicine (Exp: 19years)',
-                ),
+                if (professionalInfo.registrationNumber != null)
+                  _buildDetailItem(
+                    label: 'Registration Number:',
+                    value: professionalInfo.registrationNumber!,
+                    hasVerification: true,
+                  ),
+                if (professionalInfo.registrationNumber != null)
+                  const SizedBox(height: 12),
+                if (professionalInfo.registrationCouncil != null)
+                  _buildDetailItem(
+                    label: 'Registration Council:',
+                    value: professionalInfo.registrationCouncil!,
+                  ),
+                if (professionalInfo.registrationCouncil != null)
+                  const SizedBox(height: 12),
+                if (professionalInfo.registrationYear != null)
+                  _buildDetailItem(
+                    label: 'Registration Year:',
+                    value: professionalInfo.registrationYear!,
+                  ),
+                if (professionalInfo.registrationYear != null)
+                  const SizedBox(height: 12),
+                if (professionalInfo.specializations != null &&
+                    professionalInfo.specializations!.isNotEmpty)
+                  _buildDetailItem(
+                    label: 'Specializations:',
+                    value: professionalInfo.specializations!
+                        .map((s) => '${s.name} (Exp: ${s.expYears}years)')
+                        .join(', '),
+                  ),
               ],
             ),
           ),
@@ -248,9 +281,10 @@ class ProfessionalInformationWidget extends StatelessWidget {
   }
 }
 
-
 class DoctorContactDetailsWidget extends StatelessWidget {
-  const DoctorContactDetailsWidget({super.key});
+  final ContactDetails contactDetails;
+
+  const DoctorContactDetailsWidget({super.key, required this.contactDetails});
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +293,6 @@ class DoctorContactDetailsWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -288,30 +321,34 @@ class DoctorContactDetailsWidget extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildContactItem(
-                  icon: Icons.email_outlined,
-                  iconColor: const Color(0xFF5B9FFF),
-                  title: 'Dr. MilindC@gmail.com',
-                  subtitle: 'Doctor Contact Email',
-                  onTap: () {},
-                ),
-                const SizedBox(height: 16),
-                _buildContactItem(
-                  icon: Icons.phone_outlined,
-                  iconColor: const Color(0xFF5B9FFF),
-                  title: '+91 98765 43210',
-                  subtitle: 'Doctor Contact Number',
-                  showCallButton: true,
-                  onTap: () {},
-                ),
-                const SizedBox(height: 16),
-                _buildContactItem(
-                  icon: Icons.language_outlined,
-                  iconColor: const Color(0xFF5B9FFF),
-                  title: 'Hindi, Marathi & English',
-                  subtitle: 'Speaks',
-                  onTap: () {},
-                ),
+                if (contactDetails.email != null)
+                  _buildContactItem(
+                    icon: Icons.email_outlined,
+                    iconColor: const Color(0xFF5B9FFF),
+                    title: contactDetails.email!,
+                    subtitle: 'Doctor Contact Email',
+                    onTap: () {},
+                  ),
+                if (contactDetails.email != null) const SizedBox(height: 16),
+                if (contactDetails.phone != null)
+                  _buildContactItem(
+                    icon: Icons.phone_outlined,
+                    iconColor: const Color(0xFF5B9FFF),
+                    title: contactDetails.phone!,
+                    subtitle: 'Doctor Contact Number',
+                    showCallButton: true,
+                    onTap: () {},
+                  ),
+                if (contactDetails.phone != null) const SizedBox(height: 16),
+                if (contactDetails.languages != null &&
+                    contactDetails.languages!.isNotEmpty)
+                  _buildContactItem(
+                    icon: Icons.language_outlined,
+                    iconColor: const Color(0xFF5B9FFF),
+                    title: contactDetails.languages!.join(', '),
+                    subtitle: 'Speaks',
+                    onTap: () {},
+                  ),
               ],
             ),
           ),
@@ -382,9 +419,10 @@ class DoctorContactDetailsWidget extends StatelessWidget {
   }
 }
 
-
 class EducationalInformationWidget extends StatelessWidget {
-  const EducationalInformationWidget({super.key});
+  final List<EducationalInformation> educationList;
+
+  const EducationalInformationWidget({super.key, required this.educationList});
 
   @override
   Widget build(BuildContext context) {
@@ -393,7 +431,6 @@ class EducationalInformationWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -421,21 +458,26 @@ class EducationalInformationWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
-              children: [
-                _buildEducationItem(
-                  degree: 'MBBS in General Medicine',
-                  institution: 'Government Medical College, Nagpur',
-                  type: 'Graduation Degree',
-                  year: 'Completed in 2008',
-                ),
-                const SizedBox(height: 16),
-                _buildEducationItem(
-                  degree: 'MD in General Medicine',
-                  institution: 'Government Medical College, Nagpur',
-                  type: 'Post Graduation Degree',
-                  year: 'Completed in 2011',
-                ),
-              ],
+              children: educationList.asMap().entries.map((entry) {
+                final index = entry.key;
+                final education = entry.value;
+                return Column(
+                  children: [
+                    _buildEducationItem(
+                      degree: education.degree,
+                      institution: education.instituteName,
+                      type: education.graduationType == 'UG'
+                          ? 'Graduation Degree'
+                          : 'Post Graduation Degree',
+                      year: education.completionYear > 0
+                          ? 'Completed in ${education.completionYear}'
+                          : 'Year not specified',
+                    ),
+                    if (index < educationList.length - 1)
+                      const SizedBox(height: 16),
+                  ],
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -503,24 +545,18 @@ class EducationalInformationWidget extends StatelessWidget {
   }
 }
 
-
 class DoctorCertificatesWidget extends StatelessWidget {
-  const DoctorCertificatesWidget({super.key});
+  final List<CertificateAndAccreditation> certificates;
+
+  const DoctorCertificatesWidget({super.key, required this.certificates});
 
   @override
   Widget build(BuildContext context) {
-    final certificates = [
-      {'icon': Icons.verified_outlined, 'name': 'NABH'},
-      {'icon': Icons.verified_outlined, 'name': 'ISO Certifications'},
-      {'icon': Icons.verified_outlined, 'name': 'JCI'},
-    ];
-
     return Container(
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -554,14 +590,14 @@ class DoctorCertificatesWidget extends StatelessWidget {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      cert['icon'] as IconData,
+                    const Icon(
+                      Icons.verified_outlined,
                       size: 20,
                       color: Colors.black54,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      cert['name'] as String,
+                      cert.name,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -579,9 +615,10 @@ class DoctorCertificatesWidget extends StatelessWidget {
   }
 }
 
-
 class ClinicPhotosWidget extends StatelessWidget {
-  const ClinicPhotosWidget({super.key});
+  final List<String> photos;
+
+  const ClinicPhotosWidget({super.key, required this.photos});
 
   @override
   Widget build(BuildContext context) {
@@ -590,7 +627,6 @@ class ClinicPhotosWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -617,28 +653,29 @@ class ClinicPhotosWidget extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              height: 120,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _buildPhotoItem(imageUrl: 'assets/clinic1.jpg'),
-                  const SizedBox(width: 12),
-                  _buildPhotoItem(imageUrl: 'assets/clinic2.jpg'),
-                  const SizedBox(width: 12),
-                  _buildPhotoItem(imageUrl: 'assets/clinic1.jpg'),
-                  const SizedBox(width: 12),
-                  _buildPhotoItem(imageUrl: 'assets/clinic3.jpg', label: null),
-                ],
-              ),
-            ),
+            child: photos.isEmpty
+                ? const SizedBox.shrink()
+                : SizedBox(
+                    height: 120,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: photos.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        return _buildPhotoItem(
+                          imageUrl: _getImageUrl(photos[index]),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPhotoItem({required String imageUrl, String? label}) {
+  Widget _buildPhotoItem({required String imageUrl}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -648,10 +685,11 @@ class ClinicPhotosWidget extends StatelessWidget {
           color: Colors.grey[300],
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Stack(
-          children: [
-
-            Container(
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
               color: Colors.grey[300],
               child: Center(
                 child: Icon(
@@ -660,34 +698,8 @@ class ClinicPhotosWidget extends StatelessWidget {
                   color: Colors.grey[500],
                 ),
               ),
-            ),
-            if (label != null)
-              Positioned(
-                bottom: 8,
-                left: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+            );
+          },
         ),
       ),
     );

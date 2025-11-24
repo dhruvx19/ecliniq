@@ -1,6 +1,6 @@
 import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_modules/screens/details/user_details.dart';
-import 'package:ecliniq/ecliniq_modules/screens/home/home_screen.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -78,11 +78,19 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
     setState(() => _isEnabling = true);
     
     try {
+      // Get MPIN from storage
+      final mpin = await SecureStorageService.getMPIN();
+      
+      if (mpin == null || mpin.isEmpty) {
+        _showErrorSnackBar('MPIN not found. Please set up MPIN first.');
+        setState(() => _isEnabling = false);
+        return;
+      }
 
-      final success = await BiometricService.testBiometricAvailability();
+      // Store MPIN with biometric protection
+      final success = await SecureStorageService.storeMPINWithBiometric(mpin);
       
       if (success) {
-        await SecureStorageService.setBiometricEnabled(true);
         HapticFeedback.heavyImpact();
         
         if (mounted) {
@@ -101,6 +109,9 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
   }
 
   void _showSuccessDialog() {
+    // Check if we came from login page (for setting up biometric)
+    final cameFromLogin = Navigator.of(context).canPop();
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -126,7 +137,14 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _navigateToHome();
+              // If we came from login page, go back to login
+              // Otherwise, continue with normal flow (always go to user details for new user)
+              if (cameFromLogin) {
+                Navigator.of(context).pop(); // Go back to login
+              } else {
+                // Normal flow: After biometric setup, always go to user details page
+                _navigateToUserDetails();
+              }
             },
             child: const Text('Great!'),
           ),
@@ -134,6 +152,7 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
       ),
     );
   }
+
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -146,16 +165,14 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
     );
   }
 
-  void _navigateToHome() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, _) => HomeScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-      ),
+  void _navigateToUserDetails() {
+    if (!mounted) return;
+    EcliniqRouter.pushAndRemoveUntil(
+      const UserDetails(),
+      (route) => route.isFirst,
     );
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -318,7 +335,7 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
           width: double.infinity,
           height: 56,
           child: TextButton(
-            onPressed: _navigateToHome,
+            onPressed: _navigateToUserDetails,
             style: TextButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -379,7 +396,7 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: _navigateToHome,
+            onPressed: _navigateToUserDetails,
             style: ElevatedButton.styleFrom(
               backgroundColor: EcliniqScaffold.primaryBlue,
               foregroundColor: Colors.white,

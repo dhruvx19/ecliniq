@@ -175,3 +175,161 @@ class FindSlotsRequest {
   }
 }
 
+class HoldTokenRequest {
+  final String slotId;
+
+  HoldTokenRequest({
+    required this.slotId,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'slotId': slotId,
+    };
+  }
+}
+
+class HoldTokenSlotInfo {
+  final String id;
+  final int totalTokens;
+  final int availableTokens;
+  final int holdTokens;
+  final int bookedTokens;
+
+  HoldTokenSlotInfo({
+    required this.id,
+    required this.totalTokens,
+    required this.availableTokens,
+    required this.holdTokens,
+    required this.bookedTokens,
+  });
+
+  factory HoldTokenSlotInfo.fromJson(Map<String, dynamic> json) {
+    final toInt = (dynamic value, int defaultValue) {
+      if (value == null) return defaultValue;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? defaultValue;
+      if (value is double) return value.toInt();
+      return defaultValue;
+    };
+
+    final toString = (dynamic value, String defaultValue) {
+      if (value == null) return defaultValue;
+      if (value is String) return value;
+      return value.toString();
+    };
+
+    return HoldTokenSlotInfo(
+      id: toString(json['id'], ''),
+      totalTokens: toInt(json['totalTokens'], 0),
+      availableTokens: toInt(json['availableTokens'], 0),
+      holdTokens: toInt(json['holdTokens'], 0),
+      bookedTokens: toInt(json['bookedTokens'], 0),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'totalTokens': totalTokens,
+      'availableTokens': availableTokens,
+      'holdTokens': holdTokens,
+      'bookedTokens': bookedTokens,
+    };
+  }
+}
+
+class HoldTokenData {
+  final bool success;
+  final String message;
+  final DateTime expiresAt;
+  final HoldTokenSlotInfo slot;
+
+  HoldTokenData({
+    required this.success,
+    required this.message,
+    required this.expiresAt,
+    required this.slot,
+  });
+
+  factory HoldTokenData.fromJson(Map<String, dynamic> json) {
+    final parseTime = (dynamic timeValue) {
+      if (timeValue == null) {
+        return DateTime.utc(1970, 1, 1);
+      }
+      final timeStr = timeValue is String ? timeValue : timeValue.toString();
+      try {
+        final parsed = DateTime.parse(timeStr);
+        return parsed.isUtc ? parsed : DateTime.utc(
+          parsed.year,
+          parsed.month,
+          parsed.day,
+          parsed.hour,
+          parsed.minute,
+          parsed.second,
+          parsed.millisecond,
+          parsed.microsecond,
+        );
+      } catch (e) {
+        return DateTime.utc(1970, 1, 1);
+      }
+    };
+
+    return HoldTokenData(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      expiresAt: parseTime(json['expiresAt']),
+      slot: HoldTokenSlotInfo.fromJson(json['slot'] ?? {}),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+      'expiresAt': expiresAt.toIso8601String(),
+      'slot': slot.toJson(),
+    };
+  }
+}
+
+class HoldTokenResponse {
+  final bool success;
+  final String message;
+  final HoldTokenData? data;
+  final dynamic errors;
+  final dynamic meta;
+  final String timestamp;
+
+  HoldTokenResponse({
+    required this.success,
+    required this.message,
+    this.data,
+    required this.errors,
+    required this.meta,
+    required this.timestamp,
+  });
+
+  factory HoldTokenResponse.fromJson(Map<String, dynamic> json) {
+    return HoldTokenResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: json['data'] != null ? HoldTokenData.fromJson(json['data']) : null,
+      errors: json['errors'],
+      meta: json['meta'],
+      timestamp: json['timestamp'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+      'data': data?.toJson(),
+      'errors': errors,
+      'meta': meta,
+      'timestamp': timestamp,
+    };
+  }
+}
+

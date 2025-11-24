@@ -15,6 +15,14 @@ class EcliniqTextStyles {
     decoration: TextDecoration.none,
   );
 
+  static const TextStyle headlineZMedium = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    fontFamily: fontFamily,
+    fontStyle: FontStyle.normal,
+    decoration: TextDecoration.none,
+  );
+
   static const TextStyle headlineBMedium = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,

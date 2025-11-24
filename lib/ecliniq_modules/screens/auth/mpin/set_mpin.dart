@@ -1,19 +1,25 @@
 import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:ecliniq/ecliniq_modules/screens/auth/biometric/biometric.dart';
+import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/otp_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/phone_input.dart';
+import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/details/user_details.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/login_trouble.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/custom_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:provider/provider.dart';
 
 class MPINSet extends StatefulWidget {
-  const MPINSet({super.key});
+  final bool isResetMode;
+  
+  const MPINSet({super.key, this.isResetMode = false});
 
   @override
   State<MPINSet> createState() => _MPINSetState();
@@ -97,6 +103,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
   }
 
   void _onCreateMPINChanged() {
+    if (!mounted) return;
     if (_errorNotifier.value.isNotEmpty) {
       _errorNotifier.value = '';
     }
@@ -104,6 +111,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
   }
 
   void _onConfirmMPINChanged() {
+    if (!mounted) return;
     if (_errorNotifier.value.isNotEmpty) {
       _errorNotifier.value = '';
     }
@@ -111,6 +119,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
   }
 
   void _updatePinsMatchState() {
+    if (!mounted) return;
     final createMPIN = _createMPINController.text.trim();
     final confirmMPIN = _confirmMPINController.text.trim();
     final pinsMatch =
@@ -144,6 +153,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
       CustomSuccessSnackBar(
         title: 'M-PIN Created Successfully',
         subtitle: 'Your changes have been saved successfully',
+        context: context,
       ),
     );
   }
@@ -164,9 +174,13 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
     _errorNotifier.value = '';
 
     try {
+      if (!mounted) return;
+      
       final createMPIN = _createMPINController.text.trim();
 
-      final success = await SecureStorageService.storeMPIN(createMPIN);
+      // Call backend API to setup MPIN
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.setupMPIN(createMPIN);
 
       if (!mounted) return;
 
@@ -176,13 +190,22 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
         await Future.delayed(const Duration(milliseconds: 500));
 
         if (mounted) {
-          _navigateToBiometricSetup();
+          if (widget.isResetMode) {
+            // Reset mode: After setting new MPIN, verify with OTP again on same number
+            // Get the phone number from auth provider and navigate to OTP screen
+            _navigateToOTPForVerification();
+          } else {
+            // Normal mode: Request biometric permission via native dialog after MPIN setup
+            await _requestBiometricPermission(createMPIN);
+            // Continue to user details page
+            _navigateToUserDetails();
+          }
         }
       } else {
         setState(() {
           _isButtonPressed = false;
         });
-        _errorNotifier.value = 'Failed to create MPIN. Please try again.';
+        _errorNotifier.value = authProvider.errorMessage ?? 'Failed to create MPIN. Please try again.';
       }
     } on Exception catch (e) {
       debugPrint('MPIN creation error: $e');
@@ -197,21 +220,74 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
     }
   }
 
-  void _navigateToBiometricSetup() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, _) => UserDetails(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
-              end: Offset.zero,
-            ).animate(animation),
-            child: child,
-          );
-        },
-      ),
+  /// Request biometric permission using native dialog (like location permission)
+  /// This will trigger the native biometric permission dialog automatically
+  Future<void> _requestBiometricPermission(String mpin) async {
+    try {
+      // Check if biometric is available
+      if (!await BiometricService.isAvailable()) {
+        return;
+      }
+
+      // Check if already enabled
+      if (await SecureStorageService.isBiometricEnabled()) {
+        return;
+      }
+
+      
+      // This will trigger the native biometric permission dialog automatically
+      // The native dialog will appear just like location permission dialog
+      final success = await SecureStorageService.storeMPINWithBiometric(mpin);
+      
+      if (success) {
+      } else {
+        // User skipped or denied - that's okay, continue without biometric
+      }
+    } catch (e) {
+      // Continue without biometric if permission request fails
+    }
+  }
+
+  void _navigateToUserDetails() {
+    if (!mounted) return;
+    EcliniqRouter.pushAndRemoveUntil(
+      const UserDetails(),
+      (route) => route.isFirst,
     );
+  }
+
+  
+
+  void _navigateToOTPForVerification() async {
+    if (!mounted) return;
+    
+    // After resetting MPIN, verify with OTP again on the same number
+    // Get the phone number from auth provider
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final phoneNumber = authProvider.phoneNumber;
+    
+    if (phoneNumber != null) {
+      // Resend OTP to the same phone number
+      await authProvider.resendOTP();
+      
+      // Navigate to OTP screen for verification
+      EcliniqRouter.pushAndRemoveUntil(
+        const OtpInputScreen(isForgotPinFlow: false), // Normal flow after MPIN reset
+        (route) => route.isFirst,
+      );
+    } else {
+      // If phone number is not available, go back to phone input
+      final phoneController = TextEditingController();
+      EcliniqRouter.pushAndRemoveUntil(
+        PhoneInputScreen(
+          phoneController: phoneController,
+          onClose: () => EcliniqRouter.pop(),
+          fadeAnimation: AlwaysStoppedAnimation(1.0),
+          isForgotPinFlow: false,
+        ),
+        (route) => route.isFirst,
+      );
+    }
   }
 
   @override
@@ -237,7 +313,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
                 SizedBox(width: 35),
                 Center(
                   child: Text(
-                    'Create Your M-PIN',
+                    widget.isResetMode ? 'Reset Your M-PIN' : 'Create Your M-PIN',
                     style: EcliniqTextStyles.headlineMedium.copyWith(
                       color: Colors.white,
                     ),
@@ -245,7 +321,9 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
                 ),
                 const Spacer(),
                 TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    EcliniqRouter.push(const LoginTroublePage());
+                  },
                   icon: const Icon(Icons.help_outline, color: Colors.white),
                   label: const Text(
                     'Help',
@@ -254,7 +332,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            SizedBox(height: 10),
+  
             Expanded(
               child: AnimatedBuilder(
                 animation: _animationController,
@@ -314,13 +392,13 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
           controller: _createMPINController,
           autoFocus: true,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         _buildPinField(
           title: 'Confirm M-PIN',
           controller: _confirmMPINController,
           onCompleted: (_) => _handleMPINCreation(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         ValueListenableBuilder<String>(
           valueListenable: _errorNotifier,
           builder: (context, error, _) {
@@ -361,7 +439,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
                     Text(
                       'Your M-PIN will be used for:',
                       style: EcliniqTextStyles.titleXBLarge.copyWith(
-                        color: Colors.black54,
+                        color: Color(0xff424242),
                       ),
                     ),
                   ],
@@ -371,13 +449,13 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
             Text(
               ' • Quick log in to your account',
               style: EcliniqTextStyles.titleXLarge.copyWith(
-                color: Colors.black38,
+                color: Color(0xff626060),
               ),
             ),
             Text(
               ' • Secure access to your medical records',
               style: EcliniqTextStyles.titleXLarge.copyWith(
-                color: Colors.black38,
+                 color: Color(0xff626060),
               ),
             ),
             Text(
@@ -488,7 +566,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Create M-PIN',
+                              widget.isResetMode ? 'Reset M-PIN' : 'Create M-PIN',
                               style: EcliniqTextStyles.titleXLarge.copyWith(
                                 color: isButtonEnabled
                                     ? Colors.white
@@ -520,8 +598,8 @@ class _MPINImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 150,
-      width: 150,
+      height: 140,
+      width: 140,
       child: Image.asset(
         'lib/ecliniq_icons/assets/mpin.gif',
         fit: BoxFit.contain,

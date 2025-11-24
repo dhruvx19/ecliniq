@@ -1,12 +1,12 @@
-
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:ecliniq/ecliniq_api/auth_service.dart';
 import 'package:ecliniq/ecliniq_api/models/upload.dart';
 import 'package:ecliniq/ecliniq_api/src/upload_service.dart';
-
+import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
+import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
+import 'package:ecliniq/ecliniq_core/auth/jwt_decoder.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -21,6 +21,7 @@ class AuthProvider with ChangeNotifier {
   String? _authToken;
   String? _userId;
   String? _profilePhotoKey;
+  bool _isNewUser = false;
 
   bool get isLoading => _isLoading;
   bool get isUploadingImage => _isUploadingImage;
@@ -32,10 +33,29 @@ class AuthProvider with ChangeNotifier {
   String? get userId => _userId;
   String? get profilePhotoKey => _profilePhotoKey;
   bool get isAuthenticated => _authToken != null;
+  bool get isNewUser => _isNewUser;
 
-
+  /// Initialize AuthProvider - production-grade initialization
+  /// Performs storage health check and migration if needed
   Future<void> initialize() async {
-    await _loadSavedToken();
+    try {
+      // Initialize secure storage (migration, health check)
+      await SecureStorageService.initializeStorage();
+
+      // Load saved token
+      await _loadSavedToken();
+
+      // Check token expiration
+      final isExpired = await SessionService.isTokenExpired();
+      if (isExpired && _authToken != null) {
+        // Token expired, clear session
+        await clearSession();
+      }
+
+      //   print('⚠️ Storage health issues detected: ${health['issues']}');
+      // }
+      // ignore: empty_catches
+    } catch (e) {}
   }
 
   Future<bool> loginOrRegisterUser(String phone) async {
@@ -50,6 +70,8 @@ class AuthProvider with ChangeNotifier {
       if (result['success']) {
         _challengeId = result['challengeId'];
         _phoneNumber = phone;
+        _userId = result['userId'];
+        _isNewUser = result['isNewUser'] ?? false;
         notifyListeners();
         return true;
       } else {
@@ -85,46 +107,60 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result.success) {
-
         if (result.data != null) {
-          print('🔍 Parsing successful OTP response data:');
-          print('📥 Full response: ${result.data}');
-          
           try {
+            // Extract data from response structure: { success, message, data: { token, userStatus, redirectTo } }
+            final responseData = result.data!;
+            final data = responseData['data'];
 
-            if (result.data!['data'] != null && result.data!['data']['token'] != null) {
-              _authToken = result.data!['data']['token'];
-              print('✅ Token extracted: ${_authToken?.substring(0, 20)}...');
-            } else if (result.data!['token'] != null) {
-              _authToken = result.data!['token'];
-              print('✅ Token extracted from root: ${_authToken?.substring(0, 20)}...');
+            if (data != null && data['token'] != null) {
+              _authToken = data['token'];
+
+              // Extract userStatus and redirectTo if available
+              final redirectTo = data['redirectTo'];
+
+              // Set onboarding status based on redirectTo (matches backend logic)
+              // redirectTo: 'home' means patient profile exists (onboarding complete)
+              // redirectTo: 'profile_setup' means patient profile doesn't exist (onboarding not complete)
+              if (redirectTo == 'home') {
+                await SessionService.setOnboardingComplete(true);
+              } else if (redirectTo == 'profile_setup') {
+                await SessionService.setOnboardingComplete(false);
+              }
+            } else {
+              _errorMessage = 'Token not found in response';
+              _isLoading = false;
+              notifyListeners();
+              return false;
             }
-            
 
-            if (result.data!['userId'] != null) {
-              _userId = result.data!['userId'];
-              print('✅ User ID extracted: $_userId');
-            } else if (result.data!['data'] != null && result.data!['data']['userId'] != null) {
-              _userId = result.data!['data']['userId'];
-              print('✅ User ID extracted from data: $_userId');
+            // User ID should already be set from loginOrRegisterUser response
+            // But we can also check if it's in the verify response
+            if (_userId == null && data != null && data['userId'] != null) {
+              _userId = data['userId'];
             }
-
 
             if (_authToken != null) {
-              await _saveToken(_authToken!, _userId);
-              print('✅ Token saved to secure storage');
-            } else {
-              print('⚠️ No token found in response');
-            }
+              // Store user info in secure storage with verification
+              if (_userId != null && _phoneNumber != null) {
+                final stored = await SecureStorageService.storeUserInfo(
+                  _userId!,
+                  _phoneNumber!,
+                );
+                if (!stored) {}
+              }
+
+              // Store tokens - JWT decoder will extract expiration from token
+              // No need to pass expiresInSeconds as it will be decoded from JWT
+              await SessionService.storeTokens(authToken: _authToken!);
+            } else {}
           } catch (e) {
-            print('❌ Error parsing response data: $e');
             _errorMessage = 'Failed to parse authentication data';
             _isLoading = false;
             notifyListeners();
             return false;
           }
         } else {
-          print('⚠️ Response data is null');
           _errorMessage = 'Invalid response from server';
           _isLoading = false;
           notifyListeners();
@@ -135,7 +171,6 @@ class AuthProvider with ChangeNotifier {
         return true;
       } else {
         _errorMessage = result.message ?? 'Verification failed';
-        print('❌ OTP verification failed: $_errorMessage');
         notifyListeners();
         return false;
       }
@@ -147,7 +182,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-
   Future<bool> resendOTP() async {
     if (_phoneNumber == null) {
       _errorMessage = 'Phone number not found. Please start over.';
@@ -157,7 +191,6 @@ class AuthProvider with ChangeNotifier {
 
     return await loginOrRegisterUser(_phoneNumber!);
   }
-
 
   Future<String?> uploadProfileImage(File imageFile) async {
     if (_authToken == null) {
@@ -171,35 +204,29 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      print('📤 Starting upload in AuthProvider...');
       final imageKey = await _uploadService.uploadImageComplete(
         authToken: _authToken!,
         imageFile: imageFile,
       );
 
       if (imageKey != null) {
-        print('✅ Image key received: $imageKey');
         _profilePhotoKey = imageKey;
         _isUploadingImage = false;
         notifyListeners();
         return imageKey;
       } else {
-        print('⚠️ Image key is null');
         _errorMessage = 'Failed to upload image';
         _isUploadingImage = false;
         notifyListeners();
         return null;
       }
-    } catch (e, stackTrace) {
-      print('❌ Exception in uploadProfileImage: $e');
-      print('❌ Stack trace: $stackTrace');
+    } catch (e) {
       _errorMessage = 'Image upload failed: ${e.toString()}';
       _isUploadingImage = false;
       notifyListeners();
       return null;
     }
   }
-
 
   Future<String?> uploadProfileImageBytes({
     required Uint8List imageBytes,
@@ -241,7 +268,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-
   Future<bool> savePatientDetails({
     required String firstName,
     required String lastName,
@@ -259,8 +285,6 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      print('📤 Saving patient details with profilePhotoKey: $_profilePhotoKey');
-      
       final request = PatientDetailsRequest(
         firstName: firstName,
         lastName: lastName,
@@ -277,6 +301,9 @@ class AuthProvider with ChangeNotifier {
       _isSavingDetails = false;
 
       if (response.success) {
+        // Patient profile saved successfully - mark onboarding as complete
+        // This matches backend logic: after profile setup, redirectTo becomes 'home'
+        await SessionService.setOnboardingComplete(true);
 
         _profilePhotoKey = null;
         notifyListeners();
@@ -294,51 +321,280 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-
   void clearProfilePhoto() {
     _profilePhotoKey = null;
     notifyListeners();
   }
 
-
   bool get hasProfilePhoto => _profilePhotoKey != null;
 
-
-  Future<void> _saveToken(String token, String? userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
-    if (userId != null) {
-      await prefs.setString('user_id', userId);
+  /// Load saved token from session storage
+  /// Only loads if token is valid and not expired
+  Future<void> _loadSavedToken() async {
+    try {
+      // Check if token is valid before loading
+      final hasValidSession = await SessionService.hasValidSession();
+      if (hasValidSession) {
+        _authToken = await SessionService.getAuthToken();
+        final userInfo = await SecureStorageService.getUserInfo();
+        _userId = userInfo['userId'];
+        notifyListeners();
+      } else {
+        // Token expired or doesn't exist
+        _authToken = null;
+        _userId = null;
+        notifyListeners();
+      }
+    } catch (e) {
+      _authToken = null;
+      _userId = null;
+      notifyListeners();
     }
   }
 
+  /// Clear session - production-grade with proper cleanup
+  Future<bool> clearSession() async {
+    try {
+      // Clear in-memory state
+      _challengeId = null;
+      _phoneNumber = null;
+      _errorMessage = null;
+      _authToken = null;
+      _userId = null;
+      _profilePhotoKey = null;
+      _isNewUser = false;
 
-  Future<void> _loadSavedToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    _authToken = prefs.getString('auth_token');
-    _userId = prefs.getString('user_id');
-    notifyListeners();
+      // Clear session using SessionService
+      final success = await SessionService.clearSession();
+
+      notifyListeners();
+
+      if (success) {
+      } else {}
+
+      return success;
+    } catch (e) {
+      notifyListeners();
+      return false;
+    }
   }
 
-
-  Future<void> clearSession() async {
-    _challengeId = null;
-    _phoneNumber = null;
+  /// Login with MPIN
+  /// Returns: true if successful, false if failed
+  /// Sets _errorMessage to 'SESSION_EXPIRED' if session expired and backend MPIN login fails
+  ///
+  /// Matches Alaan's approach: Sends MPIN directly to backend for verification (no local verification)
+  Future<bool> loginWithMPIN(String mpin) async {
+    _isLoading = true;
     _errorMessage = null;
-    _authToken = null;
-    _userId = null;
-    _profilePhotoKey = null;
-
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    await prefs.remove('user_id');
-
     notifyListeners();
+
+    try {
+      // Get phone number from storage
+      final userInfo = await SecureStorageService.getUserInfo();
+      final phoneNumber = userInfo['phoneNumber'];
+
+      if (phoneNumber == null || phoneNumber.isEmpty) {
+        _isLoading = false;
+        _errorMessage = 'SESSION_EXPIRED';
+        notifyListeners();
+        return false;
+      }
+
+      // Send MPIN directly to backend for verification (matches Alaan's approach)
+      final result = await _authService.loginWithMPIN(phoneNumber, mpin);
+
+      // Debug: Log the result to help diagnose issues
+      print('Login result: success=${result['success']}, hasToken=${result['token'] != null}');
+
+      // Check success (handle both bool true and string 'true')
+      final isSuccess = result['success'] == true || result['success'] == 'true';
+      
+      if (isSuccess) {
+        // Store token and user info
+        final token = result['token'];
+        
+        // Validate token exists and is not empty
+        if (token == null || token.toString().isEmpty) {
+          _isLoading = false;
+          _errorMessage = 'Token not received from server';
+          notifyListeners();
+          return false;
+        }
+
+        _authToken = token.toString();
+
+        // Extract userId from JWT token payload
+        String? extractedUserId;
+        try {
+          if (_authToken != null && _authToken!.isNotEmpty) {
+            final payload = JwtDecoder.decodePayload(_authToken!);
+            if (payload != null && payload['id'] != null) {
+              extractedUserId = payload['id'].toString();
+              _userId = extractedUserId;
+            }
+          }
+        } catch (e) {
+          // Log JWT decoding error but continue - userId extraction is optional
+          print('Warning: Failed to decode JWT payload: $e');
+        }
+
+        // Store token and user info
+        try {
+          await SessionService.storeTokens(authToken: _authToken!);
+          // Store user info with userId and phone number
+          final userIdToStore = extractedUserId ?? phoneNumber;
+          await SecureStorageService.storeUserInfo(
+            userIdToStore,
+            phoneNumber,
+          );
+        } catch (e) {
+          // If token storage fails, login should fail
+          _isLoading = false;
+          _errorMessage = 'Failed to store authentication token: $e';
+          notifyListeners();
+          return false;
+        }
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        // If backend login fails, check if we have a valid session
+        final hasValidSession = await SessionService.hasValidSession();
+        if (hasValidSession) {
+          // Use existing session
+          _authToken = await SessionService.getAuthToken();
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        } else {
+          _isLoading = false;
+          _errorMessage = result['message'] ?? 'MPIN login failed';
+          notifyListeners();
+          return false;
+        }
+      }
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Login failed: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
   }
 
+  /// Login with biometric
+  /// Returns: true if successful, false if failed
+  /// Sets _errorMessage to 'SESSION_EXPIRED' if session expired (special case)
+  Future<bool> loginWithBiometric() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
-  Future<void> logout() async {
-    await clearSession();
+    try {
+      // Check if biometric is available and enabled
+      final isAvailable = await BiometricService.isAvailable();
+      if (!isAvailable) {
+        _isLoading = false;
+        _errorMessage =
+            'Biometric authentication is not available on this device';
+        notifyListeners();
+        return false;
+      }
+
+      final isEnabled = await SecureStorageService.isBiometricEnabled();
+      if (!isEnabled) {
+        _isLoading = false;
+        _errorMessage = 'Biometric authentication is not enabled';
+        notifyListeners();
+        return false;
+      }
+
+      // Get MPIN using biometric
+      final authConfig = BiometricAuthConfig(
+        localizedReason: 'Use your biometric to authenticate',
+        signInTitle: 'Biometric Authentication',
+        cancelButton: 'Cancel',
+      );
+
+      final mpin = await SecureStorageService.getMPINWithBiometric(
+        config: authConfig,
+      );
+
+      if (mpin == null || mpin.isEmpty) {
+        _isLoading = false;
+        _errorMessage = 'Biometric authentication cancelled or failed';
+        notifyListeners();
+        return false;
+      }
+
+      // Use MPIN login with the retrieved MPIN
+      return await loginWithMPIN(mpin);
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Biometric login failed: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Setup MPIN via backend API
+  /// User should be authenticated (have valid token) after OTP verification
+  Future<bool> setupMPIN(String mpin) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Get auth token if available (user should be authenticated after OTP)
+      final authToken = _authToken ?? await SessionService.getAuthToken();
+
+      // Call backend API to setup MPIN
+      final result = await _authService.setupMPIN(mpin, authToken: authToken);
+
+      if (result['success'] == true) {
+        // Store MPIN locally for biometric and convenience
+        await SecureStorageService.storeMPIN(mpin);
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _isLoading = false;
+        _errorMessage = result['message'] ?? 'MPIN setup failed';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'MPIN setup failed: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Logout user - clears session
+  /// After logout, user will be redirected to login page
+  /// Production-grade: Returns success status for proper error handling
+  Future<bool> logout() async {
+    try {
+      final success = await clearSession();
+
+      if (success) {
+      } else {}
+
+      return success;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Check if onboarding is complete
+  Future<bool> isOnboardingComplete() async {
+    try {
+      return await SessionService.isOnboardingComplete();
+    } catch (e) {
+      return false;
+    }
   }
 }

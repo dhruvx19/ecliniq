@@ -9,9 +9,7 @@ class DoctorInfoCard extends StatelessWidget {
 
   const DoctorInfoCard({super.key, this.doctor});
 
-  // Cache colors to prevent recreation on every build
   static final Color _borderColor = const Color(0xFF1565C0).withOpacity(0.2);
-  static final Color _primaryColor = const Color(0xFF1565C0);
 
   String _getInitials(String name) {
     final parts = name.trim().split(' ');
@@ -206,7 +204,7 @@ class DoctorInfoCard extends StatelessWidget {
               Row(
                 children: [
                   SvgPicture.asset(
-                    EcliniqIcons.quick2.assetPath,
+                    EcliniqIcons.hospitalBuilding.assetPath,
                     width: 24,
                     height: 24,
                   ),

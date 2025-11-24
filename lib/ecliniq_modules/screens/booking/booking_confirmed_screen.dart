@@ -131,7 +131,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                       endIndent: 15,
                     ),
                     AppointmentDetailItem(
-                      iconAssetPath: EcliniqIcons.quick2.assetPath,
+                      iconAssetPath: EcliniqIcons.hospitalBuilding.assetPath,
                       title: 'In-Clinic Consultation',
                       subtitle: hospitalAddress ?? 'Address not available',
                       showEdit: false,

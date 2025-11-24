@@ -1,7 +1,9 @@
+import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/otp_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/terms_and_conditions.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
@@ -12,12 +14,14 @@ class PhoneInputScreen extends StatefulWidget {
   final TextEditingController phoneController;
   final VoidCallback onClose;
   final Animation<double> fadeAnimation;
+  final bool isForgotPinFlow;
 
   const PhoneInputScreen({
     super.key,
     required this.phoneController,
     required this.onClose,
     required this.fadeAnimation,
+    this.isForgotPinFlow = false,
   });
 
   @override
@@ -34,7 +38,27 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     super.initState();
     widget.phoneController.addListener(_onPhoneNumberChanged);
     WidgetsBinding.instance.addObserver(this);
+    _loadSavedPhoneNumber();
     _onPhoneNumberChanged();
+  }
+
+  /// Load saved phone number from secure storage and pre-fill the input
+  Future<void> _loadSavedPhoneNumber() async {
+    try {
+      final savedPhone = await SecureStorageService.getPhoneNumber();
+      if (savedPhone != null && savedPhone.isNotEmpty && mounted) {
+        // Remove country code if present (e.g., +91 or 91)
+        String phoneNumber = savedPhone
+            .replaceAll(RegExp(r'^\+?91'), '')
+            .trim();
+        if (phoneNumber.length == 10) {
+          widget.phoneController.text = phoneNumber;
+          print('✅ Pre-filled phone number from storage: $phoneNumber');
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error loading saved phone number: $e');
+    }
   }
 
   @override
@@ -91,12 +115,17 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     });
 
     try {
+      // Save phone number to secure storage for future use
+      await SecureStorageService.storePhoneNumber(phone);
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final success = await authProvider.loginOrRegisterUser(phone);
 
       if (mounted) {
         if (success) {
-          EcliniqRouter.push(const OtpInputScreen());
+          EcliniqRouter.push(
+            OtpInputScreen(isForgotPinFlow: widget.isForgotPinFlow),
+          );
         } else {
           setState(() {
             _isButtonPressed = false;
@@ -177,9 +206,43 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       children: [
         Text(
           'By Continuing, you agree to our',
-          style: EcliniqTextStyles.bodySmall.copyWith(color: Colors.grey),
+          style: EcliniqTextStyles.bodySmall.copyWith(color: Color(0xff8E8E8E)),
         ),
-        Text('Terms & Conditions', style: EcliniqTextStyles.headlineMedium),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                EcliniqRouter.push(TermsAndConditionsPage());
+              },
+              child: Text(
+                'Terms & Conditions',
+                style: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: Color(0xff424242),
+                ),
+              ),
+            ),
+            SizedBox(width: 4),
+            Text(
+              'and',
+              style: EcliniqTextStyles.headlineLarge.copyWith(
+                fontWeight: FontWeight.w400,
+                color: Color(0xff8E8E8E),
+              ),
+            ),
+            SizedBox(width: 4),
+            GestureDetector(
+              onTap: () {
+                EcliniqRouter.push(TermsAndConditionsPage());
+              },
+              child: Text(
+                'Privacy Policy',
+                style: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: Color(0xff424242),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -240,7 +303,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       body: SizedBox.expand(
         child: Column(
           children: [
-            const SizedBox(height: 40),
+            const SizedBox(height: 45),
 
             Row(
               children: [
@@ -268,8 +331,6 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
               ],
             ),
 
-            const SizedBox(height: 10),
-
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(color: Colors.white),
@@ -283,9 +344,12 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Enter Your Mobile Number',
-                                style: EcliniqTextStyles.headlineMedium,
+                              Text(
+                                widget.isForgotPinFlow
+                                    ? 'Enter Your Mobile Number to Reset PIN'
+                                    : 'Enter Your Mobile Number',
+                                style: EcliniqTextStyles.headlineXMedium
+                                    .copyWith(color: const Color(0xff626060)),
                               ),
                               const SizedBox(height: 10),
                               _buildPhoneInputField(),

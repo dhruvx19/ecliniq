@@ -337,7 +337,7 @@ class AppointmentApiService {
           'distance_km': 4.0,
         },
         'payment': {
-          'consultation_fee': 700.0,
+          'consultation_fee':  700,
           'service_fee': 0.0,
           'total_payable': 700.0,
           'is_service_fee_waived': true,

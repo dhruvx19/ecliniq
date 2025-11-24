@@ -5,17 +5,22 @@ import 'package:ecliniq/ecliniq_modules/screens/booking/review_details_screen.da
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/date_selector.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/time_slot_card.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart' hide DoctorInfoCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ClinicVisitSlotScreen extends StatefulWidget {
   final String doctorId;
   final String hospitalId;
   final String? doctorName;
   final String? doctorSpecialization;
+  final String? appointmentId;
+  final AppointmentDetailModel? previousAppointment;
+  final bool isReschedule;
 
   const ClinicVisitSlotScreen({
     super.key,
@@ -23,6 +28,9 @@ class ClinicVisitSlotScreen extends StatefulWidget {
     required this.hospitalId,
     this.doctorName,
     this.doctorSpecialization,
+    this.appointmentId,
+    this.previousAppointment,
+    this.isReschedule = false,
   });
 
   @override
@@ -37,6 +45,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   DateTime? selectedDate;
   bool _isButtonPressed = false;
   bool _isLoading = false;
+  bool _isHoldingToken = false;
   String? _errorMessage;
 
   List<Slot> _slots = [];
@@ -254,32 +263,97 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     _fetchSlots();
   }
 
-  void _onReviewVisit() {
-    if (selectedSlot != null) {
-      final slot = _slots.firstWhere((s) => s.id == selectedSlot);
+  Future<void> _onReviewVisit() async {
+    if (selectedSlot == null || _isHoldingToken) return;
 
-      final hospitalIdFromSlot = slot.hospitalId.isNotEmpty
-          ? slot.hospitalId
-          : widget.hospitalId;
+    final slot = _slots.firstWhere((s) => s.id == selectedSlot);
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ReviewDetailsScreen(
-            selectedSlot: _formatTimeRange(slot.startTime, slot.endTime),
-            selectedDate: selectedDateLabel,
-            doctorId: slot.doctorId.isNotEmpty
-                ? slot.doctorId
-                : widget.doctorId,
-            hospitalId:
-                hospitalIdFromSlot, 
-            slotId: slot.id, 
-            doctorName: widget.doctorName,
-            doctorSpecialization: widget.doctorSpecialization,
-          ),
-        ),
+    setState(() {
+      _isHoldingToken = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Get auth token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final authToken = prefs.getString('auth_token');
+
+      if (authToken == null || authToken.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _isHoldingToken = false;
+            _errorMessage = 'Authentication required. Please login again.';
+          });
+          _showErrorSnackBar('Authentication required. Please login again.');
+        }
+        return;
+      }
+
+      // Call hold token API
+      final holdTokenResponse = await _slotService.holdToken(
+        slotId: slot.id,
+        authToken: authToken,
       );
+
+      if (mounted) {
+        if (holdTokenResponse.success && holdTokenResponse.data != null) {
+          // Token held successfully, navigate to review screen
+          final hospitalIdFromSlot = slot.hospitalId.isNotEmpty
+              ? slot.hospitalId
+              : widget.hospitalId;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ReviewDetailsScreen(
+                selectedSlot: _formatTimeRange(slot.startTime, slot.endTime),
+                selectedDate: selectedDateLabel,
+                doctorId: slot.doctorId.isNotEmpty
+                    ? slot.doctorId
+                    : widget.doctorId,
+                hospitalId: hospitalIdFromSlot,
+                slotId: slot.id,
+                doctorName: widget.doctorName,
+                doctorSpecialization: widget.doctorSpecialization,
+                appointmentId: widget.appointmentId,
+                previousAppointment: widget.previousAppointment,
+                isReschedule: widget.isReschedule,
+              ),
+            ),
+          );
+        } else {
+          // Failed to hold token
+          final errorMsg = holdTokenResponse.message.isNotEmpty
+              ? holdTokenResponse.message
+              : 'Failed to reserve slot. Please try again.';
+          setState(() {
+            _errorMessage = errorMsg;
+          });
+          _showErrorSnackBar(errorMsg);
+        }
+        setState(() {
+          _isHoldingToken = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isHoldingToken = false;
+          _errorMessage = 'Failed to reserve slot: ${e.toString()}';
+        });
+        _showErrorSnackBar('Failed to reserve slot. Please try again.');
+      }
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Widget _buildShimmerSlots() {
@@ -453,8 +527,87 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     );
   }
 
+  Widget _buildPreviousAppointmentBanner() {
+    final appointment = widget.previousAppointment!;
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF2F7FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF96BFFF),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: const Color(0xFF2372EC),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Previous Appointment Details',
+                style: EcliniqTextStyles.headlineMedium.copyWith(
+                  color: const Color(0xFF2372EC),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (appointment.tokenNumber != null)
+            _buildBannerRow(
+              'Token No',
+              appointment.tokenNumber!,
+              Icons.confirmation_number,
+            ),
+          const SizedBox(height: 8),
+          _buildBannerRow(
+            'Date',
+            appointment.timeInfo.date,
+            Icons.calendar_today,
+          ),
+          const SizedBox(height: 8),
+          _buildBannerRow(
+            'Time',
+            appointment.timeInfo.time,
+            Icons.access_time,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBannerRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF424242)),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: EcliniqTextStyles.titleXLarge.copyWith(
+            color: const Color(0xFF626060),
+          ),
+        ),
+        Text(
+          value,
+          style: EcliniqTextStyles.titleXLarge.copyWith(
+            color: const Color(0xFF424242),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildReviewVisitButton() {
-    final isButtonEnabled = selectedSlot != null;
+    final isButtonEnabled = selectedSlot != null && !_isHoldingToken;
 
     return SizedBox(
       width: double.infinity,
@@ -494,16 +647,26 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Review Visit',
-                style: EcliniqTextStyles.headlineMedium.copyWith(
-                  color: _isButtonPressed
-                      ? Colors.white
-                      : isButtonEnabled
-                      ? Colors.white
-                      : Colors.grey,
+              if (_isHoldingToken)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              else
+                Text(
+                  'Review Visit',
+                  style: EcliniqTextStyles.headlineMedium.copyWith(
+                    color: _isButtonPressed
+                        ? Colors.white
+                        : isButtonEnabled
+                        ? Colors.white
+                        : Colors.grey,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -528,7 +691,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Clinic Visit Slot',
+            widget.isReschedule ? 'Reschedule' : 'Clinic Visit Slot',
             style: EcliniqTextStyles.headlineMedium.copyWith(
               color: Color(0xff424242),
             ),
@@ -546,6 +709,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (widget.isReschedule && widget.previousAppointment != null)
+                    _buildPreviousAppointmentBanner(),
                   DoctorInfoCard(),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),

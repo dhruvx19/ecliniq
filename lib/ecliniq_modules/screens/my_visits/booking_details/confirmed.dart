@@ -1,13 +1,191 @@
-import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-class BookingConfirmedDetail extends StatelessWidget {
-  final AppointmentDetailModel appointment;
+import 'package:ecliniq/ecliniq_api/appointment_service.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/cancelled.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/cancel_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/cancellation_policy_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/reschedule_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/provider/eta_provider.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+class BookingConfirmedDetail extends StatefulWidget {
+  final String appointmentId;
+  final AppointmentDetailModel?
+  appointment; // Optional for backward compatibility
 
   const BookingConfirmedDetail({
-    Key? key,
-    required this.appointment,
-  }) : super(key: key);
+    super.key,
+    required this.appointmentId,
+    this.appointment,
+  });
+
+  @override
+  State<BookingConfirmedDetail> createState() => _BookingConfirmedDetailState();
+}
+
+class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
+  AppointmentDetailModel? _appointment;
+  bool _isLoading = true;
+  String? _errorMessage;
+  String? _currentTokenNumber;
+  String? _expectedTime;
+  bool _isLoadingETA = false;
+  final _appointmentService = AppointmentService();
+
+  @override
+  void initState() {
+    super.initState();
+    // If appointment is provided, use it directly (backward compatibility)
+    if (widget.appointment != null) {
+      _appointment = widget.appointment;
+      _isLoading = false;
+      _currentTokenNumber = _appointment!.currentTokenNumber;
+      _expectedTime = _appointment!.expectedTime;
+      _connectToWebSocket();
+    } else {
+      _loadAppointmentDetails();
+    }
+  }
+
+  Future<void> _loadAppointmentDetails() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authToken = authProvider.authToken;
+
+      if (authToken == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Authentication required. Please login again.';
+          });
+        }
+        return;
+      }
+
+      final response = await _appointmentService.getAppointmentDetail(
+        appointmentId: widget.appointmentId,
+        authToken: authToken,
+      );
+
+      if (!mounted) return;
+
+      if (!response.success || response.data == null) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = response.message;
+        });
+        return;
+      }
+
+      // Convert API response to UI model
+      final appointmentDetail = AppointmentDetailModel.fromApiData(
+        response.data!,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _appointment = appointmentDetail;
+        _isLoading = false;
+        _currentTokenNumber = appointmentDetail.currentTokenNumber;
+        _expectedTime = appointmentDetail.expectedTime;
+      });
+
+      _connectToWebSocket();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Failed to load appointment details: $e';
+        });
+      }
+    }
+  }
+
+  Future<void> _connectToWebSocket() async {
+    final etaProvider = Provider.of<ETAProvider>(context, listen: false);
+
+    try {
+      setState(() {
+        _isLoadingETA = true;
+      });
+
+      // Connect to appointment room for real-time ETA updates
+      await etaProvider.connectToAppointment(
+        appointmentId: _appointment?.id ?? widget.appointmentId,
+      );
+
+      // Listen to ETA updates
+      etaProvider.addListener(_onETAUpdate);
+
+      setState(() {
+        _isLoadingETA = false;
+      });
+    } catch (e) {
+      print('❌ Error connecting to WebSocket: $e');
+      setState(() {
+        _isLoadingETA = false;
+      });
+    }
+  }
+
+  void _onETAUpdate() {
+    final etaProvider = Provider.of<ETAProvider>(context, listen: false);
+    final etaUpdate = etaProvider.currentETA;
+
+    if (etaUpdate != null && mounted) {
+      setState(() {
+        // Update expected time from ETA
+        if (etaUpdate.eta != null) {
+          try {
+            final etaDate = DateTime.parse(etaUpdate.eta!);
+            final timeFormat = DateFormat('hh:mm a');
+            _expectedTime = timeFormat.format(etaDate);
+          } catch (e) {
+            print('Error parsing ETA date: $e');
+          }
+        }
+
+        // Update status message if available
+        if (etaUpdate.message != null) {
+          // You can show a snackbar or update UI with the message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(etaUpdate.message!),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+    }
+
+    // Also check for slot display updates (current token)
+    final slotUpdate = etaProvider.currentSlotDisplay;
+    if (slotUpdate != null && mounted) {
+      setState(() {
+        _currentTokenNumber = slotUpdate.currentToken.toString();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    final etaProvider = Provider.of<ETAProvider>(context, listen: false);
+    etaProvider.removeListener(_onETAUpdate);
+    // Don't disconnect here - let the provider manage connection lifecycle
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,117 +193,200 @@ class BookingConfirmedDetail extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: SvgPicture.asset(
+            EcliniqIcons.backArrow.assetPath,
+            width: 32,
+            height: 32,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Align(
-           alignment: Alignment.centerLeft,
-          child: const Text(
-            'Booking Detail',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Booking Details',
+            style: EcliniqTextStyles.headlineMedium.copyWith(
+              color: Color(0xff424242),
             ),
           ),
         ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.2),
+          child: Container(color: Color(0xFFB8B8B8), height: 1.0),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline, color: Colors.black),
-            onPressed: () {
-
-            },
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.help_outline, size: 24),
+            label: Text(
+              'Help',
+              style: EcliniqTextStyles.headlineXMedium.copyWith(
+                color: Color(0xff424242),
+              ),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            StatusHeader(
-              status: appointment.status,
-              tokenNumber: appointment.tokenNumber,
-              expectedTime: appointment.expectedTime,
-              currentTokenNumber: appointment.currentTokenNumber,
+      body: _isLoading
+          ? _buildShimmerLoading()
+          : _errorMessage != null
+          ? _buildErrorWidget()
+          : _appointment == null
+          ? _buildErrorWidget()
+          : _buildContent(),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Status header shimmer
+          Container(
+            height: 120,
+            margin: const EdgeInsets.all(16),
+            child: ShimmerLoading(borderRadius: BorderRadius.circular(12)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Doctor info card shimmer
+                SizedBox(
+                  height: 150,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Appointment details shimmer
+                SizedBox(
+                  height: 200,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Clinic location shimmer
+                SizedBox(
+                  height: 120,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Payment details shimmer
+                SizedBox(
+                  height: 100,
+                  child: ShimmerLoading(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DoctorInfoCard(doctor: appointment.doctor),
-                  const SizedBox(height: 12),
-                  DoctorStatsRow(
-                    doctor: appointment.doctor,
-                    clinic: appointment.clinic,
-                  ),
-                  const SizedBox(height: 24),
-                  AppointmentDetailsSection(
-                    patient: appointment.patient,
-                    timeInfo: appointment.timeInfo,
-                  ),
-                  const SizedBox(height: 24),
-                  ClinicLocationCard(clinic: appointment.clinic),
-                  const SizedBox(height: 24),
-                  PaymentDetailsCard(payment: appointment.payment),
-                  const SizedBox(height: 24),
-                  _buildCallbackSection(),
-                  const SizedBox(height: 80),
-                ],
-              ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage ?? 'Failed to load appointment details',
+              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _errorMessage = null;
+                });
+                _loadAppointmentDetails();
+              },
+              child: const Text('Retry'),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomButtons(context),
     );
   }
 
-  Widget _buildCallbackSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
-      ),
+  Widget _buildContent() {
+    return SingleChildScrollView(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Easy Way to book',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF333333),
-            ),
+          StatusHeader(
+            status: _appointment!.status,
+            tokenNumber: _appointment!.tokenNumber,
+            expectedTime: _expectedTime ?? _appointment!.expectedTime,
+            currentTokenNumber:
+                _currentTokenNumber ?? _appointment!.currentTokenNumber,
           ),
-          const SizedBox(height: 12),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(
-              Icons.phone_callback,
-              color: Color(0xFF2372EC),
-            ),
-            title: const Text(
-              'Request a Callback',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            subtitle: const Text(
-              'Assisted booking with expert',
-              style: TextStyle(fontSize: 14),
-            ),
-            trailing: ElevatedButton(
-              onPressed: () {
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DoctorInfoCard(
+                  doctor: _appointment!.doctor,
+                  clinic: _appointment!.clinic,
+                  currentTokenNumber:
+                      _currentTokenNumber ?? _appointment!.currentTokenNumber,
+                ),
+                const SizedBox(height: 12),
 
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2372EC),
-              ),
-              child: const Text('Call Us'),
+                // Show ETA connection status
+                if (_isLoadingETA)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.blue,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Connecting for live updates...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Show WebSocket connection status
+                const SizedBox(height: 24),
+                AppointmentDetailsSection(
+                  patient: _appointment!.patient,
+                  timeInfo: _appointment!.timeInfo,
+                ),
+                const SizedBox(height: 24),
+                ClinicLocationCard(clinic: _appointment!.clinic),
+                const SizedBox(height: 24),
+                PaymentDetailsCard(payment: _appointment!.payment),
+                const SizedBox(height: 24),
+                _buildBottomButtons(context),
+              ],
             ),
           ),
         ],
@@ -135,90 +396,126 @@ class BookingConfirmedDetail extends StatelessWidget {
 
   Widget _buildBottomButtons(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(color: Colors.white),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BookingActionButton(
+            label: 'Reschedule',
+            icon: EcliniqIcons.rescheduleIcon,
+            type: BookingButtonType.reschedule,
+            onPressed: () async {
+              // Check if appointment is already rescheduled
+              final isAlreadyRescheduled = _appointment?.isRescheduled ?? false;
+              if (isAlreadyRescheduled) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  CustomErrorSnackBar(
+                    context: context,
+                    title: 'Cannot Reschedule',
+                    subtitle: 'This appointment has already been rescheduled. You cannot reschedule it again.',
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+                return;
+              }
 
-                },
-                icon: const Icon(Icons.calendar_today_outlined),
-                label: const Text('Reschedule'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF2372EC),
-                  side: const BorderSide(color: Color(0xFF2372EC)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+              final result = await EcliniqBottomSheet.show<bool>(
+                context: context,
+                child: RescheduleBottomSheet(
+                  appointment: _appointment!,
                 ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-
-                  _showCancelDialog(context);
-                },
-                icon: const Icon(Icons.cancel_outlined),
-                label: const Text('Cancel Booking'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFD32F2F),
-                  side: const BorderSide(color: Color(0xFFD32F2F)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You can cancel your booking up to 30min before the scheduled time.',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showCancelDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Booking'),
-        content: const Text(
-          'Are you sure you want to cancel this booking? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('No, Keep it'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-
-              Navigator.pop(context);
+              );
+              
+              if (result == true && mounted && _appointment != null) {
+                // Navigate to slot screen for reschedule
+                final appointment = _appointment!;
+                if (appointment.doctorId != null && appointment.hospitalId != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ClinicVisitSlotScreen(
+                        doctorId: appointment.doctorId!,
+                        hospitalId: appointment.hospitalId!,
+                        doctorName: appointment.doctor.name,
+                        doctorSpecialization: appointment.doctor.specialization,
+                        appointmentId: appointment.id,
+                        previousAppointment: appointment,
+                        isReschedule: true,
+                      ),
+                    ),
+                  );
+                }
+              }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD32F2F),
+          ),
+          const SizedBox(height: 8),
+          BookingActionButton(
+            label: 'Cancel Booking',
+            icon: EcliniqIcons.rescheduleIcon,
+            type: BookingButtonType.cancel,
+            onPressed: () {
+              EcliniqBottomSheet.show(
+                context: context,
+                child: CancelBottomSheet(
+                  appointmentId: widget.appointmentId,
+                  onCancelled: () async {
+                    // Show shimmer loading state
+                    if (mounted) {
+                      setState(() {
+                        _isLoading = true;
+                        _errorMessage = null;
+                      });
+                    }
+
+                    // Reload appointment details to get updated status
+                    await _loadAppointmentDetails();
+
+                    // Check if status changed to cancelled
+                    if (mounted &&
+                        _appointment != null &&
+                        (_appointment!.status.toLowerCase() == 'cancelled' ||
+                            _appointment!.status.toLowerCase() == 'failed')) {
+                      // Navigate to cancelled detail page
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => BookingCancelledDetail(
+                            appointmentId: widget.appointmentId,
+                            appointment: _appointment,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {
+              EcliniqBottomSheet.show(
+                context: context,
+                child: const CancellationPolicyBottomSheet(),
+              );
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'View Cancellation Policy',
+                  style: TextStyle(fontSize: 14, color: Color(0xff424242), fontWeight: FontWeight.w400, decoration: TextDecoration.underline),
+                  textAlign: TextAlign.center,
+                  
+                ),
+                SizedBox(width: 4),
+                SvgPicture.asset(
+                  EcliniqIcons.info.assetPath,
+                  width: 16,
+                  height: 16,
+                ),
+              ],
             ),
-            child: const Text('Yes, Cancel'),
           ),
         ],
       ),

@@ -24,8 +24,6 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
   final HospitalService _hospitalService = HospitalService();
   HospitalDetail? _hospitalDetail;
   bool _isLoading = true;
-  String? _errorMessage;
-  double? _distanceInKm;
   Position? _userPosition;
 
   @override
@@ -45,13 +43,11 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         setState(() {
           if (response.success && response.data != null) {
             _hospitalDetail = response.data;
-            _errorMessage = null;
             // Calculate distance if we have both user position and hospital location
             if (_userPosition != null) {
               _calculateDistance();
             }
           } else {
-            _errorMessage = response.message;
           }
           _isLoading = false;
         });
@@ -59,7 +55,6 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed to load hospital details: $e';
           _isLoading = false;
         });
       }
@@ -128,7 +123,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
 
   void _calculateDistance() {
     if (_userPosition != null && _hospitalDetail != null) {
-      final distanceInMeters = Geolocator.distanceBetween(
+      Geolocator.distanceBetween(
         _userPosition!.latitude,
         _userPosition!.longitude,
         _hospitalDetail!.latitude,
@@ -136,7 +131,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
       );
 
       setState(() {
-        _distanceInKm = distanceInMeters / 1000; // Convert to kilometers
+// Convert to kilometers
       });
     }
   }
@@ -264,16 +259,6 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
     return parts.isEmpty ? 'Address not available' : parts.join(', ');
   }
 
-  String _getStaticMapUrl() {
-    if (_hospitalDetail == null) return '';
-    
-    final lat = _hospitalDetail!.latitude;
-    final lng = _hospitalDetail!.longitude;
-    
-    // Google Static Maps API URL (no API key needed for basic usage, but rate limited)
-    return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng&zoom=15&size=400x200&markers=color:red%7C$lat,$lng&key=';
-    // Note: In production, you should add your Google Maps API key
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +268,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         Row(
           children: [
             SvgPicture.asset(
-              EcliniqIcons.quick2.assetPath,
+              EcliniqIcons.hospitalBuilding.assetPath,
               width: 32,
               height: 32,
             ),

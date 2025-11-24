@@ -1,5 +1,6 @@
 import 'package:ecliniq/ecliniq_ui/lib/theme_provider.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 
 enum EcliniqButtonType {
@@ -212,12 +213,13 @@ class EcliniqButton extends StatelessWidget {
           shadowColor: Colors.transparent,
           overlayColor: overlayColor,
         ),
-        child: SizedBox(
+        child: const SizedBox(
           height: 20,
           width: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.2,
-            color: context.colors.strokeDisabled,
+          child: ShimmerLoading(
+            width: 20,
+            height: 20,
+            borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
         ),
       );

@@ -6,17 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class DoctorInfoCard extends StatelessWidget {
   final Doctor? doctor;
-  final String? facilityName;
-  final String? facilityArea;
-  final String? facilityDistance;
 
-  const DoctorInfoCard({
-    super.key,
-    this.doctor,
-    this.facilityName,
-    this.facilityArea,
-    this.facilityDistance,
-  });
+  const DoctorInfoCard({super.key, this.doctor});
 
   static final Color _borderColor = const Color(0xFF1565C0).withOpacity(0.2);
 
@@ -100,9 +91,9 @@ class DoctorInfoCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                      doctor != null
-                          ? _getSpecializations(doctor!.specializations)
-                          : 'General Physician',
+                          doctor != null
+                              ? _getSpecializations(doctor!.specializations)
+                              : 'General Physician',
                           style: EcliniqTextStyles.titleXLarge.copyWith(
                             color: Color(0xff424242),
                           ),
@@ -219,9 +210,9 @@ class DoctorInfoCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    facilityName ?? 'Sunrise Family Clinic',
+                    'Sunrise Family Clinic',
                     style: EcliniqTextStyles.titleXLarge.copyWith(
-                      color: const Color(0xff626060),
+                      color: Color(0xff626060),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -259,14 +250,10 @@ class DoctorInfoCard extends StatelessWidget {
                     height: 24,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      facilityArea ?? 'Vishnu Dev Nagar, Wakad',
-                      style: EcliniqTextStyles.titleXLarge.copyWith(
-                        color: const Color(0xff626060),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  Text(
+                    'Vishnu Dev Nagar, Wakad',
+                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                      color: Color(0xff626060),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -282,8 +269,8 @@ class DoctorInfoCard extends StatelessWidget {
                     ),
 
                     child: Text(
-                      facilityDistance ?? '4 Km',
-                      style: const TextStyle(
+                      '4 Km',
+                      style: TextStyle(
                         fontSize: 16,
                         color: Color(0xff424242),
                         fontWeight: FontWeight.w400,

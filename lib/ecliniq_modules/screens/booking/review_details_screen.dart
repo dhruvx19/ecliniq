@@ -6,12 +6,11 @@ import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/clinic_location_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
-import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/reason_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/top_bar_widgets/easy_way_book.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart' hide DoctorInfoCard, ClinicLocationCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_api/models/patient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -55,10 +54,10 @@ class ReviewDetailsScreen extends StatefulWidget {
 class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   final AppointmentService _appointmentService = AppointmentService();
   final HospitalService _hospitalService = HospitalService();
+  final TextEditingController _reasonController = TextEditingController();
   final TextEditingController _referByController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  String? selectedReason;
   bool receiveUpdates = true;
   bool _isBooking = false;
   String? _patientId;
@@ -66,21 +65,16 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   String? _hospitalAddress;
   DependentData? _selectedDependent;
 
-  final List<String> reasons = [
-    'Fever',
-    'Cold & Cough',
-    'Body Pain',
-    'Skin Issues',
-    'Stomach Issues',
-    'Routine checkup and consultation',
-    'Others',
-  ];
+  // Reason bottom sheet removed; using free-text field instead.
 
   @override
   void initState() {
     super.initState();
     _loadPatientId();
     _fetchHospitalAddress();
+    _reasonController.addListener(() {
+      setState(() {});
+    });
     
     // Pre-fill reason from previous appointment if rescheduling
     if (widget.isReschedule && widget.previousAppointment != null) {
@@ -132,6 +126,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
   @override
   void dispose() {
+    _reasonController.dispose();
     _referByController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -151,21 +146,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     });
   }
 
-  Future<void> _showReasonBottomSheet(BuildContext context) async {
-    final String? selected = await EcliniqBottomSheet.show<String>(
-      context: context,
-      child: ReasonBottomSheet(
-        reasons: reasons,
-        selectedReason: selectedReason,
-      ),
-    );
-
-    if (selected != null && mounted) {
-      setState(() {
-        selectedReason = selected;
-      });
-    }
-  }
+  // Bottom sheet for selecting reason has been removed.
 
   String _formatDependentSubtitle(DependentData d) {
     String capitalize(String s) => s.isEmpty
@@ -305,38 +286,36 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: InkWell(
-                      onTap: () => _showReasonBottomSheet(context),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        key: const ValueKey('reason_field'),
-                        padding: const EdgeInsets.symmetric(
+                    child: TextFormField(
+                      key: const ValueKey('reason_field'),
+                      controller: _reasonController,
+                      maxLength: 150,
+                      maxLines: 3,
+                      minLines: 1,
+                      decoration: InputDecoration(
+                        hintText: 'Enter Reason for Visit',
+                        hintStyle: const TextStyle(color: Color(0xffD6D6D6)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Color(0xff626060),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Color(0xff626060),
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xff626060)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                selectedReason ?? 'Enter Reason for Visit',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: selectedReason != null
-                                      ? Colors.black
-                                      : const Color(0xffD6D6D6),
-                                ),
-                              ),
-                            ),
-                            SvgPicture.asset(
-                              EcliniqIcons.arrowDown.assetPath,
-                              width: 24,
-                              height: 24,
-                            ),
-                          ],
+                        counterText: '',
+                        suffixText: '${_reasonController.text.length}/150',
+                        suffixStyle: const TextStyle(
+                          color: Color(0xff8E8E8E),
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -507,11 +486,13 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     }
 
     // Reason is only required for new appointments, not for reschedule
-    if (!widget.isReschedule && (selectedReason == null || selectedReason!.isEmpty)) {
+    if (!widget.isReschedule && _reasonController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a reason for visit'),
-          backgroundColor: Colors.orange,
+        CustomErrorSnackBar(
+          context: context,
+          title: 'Reason required',
+          subtitle: 'Please enter a reason for visit',
+          duration: const Duration(seconds: 4),
         ),
       );
       return;
@@ -574,7 +555,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           patientId: finalPatientId,
           doctorId: widget.doctorId,
           doctorSlotScheduleId: widget.slotId,
-          reason: selectedReason,
+          reason: _reasonController.text.trim(),
           referBy: _referByController.text.trim().isEmpty
               ? null
               : _referByController.text.trim(),

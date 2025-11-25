@@ -9,6 +9,8 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,30 +32,6 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
   bool _isExpanded = true;
   bool _isExpandedPhysicalInfo = true;
 
-  void _showCustomSnackBar(String title, String message, bool isSuccess) {
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 16,
-        left: 16,
-        right: 16,
-        child: Material(
-          color: Colors.transparent,
-          child: _CustomSnackBar(
-            title: title,
-            message: message,
-            isSuccess: isSuccess,
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(overlayEntry);
-
-    Future.delayed(const Duration(seconds: 3), () {
-      overlayEntry.remove();
-    });
-  }
 
   void _uploadPhoto(AddDependentProvider provider) async {
     final String? action = await EcliniqBottomSheet.show<String>(
@@ -87,9 +65,14 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            CustomErrorSnackBar(
+              context: context,
+              title: 'Image Error',
+              subtitle: 'Error picking image: $e',
+              duration: const Duration(seconds: 4),
+            ),
+          );
         }
       }
     }
@@ -111,8 +94,15 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
       final errorMessage = provider.getValidationErrorMessage();
       print('❌ Validation errors: $errorMessage');
 
-      // Show detailed error snackbar
-      _showCustomSnackBar('Validation Failed', errorMessage, false);
+      // Show detailed error snackbar (standardized)
+      ScaffoldMessenger.of(context).showSnackBar(
+        CustomErrorSnackBar(
+          context: context,
+          title: 'Validation Failed',
+          subtitle: errorMessage,
+          duration: const Duration(seconds: 4),
+        ),
+      );
       return;
     }
 
@@ -129,11 +119,14 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
           widget.onDependentAdded!();
         }
 
-        // Show success message
-        _showCustomSnackBar(
-          'Dependent Details Saved Successfully',
-          'Your changes have been saved successfully',
-          true,
+        // Show success message (standardized)
+        ScaffoldMessenger.of(context).showSnackBar(
+          CustomSuccessSnackBar(
+            context: context,
+            title: 'Dependent Saved',
+            subtitle: 'Your changes have been saved successfully',
+            duration: const Duration(seconds: 3),
+          ),
         );
 
         // Close bottom sheet after showing snackbar
@@ -143,15 +136,25 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
         }
       } else {
         print('❌ Failed to save dependent: ${provider.errorMessage}');
-        _showCustomSnackBar(
-          'Failed to Add Dependent',
-          provider.errorMessage ?? 'Please try again',
-          false,
+        ScaffoldMessenger.of(context).showSnackBar(
+          CustomErrorSnackBar(
+            context: context,
+            title: 'Failed to Add Dependent',
+            subtitle: provider.errorMessage ?? 'Please try again',
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } catch (e) {
       print('❌ Exception in _saveDependent: $e');
-      _showCustomSnackBar('Error', 'An error occurred: $e', false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        CustomErrorSnackBar(
+          context: context,
+          title: 'Error',
+          subtitle: 'An error occurred: $e',
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -333,7 +336,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                         .copyWith(color: Color(0xff424242)),
                                   ),
                                   Text(
-                                    ' *',
+                                    ' .',
                                     style: EcliniqTextStyles.titleXBLarge
                                         .copyWith(
                                           color: EcliniqColors
@@ -377,7 +380,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                         ),
                                   ),
                                   Text(
-                                    ' *',
+                                    ' .',
                                     style: EcliniqTextStyles.titleXBLarge
                                         .copyWith(
                                           color: EcliniqColors
@@ -421,9 +424,23 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                     width: double.infinity,
                     height: buttonHeight,
                     child: ElevatedButton(
-                      onPressed: (!provider.isFormValid || provider.isLoading)
+                      onPressed: provider.isLoading
                           ? null
-                          : () => _saveDependent(provider),
+                          : () {
+                              if (!provider.isFormValid) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  CustomErrorSnackBar(
+                                    context: context,
+                                    title: 'Validation Failed',
+                                    subtitle:
+                                        provider.getValidationErrorMessage(),
+                                    duration: const Duration(seconds: 4),
+                                  ),
+                                );
+                                return;
+                              }
+                              _saveDependent(provider);
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: provider.isFormValid
                             ? EcliniqColors.light.bgContainerInteractiveBrand
@@ -462,127 +479,6 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _CustomSnackBar extends StatefulWidget {
-  final String title;
-  final String message;
-  final bool isSuccess;
-
-  const _CustomSnackBar({
-    required this.title,
-    required this.message,
-    required this.isSuccess,
-  });
-
-  @override
-  State<_CustomSnackBar> createState() => _CustomSnackBarState();
-}
-
-class _CustomSnackBarState extends State<_CustomSnackBar>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
-
-    _controller.forward();
-
-    Future.delayed(const Duration(milliseconds: 2600), () {
-      if (mounted) {
-        _controller.reverse();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _slideAnimation,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: widget.isSuccess
-                ? const Color(0xFF10B981)
-                : EcliniqColors.light.bgContainerInteractiveDestructive,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  widget.isSuccess ? Icons.check : Icons.error_outline,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: EcliniqTextStyles.titleMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.message,
-                      style: EcliniqTextStyles.bodySmall.copyWith(
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

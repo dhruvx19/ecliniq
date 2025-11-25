@@ -128,7 +128,7 @@ class _LocationCard extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF96BFFF)
-                : const Color(0xFFE0E0E0),
+                :  Colors.white,
             width: 1,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -185,22 +185,22 @@ class _LocationIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isHospital = type == LocationType.hospital;
+    
 
     return Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: isHospital ? const Color(0xFFFFF7F0) : const Color(0xFFE3F2FD),
+        color:  const Color(0xFFFFF7F0) ,
         borderRadius: BorderRadius.circular(54),
         border: Border.all(
-          color: isHospital ? const Color(0xFFEC7600) : const Color(0xFF2196F3),
+          color: const Color(0xFFEC7600) ,
           width: 0.5,
         ),
       ),
       child: Center(
         child: SvgPicture.asset(
-          EcliniqIcons.hospitalBuilding1.assetPath,
+          EcliniqIcons.hospitalorange.assetPath,
           width: 24,
           height: 24,
         ),

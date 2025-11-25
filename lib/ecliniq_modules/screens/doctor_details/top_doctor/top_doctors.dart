@@ -1,7 +1,6 @@
 
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/doctor_details.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/top_doctor/model/top_doctor_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_hospital_select_bottom_sheet.dart';
@@ -55,16 +54,18 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget> {
   }
 
   void _handleBooking(Doctor doctor, LocationData location) {
-    // Navigate to slot selection screen with correct location parameters
-    EcliniqRouter.push(
-      ClinicVisitSlotScreen(
-        doctorId: doctor.id,
-        hospitalId: location.type == LocationType.hospital ? location.id : null,
-        clinicId: location.type == LocationType.clinic ? location.id : null,
-        doctorName: doctor.name,
-        doctorSpecialization: doctor.primarySpecialization,
-      ),
-    );
+    // Navigate to appointment booking screen
+    // Example:
+    // EcliniqRouter.push(
+    //   AppointmentBookingScreen(
+    //     doctorId: doctor.id,
+    //     locationId: location.id,
+    //     locationType: location.type,
+    //   ),
+    // );
+    
+    // For now, just print
+    debugPrint('Booking appointment with ${doctor.name} at ${location.name}');
   }
 
   void _showNoLocationDialog() {

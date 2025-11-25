@@ -14,15 +14,13 @@ class DoctorService {
       final url = Uri.parse(Endpoints.topDoctors);
 
       final requestBody = TopDoctorsRequest(
-        latitude: latitude,
-        longitude: longitude,
+        latitude: 28.6139,
+        longitude: 77.209,
       );
 
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody.toJson()),
       );
 
@@ -60,9 +58,7 @@ class DoctorService {
     try {
       final url = Uri.parse(Endpoints.doctorDetailsById(doctorId));
 
-      final headers = <String, String>{
-        'Content-Type': 'application/json',
-      };
+      final headers = <String, String>{'Content-Type': 'application/json'};
 
       // Include auth token if provided
       if (authToken != null && authToken.isNotEmpty) {
@@ -70,10 +66,7 @@ class DoctorService {
         headers['x-access-token'] = authToken;
       }
 
-      final response = await http.get(
-        url,
-        headers: headers,
-      );
+      final response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -82,7 +75,8 @@ class DoctorService {
         final responseData = jsonDecode(response.body);
         return DoctorDetailsResponse(
           success: false,
-          message: responseData['message'] ??
+          message:
+              responseData['message'] ??
               'Failed to fetch doctor details: ${response.statusCode}',
           data: null,
           errors: response.body,

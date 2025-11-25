@@ -15,7 +15,7 @@ enum EcliniqIcons {
 
   bell('$_base/Bell.png'),
   microphone('$_base/Microphone.svg'),
-
+  hospitalorange('$_base/HospitalOrange.svg'),
   verify('$_base/Verified Check.png'),
   bone('$_base1/Bone.png'),
   cancer('$_base1/Cancer.png'),

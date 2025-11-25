@@ -99,8 +99,9 @@ class TopDoctorsRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'latitude': latitude,
-      'longitude': longitude,
+      'latitude': 28.6139,
+      'longitude': 77.209,
+      
     };
   }
 }

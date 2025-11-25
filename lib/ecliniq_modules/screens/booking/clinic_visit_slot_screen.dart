@@ -51,6 +51,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   DateTime? selectedDate;
   bool _isButtonPressed = false;
   bool _isLoading = false;
+  bool _isLoadingWeeklySlots = false;
   bool _isHoldingToken = false;
   String? _errorMessage;
 
@@ -111,6 +112,10 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   }
 
   Future<void> _fetchWeeklySlots() async {
+    setState(() {
+      _isLoadingWeeklySlots = true;
+    });
+
     try {
       final response = await _slotService.findWeeklySlots(
         doctorId: widget.doctorId,
@@ -118,23 +123,29 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         clinicId: widget.clinicId,
       );
 
-      if (mounted && response.success) {
+      if (mounted) {
         setState(() {
-          _weeklyTokenCounts.clear();
-          for (final weeklySlot in response.data) {
-            // Normalize the date to local date (remove time component)
-            final dateOnly = DateTime(
-              weeklySlot.date.year,
-              weeklySlot.date.month,
-              weeklySlot.date.day,
-            );
-            _weeklyTokenCounts[dateOnly] = weeklySlot.totalAvailableTokens;
+          _isLoadingWeeklySlots = false;
+          if (response.success) {
+            _weeklyTokenCounts.clear();
+            for (final weeklySlot in response.data) {
+              // Normalize the date to local date (remove time component)
+              final dateOnly = DateTime(
+                weeklySlot.date.year,
+                weeklySlot.date.month,
+                weeklySlot.date.day,
+              );
+              _weeklyTokenCounts[dateOnly] = weeklySlot.totalAvailableTokens;
+            }
           }
         });
       }
     } catch (e) {
       // Silently fail - weekly slots are not critical for functionality
       if (mounted) {
+        setState(() {
+          _isLoadingWeeklySlots = false;
+        });
         debugPrint('Failed to fetch weekly slots: $e');
       }
     }
@@ -908,6 +919,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                       selectedDateValue: selectedDate,
                       onDateChanged: _onDateChanged,
                       tokenCounts: _weeklyTokenCounts,
+                      isLoading: _isLoadingWeeklySlots,
                     ),
                   ),
                   const SizedBox(height: 14),

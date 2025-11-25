@@ -1,11 +1,13 @@
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DateSelector extends StatelessWidget {
   final String selectedDate;
   final DateTime? selectedDateValue;
   final Function(DateTime) onDateChanged;
   final Map<DateTime, int>? tokenCounts; // Map of date to token count
+  final bool isLoading;
 
   const DateSelector({
     super.key,
@@ -13,6 +15,7 @@ class DateSelector extends StatelessWidget {
     this.selectedDateValue,
     required this.onDateChanged,
     this.tokenCounts,
+    this.isLoading = false,
   });
 
   @override
@@ -38,7 +41,7 @@ class DateSelector extends StatelessWidget {
           
           // Find matching token count for this date
           int? tokenCount;
-          if (tokenCounts != null) {
+          if (tokenCounts != null && !isLoading) {
             final dateOnly = DateTime(date.year, date.month, date.day);
             for (final key in tokenCounts!.keys) {
               final keyDateOnly = DateTime(key.year, key.month, key.day);
@@ -52,44 +55,60 @@ class DateSelector extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: GestureDetector(
-              onTap: () => onDateChanged(date),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF1565C0) : Colors.white,
-                  border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFF1565C0)
-                        : Colors.grey[300]!,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      label,
-                      style: EcliniqTextStyles.titleXBLarge.copyWith(
-                        color: isSelected ? Colors.white : Color(0xff424242),
+              onTap: isLoading ? null : () => onDateChanged(date),
+              child: isLoading
+                  ? Shimmer.fromColors(
+                      baseColor: Colors.grey.shade300,
+                      highlightColor: Colors.grey.shade100,
+                      child: Container(
+                        width: 100,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF1565C0) : Colors.white,
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF1565C0)
+                              : Colors.grey[300]!,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            label,
+                            style: EcliniqTextStyles.titleXBLarge.copyWith(
+                              color: isSelected ? Colors.white : Color(0xff424242),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            tokenCount != null
+                                ? '$tokenCount tokens'
+                                : 'Tap to view slots',
+                            style: EcliniqTextStyles.bodySmall.copyWith(
+                              color: isSelected
+                                  ? Colors.white.withOpacity(0.9)
+                                  : const Color(0xFF3EAF3F),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      tokenCount != null
-                          ? '$tokenCount tokens'
-                          : 'Tap to view slots',
-                      style: EcliniqTextStyles.bodySmall.copyWith(
-                        color: isSelected
-                            ? Colors.white.withOpacity(0.9)
-                            : const Color(0xFF3EAF3F),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           );
         }).toList(),

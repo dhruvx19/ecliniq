@@ -105,11 +105,16 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
       if (resp.statusCode == 200) {
         final body = jsonDecode(resp.body) as Map<String, dynamic>;
         final data = body['data'] as Map<String, dynamic>?;
-        final url = isPublic ? data?['publicUrl'] : data?['downloadUrl'];
+        String? url;
+        if (isPublic) {
+          url = data?['publicUrl'];
+        } else {
+          url = data?['downloadUrl'];
+        }
         if (url is String && url.isNotEmpty) {
           if (!mounted) return;
           setState(() {
-            _imageUrlCache[key] = url;
+            _imageUrlCache[key] = url!;
           });
         }
       }

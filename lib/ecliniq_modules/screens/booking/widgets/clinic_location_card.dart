@@ -30,6 +30,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
   HospitalDetail? _hospitalDetail;
   bool _isLoading = true;
   Position? _userPosition;
+  double? _distanceKm;
 
   @override
   void initState() {
@@ -137,15 +138,14 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
 
   void _calculateDistance() {
     if (_userPosition != null && _hospitalDetail != null) {
-      Geolocator.distanceBetween(
+      final meters = Geolocator.distanceBetween(
         _userPosition!.latitude,
         _userPosition!.longitude,
         _hospitalDetail!.latitude,
         _hospitalDetail!.longitude,
       );
-
       setState(() {
-// Convert to kilometers
+        _distanceKm = meters / 1000.0;
       });
     }
   }
@@ -320,6 +320,25 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
                       color: Color(0xff8E8E8E),
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  if (!_isLoading && _hospitalDetail != null && _distanceKm != null)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.directions_walk,
+                          size: 16,
+                          color: Color(0xff2372EC),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${_distanceKm!.toStringAsFixed(1)} km away',
+                          style: EcliniqTextStyles.bodySmall.copyWith(
+                            color: Color(0xff2372EC),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),

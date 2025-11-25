@@ -51,6 +51,7 @@ class _MyDoctorsState extends State<MyDoctors> {
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
+              
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey, width: 1),
             ),

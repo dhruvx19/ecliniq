@@ -33,12 +33,12 @@ class AppointmentService {
         return BookAppointmentResponse(
           success: false,
           message:
-              responseData['message'] ??
+              responseData['message']?.toString() ??
               'Failed to book appointment: ${response.statusCode}',
           data: null,
-          errors: response.body,
-          meta: null,
-          timestamp: DateTime.now().toIso8601String(),
+          errors: responseData['errors'] ?? response.body,
+          meta: responseData['meta'],
+          timestamp: responseData['timestamp'] ?? DateTime.now().toIso8601String(),
         );
       }
     } catch (e) {
@@ -255,12 +255,12 @@ class AppointmentService {
         return RescheduleAppointmentResponse(
           success: false,
           message:
-              responseData['message'] ??
+              responseData['message']?.toString() ??
               'Failed to reschedule appointment: ${response.statusCode}',
           data: null,
-          errors: response.body,
-          meta: null,
-          timestamp: DateTime.now().toIso8601String(),
+          errors: responseData['errors'] ?? response.body,
+          meta: responseData['meta'],
+          timestamp: responseData['timestamp'] ?? DateTime.now().toIso8601String(),
         );
       }
     } catch (e) {

@@ -8,9 +8,9 @@ import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/widgets/ph
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,7 +31,6 @@ class AddDependentBottomSheet extends StatefulWidget {
 class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
   bool _isExpanded = true;
   bool _isExpandedPhysicalInfo = true;
-
 
   void _uploadPhoto(AddDependentProvider provider) async {
     final String? action = await EcliniqBottomSheet.show<String>(
@@ -79,20 +78,9 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
   }
 
   Future<void> _saveDependent(AddDependentProvider provider) async {
-    print('💾 Save button clicked');
-    print('🔍 Provider state check:');
-    print('   First Name: "${provider.firstName}"');
-    print('   Last Name: "${provider.lastName}"');
-    print('   Gender: ${provider.gender}');
-    print('   Date of Birth: ${provider.dateOfBirth}');
-    print('   Relation: ${provider.relation}');
-    print('   Contact Number: "${provider.contactNumber}"');
-
     // Check form validity before attempting save
     if (!provider.isFormValid) {
-      print('❌ Form is not valid');
       final errorMessage = provider.getValidationErrorMessage();
-      print('❌ Validation errors: $errorMessage');
 
       // Show detailed error snackbar (standardized)
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,14 +94,10 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
       return;
     }
 
-    print('✅ Form is valid, proceeding with save...');
-
     try {
       final success = await provider.saveDependent(context);
 
       if (success) {
-        print('✅ Dependent saved successfully');
-
         // Call callback to refresh dependents list immediately
         if (widget.onDependentAdded != null) {
           widget.onDependentAdded!();
@@ -135,7 +119,6 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
           Navigator.pop(context, true); // Return true to indicate success
         }
       } else {
-        print('❌ Failed to save dependent: ${provider.errorMessage}');
         ScaffoldMessenger.of(context).showSnackBar(
           CustomErrorSnackBar(
             context: context,
@@ -146,7 +129,6 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
         );
       }
     } catch (e) {
-      print('❌ Exception in _saveDependent: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         CustomErrorSnackBar(
           context: context,
@@ -246,8 +228,8 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                             child: Stack(
                               children: [
                                 Container(
-                                  width: 150,
-                                  height: 150,
+                                  width: 120,
+                                  height: 120,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
@@ -268,20 +250,26 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                   ),
                                   child: provider.selectedProfilePhoto == null
                                       ? Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            Icon(
-                                              Icons.add,
-                                              size: 34,
-                                              color: Primitives.brightBlue,
+                                            SvgPicture.asset(
+                                              EcliniqIcons.add.assetPath,
+                                              width: 42,
+                                              height: 42,
+                                              colorFilter: ColorFilter.mode(
+                                                Color(0xff2372EC),
+                                                BlendMode.srcIn,
+                                              ),
                                             ),
                                             const SizedBox(height: 4),
                                             EcliniqText(
-                                              'Upload Photo',
+                                              'Upload \nPhoto',
+                                              textAlign: TextAlign.center,
                                               style: EcliniqTextStyles
-                                                  .headlineXMedium
+                                                  .titleXLarge
                                                   .copyWith(
-                                                    color: Primitives.brightBlue,
+                                                    color: Color(0xff2372EC),
                                                   ),
                                             ),
                                           ],
@@ -336,13 +324,11 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                         .copyWith(color: Color(0xff424242)),
                                   ),
                                   Text(
-                                    ' .',
-                                    style: EcliniqTextStyles.titleXBLarge
-                                        .copyWith(
-                                          color: EcliniqColors
-                                              .light
-                                              .textDestructive,
-                                        ),
+                                    '•',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 20,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -380,13 +366,11 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                         ),
                                   ),
                                   Text(
-                                    ' .',
-                                    style: EcliniqTextStyles.titleXBLarge
-                                        .copyWith(
-                                          color: EcliniqColors
-                                              .light
-                                              .textDestructive,
-                                        ),
+                                    '•',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 20,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -432,8 +416,8 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                   CustomErrorSnackBar(
                                     context: context,
                                     title: 'Validation Failed',
-                                    subtitle:
-                                        provider.getValidationErrorMessage(),
+                                    subtitle: provider
+                                        .getValidationErrorMessage(),
                                     duration: const Duration(seconds: 4),
                                   ),
                                 );
@@ -444,12 +428,9 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: provider.isFormValid
                             ? EcliniqColors.light.bgContainerInteractiveBrand
-                            : EcliniqColors.light.strokeNeutralSubtle
-                                  .withOpacity(0.5),
-                        disabledBackgroundColor: EcliniqColors
-                            .light
-                            .strokeNeutralSubtle
-                            .withOpacity(0.5),
+                            : Color(0xFFF9F9F9),
+
+                        disabledBackgroundColor: Color(0xffF9F9F9),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -468,13 +449,14 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                               style: EcliniqTextStyles.titleXBLarge.copyWith(
                                 color: provider.isFormValid
                                     ? EcliniqColors.light.textFixedLight
-                                    : EcliniqColors.light.textTertiary,
-                                fontWeight: FontWeight.w600,
+                                    : Color(0xffD6D6D6),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                     ),
                   ),
                 ),
+                SizedBox(height: 8),
               ],
             ),
           );

@@ -1,19 +1,19 @@
 import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_api/hospital_service.dart';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
+import 'package:ecliniq/ecliniq_api/models/patient.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/clinic_location_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/top_bar_widgets/easy_way_book.dart';
-import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart' hide DoctorInfoCard, ClinicLocationCard;
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart'
+    hide DoctorInfoCard, ClinicLocationCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
-import 'package:ecliniq/ecliniq_api/models/patient.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ReviewDetailsScreen extends StatefulWidget {
@@ -43,9 +43,9 @@ class ReviewDetailsScreen extends StatefulWidget {
     this.previousAppointment,
     this.isReschedule = false,
   }) : assert(
-          hospitalId != null || clinicId != null,
-          'Either hospitalId or clinicId must be provided',
-        );
+         hospitalId != null || clinicId != null,
+         'Either hospitalId or clinicId must be provided',
+       );
 
   @override
   State<ReviewDetailsScreen> createState() => _ReviewDetailsScreenState();
@@ -75,7 +75,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     _reasonController.addListener(() {
       setState(() {});
     });
-    
+
     // Pre-fill reason from previous appointment if rescheduling
     if (widget.isReschedule && widget.previousAppointment != null) {
       // The reason might be stored in the appointment, but it's not in AppointmentDetailModel
@@ -151,7 +151,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   String _formatDependentSubtitle(DependentData d) {
     String capitalize(String s) => s.isEmpty
         ? s
-        : s[0].toUpperCase() + (s.length > 1 ? s.substring(1).toLowerCase() : '');
+        : s[0].toUpperCase() +
+              (s.length > 1 ? s.substring(1).toLowerCase() : '');
 
     final gender = capitalize(d.gender);
     String dobStr = '';
@@ -286,38 +287,45 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextFormField(
-                      key: const ValueKey('reason_field'),
-                      controller: _reasonController,
-                      maxLength: 150,
-                      maxLines: 3,
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        hintText: 'Enter Reason for Visit',
-                        hintStyle: const TextStyle(color: Color(0xffD6D6D6)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Color(0xff626060),
+                    child: StatefulBuilder(
+                      builder: (context, setState) {
+                        return TextFormField(
+                          key: const ValueKey('reason_field'),
+                          controller: _reasonController,
+                          maxLength: 150,
+                          maxLines: 3,
+                          minLines: 1,
+                          decoration: InputDecoration(
+                            hintText: 'Enter Reason for Visit',
+                            hintStyle: const TextStyle(
+                              color: Color(0xffD6D6D6),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: Color(0xff626060),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: Color(0xff626060),
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            counterText: '',
+                            suffixText: '${_reasonController.text.length}/150',
+                            suffixStyle: const TextStyle(
+                              color: Color(0xff8E8E8E),
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Color(0xff626060),
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        counterText: '',
-                        suffixText: '${_reasonController.text.length}/150',
-                        suffixStyle: const TextStyle(
-                          color: Color(0xff8E8E8E),
-                          fontSize: 12,
-                        ),
-                      ),
+                          onChanged: (_) => setState(() {}),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -532,6 +540,11 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   selectedDate: widget.selectedDate,
                   hospitalAddress: _hospitalAddress,
                   tokenNumber: tokenNumber,
+                  patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
+                  patientSubtitle: _selectedDependent != null
+                      ? _formatDependentSubtitle(_selectedDependent!)
+                      : 'Male, 02/02/1996 (29Y)',
+                  patientBadge: _selectedDependent?.relation ?? 'You',
                 ),
               ),
             );
@@ -540,10 +553,20 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               _isBooking = false;
             });
 
+            // Extract error message from response
+            String errorMessage = 'Failed to reschedule appointment';
+            if (response.errors != null && response.errors.toString().isNotEmpty) {
+              errorMessage = response.errors.toString();
+            } else if (response.message.isNotEmpty) {
+              errorMessage = response.message;
+            }
+
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(response.message),
-                backgroundColor: Colors.red,
+              CustomErrorSnackBar(
+                context: context,
+                title: 'Reschedule Failed',
+                subtitle: errorMessage,
+                duration: const Duration(seconds: 4),
               ),
             );
           }
@@ -571,7 +594,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         if (mounted) {
           if (response.success && response.data != null) {
             final appointmentId = response.data!.id;
-            
+
             // Verify appointment payment
             final verifyRequest = VerifyAppointmentRequest(
               appointmentId: appointmentId,
@@ -595,6 +618,11 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   selectedDate: widget.selectedDate,
                   hospitalAddress: _hospitalAddress,
                   tokenNumber: tokenNumber,
+                  patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
+                  patientSubtitle: _selectedDependent != null
+                      ? _formatDependentSubtitle(_selectedDependent!)
+                      : 'Male, 02/02/1996 (29Y)',
+                  patientBadge: _selectedDependent?.relation ?? 'You',
                 ),
               ),
             );
@@ -603,10 +631,20 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               _isBooking = false;
             });
 
+            // Extract error message from response
+            String errorMessage = 'Failed to book appointment';
+            if (response.errors != null && response.errors.toString().isNotEmpty) {
+              errorMessage = response.errors.toString();
+            } else if (response.message.isNotEmpty) {
+              errorMessage = response.message;
+            }
+
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(response.message),
-                backgroundColor: Colors.red,
+              CustomErrorSnackBar(
+                context: context,
+                title: 'Booking Failed',
+                subtitle: errorMessage,
+                duration: const Duration(seconds: 4),
               ),
             );
           }
@@ -619,13 +657,11 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.isReschedule
-                  ? 'Failed to reschedule appointment: ${e.toString()}'
-                  : 'Failed to book appointment: ${e.toString()}',
-            ),
-            backgroundColor: Colors.red,
+          CustomErrorSnackBar(
+            context: context,
+            title: widget.isReschedule ? 'Reschedule Failed' : 'Booking Failed',
+            subtitle: e.toString().replaceFirst('Exception: ', ''),
+            duration: const Duration(seconds: 4),
           ),
         );
       }

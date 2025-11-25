@@ -13,6 +13,9 @@ class AppointmentRequestScreen extends StatefulWidget {
   final String selectedDate;
   final String? hospitalAddress;
   final String? tokenNumber;
+  final String patientName;
+  final String patientSubtitle;
+  final String patientBadge;
 
   const AppointmentRequestScreen({
     super.key,
@@ -22,6 +25,9 @@ class AppointmentRequestScreen extends StatefulWidget {
     required this.selectedDate,
     this.hospitalAddress,
     this.tokenNumber,
+    required this.patientName,
+    required this.patientSubtitle,
+    required this.patientBadge,
   });
 
   @override
@@ -37,8 +43,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
   }
 
   Future<void> _makeApiCall() async {
-    
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 5));
 
     if (mounted) {
       Navigator.pushReplacement(
@@ -51,6 +56,9 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
             selectedDate: widget.selectedDate,
             hospitalAddress: widget.hospitalAddress,
             tokenNumber: widget.tokenNumber,
+            patientName: widget.patientName,
+            patientSubtitle: widget.patientSubtitle,
+            patientBadge: widget.patientBadge,
           ),
         ),
       );
@@ -58,7 +66,6 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
   }
 
   void _handleOkPressed() {
-
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -74,8 +81,6 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-
-
               SizedBox(
                 width: 200,
                 height: 200,
@@ -87,27 +92,25 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
 
               const SizedBox(height: 24),
 
-
               Text(
                 'Appointment Request',
-                style: EcliniqTextStyles.headlineLarge.copyWith(
+                style: EcliniqTextStyles.headlineXLarge.copyWith(
                   color: Color(0xff424242),
                 ),
               ),
-
 
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
                   text: 'sent to ',
-                  style: EcliniqTextStyles.headlineLarge.copyWith(
+                  style: EcliniqTextStyles.headlineXLarge.copyWith(
                     color: Color(0xff424242),
                   ),
                   children: [
                     TextSpan(
                       text: widget.doctorName ?? 'Doctor',
-                      style: EcliniqTextStyles.headlineLarge.copyWith(
-                        color: Color(0xFFF0D47A1),
+                      style: EcliniqTextStyles.headlineXLarge.copyWith(
+                        color: Color(0xfff0d47a1),
                       ),
                     ),
                   ],
@@ -116,34 +119,30 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
 
               const SizedBox(height: 16),
 
-
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF8E1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFFA726), width: 1),
+                  color: const Color(0xFFFEF9E6),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFFBE8B00),
+                    width: 0.5,
+                  ),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SvgPicture.asset(
-                        EcliniqIcons.verify.assetPath,
-                        width: 24,
-                        height: 24,
-                      ),
+                    SvgPicture.asset(
+                      EcliniqIcons.requestedIcon.assetPath,
+                      width: 32,
+                      height: 32,
                     ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'Your booking request will be confirmed once the doctor approves it. You will receive your token number details via WhatsApp and SMS.',
                         style: EcliniqTextStyles.titleXLarge.copyWith(
-                          color: Colors.black87,
+                          color: Color(0xff0D47A1),
                         ),
                       ),
                     ),
@@ -151,23 +150,21 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
-
+              const SizedBox(height: 20),
 
               Container(
-                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
                 ),
                 child: Column(
                   children: [
                     AppointmentDetailItem(
                       iconAssetPath: EcliniqIcons.user.assetPath,
-                      title: 'Ketan Patni',
-                      subtitle: 'Male, 02/02/1996 (29Y)',
-                      badge: 'You',
+                      title: widget.patientName,
+                      subtitle: widget.patientSubtitle,
+                      badge: widget.patientBadge,
                       showEdit: false,
                     ),
                     Divider(
@@ -191,7 +188,8 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                     AppointmentDetailItem(
                       iconAssetPath: EcliniqIcons.hospitalBuilding.assetPath,
                       title: 'In-Clinic Consultation',
-                      subtitle: widget.hospitalAddress ?? 'Address not available',
+                      subtitle:
+                          widget.hospitalAddress ?? 'Address not available',
                       showEdit: false,
                     ),
                   ],
@@ -199,7 +197,6 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
               ),
 
               const Spacer(),
-
 
               SizedBox(
                 width: double.infinity,
@@ -227,5 +224,4 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
       ),
     );
   }
-
 }

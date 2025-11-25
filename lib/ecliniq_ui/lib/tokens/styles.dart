@@ -6,6 +6,13 @@ class EcliniqTextStyles {
 
   static const fontFamily = 'Inter';
 
+static const TextStyle headlineXLarge = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    fontFamily: fontFamily,
+    fontStyle: FontStyle.normal,
+    decoration: TextDecoration.none,
+  );
 
   static const TextStyle headlineLarge = TextStyle(
     fontSize: 20,

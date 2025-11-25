@@ -42,7 +42,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
               title: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Edit Personal Details',
+                  'Edit Profile Details',
                   style: EcliniqTextStyles.headlineMedium.copyWith(
                     color: Color(0xff424242),
                   ),
@@ -56,9 +56,10 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                 Row(
                   children: [
                     SvgPicture.asset(
-                      EcliniqIcons.questionCircle.assetPath,
+                      EcliniqIcons.questionMark.assetPath,
                       width: 24,
                       height: 24,
+                      
                     ),
                     Text(
                       ' Help',

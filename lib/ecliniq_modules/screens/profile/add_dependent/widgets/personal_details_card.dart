@@ -1,11 +1,12 @@
 import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/widgets/relation_selection.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:intl/intl.dart';
-import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../../ecliniq_utils/responsive_helper.dart';
 import '../../../details/widgets/date_picker_sheet.dart';
 import '../provider/dependent_provider.dart';
@@ -459,16 +460,11 @@ Widget _buildTextField({
             Text(
               label,
               style: EcliniqTextStyles.headlineXMedium.copyWith(
-                color: EcliniqColors.light.textSecondary,
+                color: Color(0xff626060),
               ),
             ),
             if (isRequired)
-              Text(
-                ' *',
-                style: EcliniqTextStyles.headlineXMedium.copyWith(
-                  color: EcliniqColors.light.textDestructive,
-                ),
-              ),
+              Text('•', style: TextStyle(color: Colors.red, fontSize: 20)),
           ],
         ),
       ),
@@ -484,14 +480,14 @@ Widget _buildTextField({
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: EcliniqTextStyles.headlineXMedium.copyWith(
-              color: EcliniqColors.light.textPlaceholder,
+              color: Color(0xffB8B8B8),
             ),
             border: InputBorder.none,
             isDense: true,
             contentPadding: EdgeInsets.zero,
           ),
           style: EcliniqTextStyles.headlineXMedium.copyWith(
-            color: EcliniqColors.light.textPrimary,
+            color: Color(0xff424242)
           ),
         ),
       ),
@@ -517,16 +513,11 @@ Widget _buildSelectField({
               Text(
                 label,
                 style: EcliniqTextStyles.headlineXMedium.copyWith(
-                  color: EcliniqColors.light.textSecondary,
+                  color: Color(0xff626060),
                 ),
               ),
               if (isRequired)
-                Text(
-                  ' *',
-                  style: EcliniqTextStyles.headlineXMedium.copyWith(
-                    color: EcliniqColors.light.textDestructive,
-                  ),
-                ),
+                Text('•', style: TextStyle(color: Colors.red, fontSize: 20)),
             ],
           ),
         ),
@@ -539,8 +530,8 @@ Widget _buildSelectField({
               textAlign: TextAlign.right,
               style: EcliniqTextStyles.headlineXMedium.copyWith(
                 color: value != null
-                    ? EcliniqColors.light.textSecondary
-                    : EcliniqColors.light.textPlaceholder,
+                    ? Color(0xff626060)
+                    : Color(0xffB8B8B8),
                 fontWeight: value != null ? FontWeight.w400 : FontWeight.w500,
               ),
             ),

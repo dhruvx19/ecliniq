@@ -204,7 +204,7 @@ Widget _buildTextField({
             Text(
               label,
               style: EcliniqTextStyles.headlineXMedium.copyWith(
-                color: EcliniqColors.light.textSecondary,
+                 color: Color(0xff626060),
               ),
             ),
           ],
@@ -222,14 +222,14 @@ Widget _buildTextField({
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: EcliniqTextStyles.headlineXMedium.copyWith(
-              color: EcliniqColors.light.textPlaceholder,
+              color: Color(0xffB8B8B8),
             ),
             border: InputBorder.none,
             isDense: true,
             contentPadding: EdgeInsets.zero,
           ),
           style: EcliniqTextStyles.headlineXMedium.copyWith(
-            color: EcliniqColors.light.textPrimary,
+            color: Color(0xff424242),
           ),
         ),
       ),

@@ -8,6 +8,7 @@ import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/widgets/ph
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -216,16 +217,6 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: EcliniqColors.light.strokeNeutralSubtle,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-
                 Padding(
                   padding: EdgeInsets.all(titlePadding),
                   child: Text(
@@ -245,84 +236,81 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                     ),
                     child: Column(
                       children: [
-                        GestureDetector(
-                          onTap: () => _uploadPhoto(provider),
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: EcliniqColors.light.bgLightblue,
-                                width: 1,
-                              ),
-                              color: provider.selectedProfilePhoto == null
-                                  ? EcliniqColors.light.bgLightblue.withOpacity(
-                                      0.1,
-                                    )
-                                  : Colors.transparent,
-                            ),
-                            child: provider.selectedProfilePhoto == null
-                                ? Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SvgPicture.asset(
-                                        EcliniqIcons.add.assetPath,
-                                        width: 48,
-                                        height: 48,
-                                        colorFilter: ColorFilter.mode(
-                                          Color(0xff2372EC),
-                                          BlendMode.srcIn,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Upload\nPhoto',
-                                        textAlign: TextAlign.center,
-                                        style: EcliniqTextStyles.bodyXSmall
-                                            .copyWith(
-                                              color: Color(0xff2372EC),
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 16,
+                        // Updated profile photo section matching UserDetails style
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => _uploadPhoto(provider),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 150,
+                                  height: 150,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Primitives.lightBlue,
+                                      width: 2,
+                                    ),
+                                    image: provider.selectedProfilePhoto != null
+                                        ? DecorationImage(
+                                            image: FileImage(
+                                              provider.selectedProfilePhoto!,
                                             ),
-                                      ),
-                                    ],
-                                  )
-                                : Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      ClipOval(
-                                        child: Image.file(
-                                          provider.selectedProfilePhoto!,
-                                          fit: BoxFit.cover,
-                                          width: photoSize,
-                                          height: photoSize,
-                                        ),
-                                      ),
-                                      Positioned(
-                                        bottom: 0,
-                                        right: 0,
-                                        child: Container(
-                                          width: 32,
-                                          height: 32,
-                                          decoration: BoxDecoration(
-                                            color:
-                                                EcliniqColors.light.textBrand,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 2,
-                                            ),
-                                          ),
-                                          child: const Icon(
-                                            Icons.edit,
-                                            color: Colors.white,
-                                            size: 16,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                    color: provider.selectedProfilePhoto == null
+                                        ? Primitives.lightBackground
+                                        : null,
                                   ),
+                                  child: provider.selectedProfilePhoto == null
+                                      ? Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.add,
+                                              size: 34,
+                                              color: Primitives.brightBlue,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            EcliniqText(
+                                              'Upload Photo',
+                                              style: EcliniqTextStyles
+                                                  .headlineXMedium
+                                                  .copyWith(
+                                                    color: Primitives.brightBlue,
+                                                  ),
+                                            ),
+                                          ],
+                                        )
+                                      : null,
+                                ),
+
+                                // Edit icon overlay when photo is selected
+                                if (provider.selectedProfilePhoto != null)
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: Primitives.brightBlue,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 3,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.edit,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
 
@@ -355,7 +343,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                   ),
                                 ],
                               ),
-                               
+
                               // Icon(
                               //   _isExpanded
                               //       ? Icons.keyboard_arrow_up

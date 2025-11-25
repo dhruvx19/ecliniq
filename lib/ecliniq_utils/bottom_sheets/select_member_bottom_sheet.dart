@@ -1,4 +1,6 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/add_dependent.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -30,13 +32,11 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
   }
 
   double _computeListHeight() {
-    // Each row visual height ~86 + vertical margin ~12
     const double itemHeight = 86;
     const double verticalMargin = 12;
     final count = _dependents.length;
     if (count <= 0) return 0;
     final total = (itemHeight + verticalMargin) * count;
-    // Cap at 240 to avoid overly tall sheet; ensures 1-2 items shrink
     return total.clamp(86.0, 240.0);
   }
 
@@ -58,7 +58,9 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
         return;
       }
 
-      final response = await _patientService.getDependents(authToken: authToken);
+      final response = await _patientService.getDependents(
+        authToken: authToken,
+      );
       if (!mounted) return;
 
       if (response.success) {
@@ -117,144 +119,149 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                       padding: EdgeInsets.zero,
                     )
                   : _errorMessage != null
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            _errorMessage!,
-                            style: TextStyle(color: Colors.red[700]),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          itemCount: _dependents.length,
-                          itemBuilder: (context, index) {
-                            final d = _dependents[index];
-                            final isSelected = selectedIndex == index;
-                            return InkWell(
-                              onTap: () {
-                                setState(() {
-                                  selectedIndex = index;
-                                });
-                                Navigator.of(context).pop<DependentData>(d);
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 6),
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color:
-                                      isSelected ? Color(0xFFF8F9FF) : Colors.white,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Color(0xFF96BFFF)
-                                        : Colors.white,
-                                    width: 0.5,
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red[700]),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: _dependents.length,
+                      itemBuilder: (context, index) {
+                        final d = _dependents[index];
+                        final isSelected = selectedIndex == index;
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                            Navigator.of(context).pop<DependentData>(d);
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Color(0xFFF8F9FF)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isSelected
+                                    ? Color(0xFF96BFFF)
+                                    : Colors.white,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                // Radio button
+                                Container(
+                                  height: 24,
+                                  width: 24,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Color(0xFF4F46E5)
+                                          : Color(0xFFD1D5DB),
+                                      width: 2,
+                                    ),
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                  child: isSelected
+                                      ? Center(
+                                          child: Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Color(0xFF4F46E5),
+                                            ),
+                                          ),
+                                        )
+                                      : null,
+                                ),
+
+                                SizedBox(width: 16),
+
+                                // Avatar
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffF2F7FF),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Color(0xFF96BFFF),
+                                      width: 0.6,
+                                    ),
+                                    image:
+                                        d.profilePhoto != null &&
+                                            d.profilePhoto!.isNotEmpty
+                                        ? DecorationImage(
+                                            fit: BoxFit.cover,
+                                            image: NetworkImage(
+                                              '${Endpoints.localhost}/${d.profilePhoto}',
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                  child:
+                                      (d.profilePhoto == null ||
+                                          d.profilePhoto!.isEmpty)
+                                      ? Center(
+                                          child: Text(
+                                            _initials(d.fullName),
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF2372EC),
+                                            ),
+                                          ),
+                                        )
+                                      : null,
+                                ),
+
+                                SizedBox(width: 16),
+
+                                // Name and Relation
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        d.fullName,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF424242),
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        d.relation,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          color: Color(0xFF626060),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    // Radio button
-                                    Container(
-                                      height: 24,
-                                      width: 24,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? Color(0xFF4F46E5)
-                                              : Color(0xFFD1D5DB),
-                                          width: 2,
-                                        ),
-                                        shape: BoxShape.circle,
-                                        color: Colors.white,
-                                      ),
-                                      child: isSelected
-                                          ? Center(
-                                              child: Container(
-                                                width: 12,
-                                                height: 12,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Color(0xFF4F46E5),
-                                                ),
-                                              ),
-                                            )
-                                          : null,
-                                    ),
-
-                                    SizedBox(width: 16),
-
-                                    // Avatar
-                                    Container(
-                                      width: 52,
-                                      height: 52,
-                                      decoration: BoxDecoration(
-                                        color: Color(0xffF2F7FF),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Color(0xFF96BFFF),
-                                          width: 0.6,
-                                        ),
-                                        image: d.profilePhoto != null &&
-                                                d.profilePhoto!.isNotEmpty
-                                            ? DecorationImage(
-                                                fit: BoxFit.cover,
-                                                image: NetworkImage(
-                                                  '${Endpoints.localhost}/${d.profilePhoto}',
-                                                ),
-                                              )
-                                            : null,
-                                      ),
-                                      child: (d.profilePhoto == null ||
-                                              d.profilePhoto!.isEmpty)
-                                          ? Center(
-                                              child: Text(
-                                                _initials(d.fullName),
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Color(0xFF2372EC),
-                                                ),
-                                              ),
-                                            )
-                                          : null,
-                                    ),
-
-                                    SizedBox(width: 16),
-
-                                    // Name and Relation
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            d.fullName,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFF424242),
-                                            ),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            d.relation,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
-                                              color: Color(0xFF626060),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ),
 
@@ -274,7 +281,12 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                 SizedBox(height: 16),
 
                 InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    EcliniqBottomSheet.show(
+                      context: context,
+                      child: AddDependentBottomSheet(),
+                    );
+                  },
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -311,8 +323,6 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
               ],
             ),
           ),
-
-          SizedBox(height: 16),
         ],
       ),
     );
@@ -320,7 +330,11 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
 }
 
 String _initials(String name) {
-  final parts = name.trim().split(RegExp(r"\s+")).where((e) => e.isNotEmpty).toList();
+  final parts = name
+      .trim()
+      .split(RegExp(r"\s+"))
+      .where((e) => e.isNotEmpty)
+      .toList();
   if (parts.isEmpty) return 'NA';
   if (parts.length == 1) return parts.first[0].toUpperCase();
   return (parts.first[0] + parts.last[0]).toUpperCase();

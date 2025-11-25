@@ -1,5 +1,7 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/select_member_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -18,9 +20,6 @@ class AppointmentDetailItem extends StatelessWidget {
     this.badge,
     required this.showEdit,
   });
-
-  static final Color _primaryColor = const Color(0xFF1565C0);
-  static final Color _badgeColor = _primaryColor;
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +49,13 @@ class AppointmentDetailItem extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _badgeColor,
+                          color: Color(0xffF8FAFF),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           badge!,
                           style: EcliniqTextStyles.titleXLarge.copyWith(
-                            color: Colors.white,
+                            color: Color(0xff2372EC),
                           ),
                         ),
                       ),
@@ -74,10 +73,16 @@ class AppointmentDetailItem extends StatelessWidget {
             ),
           ),
           if (showEdit)
-            SvgPicture.asset(
-              EcliniqIcons.editIcon.assetPath,
-              width: 48,
-              height: 48,
+            GestureDetector(
+              onTap: () => EcliniqBottomSheet.show(
+                context: context,
+                child: SelectMemberBottomSheet(),
+              ),
+              child: SvgPicture.asset(
+                EcliniqIcons.editIcon.assetPath,
+                width: 48,
+                height: 48,
+              ),
             ),
         ],
       ),

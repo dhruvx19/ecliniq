@@ -22,7 +22,7 @@ class DateSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final dates = <DateTime>[];
-    
+
     // Generate dates for next 7 days
     for (int i = 0; i < 7; i++) {
       dates.add(now.add(Duration(days: i)));
@@ -32,13 +32,14 @@ class DateSelector extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: dates.map((date) {
-          final isSelected = selectedDateValue != null &&
+          final isSelected =
+              selectedDateValue != null &&
               date.year == selectedDateValue!.year &&
               date.month == selectedDateValue!.month &&
               date.day == selectedDateValue!.day;
-          
+
           final label = _formatDateLabel(date);
-          
+
           // Find matching token count for this date
           int? tokenCount;
           if (tokenCounts != null && !isLoading) {
@@ -51,7 +52,7 @@ class DateSelector extends StatelessWidget {
               }
             }
           }
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: GestureDetector(
@@ -65,9 +66,7 @@ class DateSelector extends StatelessWidget {
                         height: 70,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(
-                            color: Colors.grey[300]!,
-                          ),
+                          border: Border.all(color: Colors.grey[300]!),
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
@@ -78,7 +77,9 @@ class DateSelector extends StatelessWidget {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF1565C0) : Colors.white,
+                        color: isSelected
+                            ? const Color(0xFF1565C0)
+                            : Colors.white,
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFF1565C0)
@@ -91,13 +92,15 @@ class DateSelector extends StatelessWidget {
                           Text(
                             label,
                             style: EcliniqTextStyles.titleXBLarge.copyWith(
-                              color: isSelected ? Colors.white : Color(0xff424242),
+                              color: isSelected
+                                  ? Colors.white
+                                  : Color(0xff424242),
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             tokenCount != null
-                                ? '$tokenCount tokens'
+                                ? '$tokenCount Tokens Available'
                                 : 'Tap to view slots',
                             style: EcliniqTextStyles.bodySmall.copyWith(
                               color: isSelected
@@ -135,7 +138,20 @@ class DateSelector extends StatelessWidget {
   }
 
   String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return months[month - 1];
   }
 }

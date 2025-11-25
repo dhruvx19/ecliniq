@@ -569,6 +569,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         }
       } else {
         // Book new appointment
+        final isDependent = _selectedDependent != null;
         final request = BookAppointmentRequest(
           patientId: finalPatientId,
           doctorId: widget.doctorId,
@@ -577,7 +578,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           referBy: _referByController.text.trim().isEmpty
               ? null
               : _referByController.text.trim(),
-          bookedFor: 'SELF',
+          bookedFor: isDependent ? 'DEPENDENT' : 'SELF',
+          dependentId: isDependent ? _selectedDependent!.id : null,
         );
 
         final response = await _appointmentService.bookAppointment(

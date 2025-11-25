@@ -6,6 +6,7 @@ class BookAppointmentRequest {
   final String? referBy;
   final String bookedFor;
   final String bookingType;
+  final String? dependentId;
 
   BookAppointmentRequest({
     required this.patientId,
@@ -15,6 +16,7 @@ class BookAppointmentRequest {
     this.referBy,
     required this.bookedFor,
     this.bookingType = 'NEW',
+    this.dependentId,
   });
 
   Map<String, dynamic> toJson() {
@@ -26,6 +28,7 @@ class BookAppointmentRequest {
       if (referBy != null && referBy!.isNotEmpty) 'referBy': referBy,
       'bookingType': bookingType,
       'bookedFor': bookedFor,
+      if (dependentId != null && dependentId!.isNotEmpty) 'dependentId': dependentId,
     };
   }
 }

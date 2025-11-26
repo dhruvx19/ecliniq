@@ -60,6 +60,99 @@ class _PersonalDetailsState extends State<PersonalDetails> {
     return months[m - 1];
   }
 
+  Widget _buildTextField({
+    required String label,
+    required bool isRequired,
+    required String hint,
+    required TextEditingController controller,
+    TextInputType? keyboardType,
+    required Function(String) onChanged,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: Color(0xff626060),
+                ),
+              ),
+              if (isRequired) Text('•', style: TextStyle(color: Colors.red, fontSize: 20)),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            onChanged: onChanged,
+            textAlign: TextAlign.right,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: EcliniqTextStyles.headlineXMedium.copyWith(
+                color: Color(0xffB8B8B8),
+              ),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            style: EcliniqTextStyles.headlineXMedium.copyWith(
+              color: Color(0xff424242),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectField({
+    required String label,
+    required bool isRequired,
+    required String hint,
+    required String? value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: EcliniqTextStyles.headlineXMedium.copyWith(
+                    color: Color(0xff626060),
+                  ),
+                ),
+                if (isRequired) Text('•', style: TextStyle(color: Colors.red, fontSize: 20)),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                value ?? hint,
+                textAlign: TextAlign.right,
+                style: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: value != null ? Color(0xff626060) : Color(0xffB8B8B8),
+                  fontWeight: value != null ? FontWeight.w400 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _firstNameController.dispose();

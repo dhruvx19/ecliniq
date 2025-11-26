@@ -59,7 +59,6 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                       EcliniqIcons.questionMark.assetPath,
                       width: 24,
                       height: 24,
-                      
                     ),
                     Text(
                       ' Help',
@@ -91,15 +90,15 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                               Container(
                                 height: 150,
                                 width: 150,
-                                padding: EdgeInsets.all(20),
+                                padding: EdgeInsets.all(16),
                                 child: Container(
                                   width: 50,
                                   height: 50,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: EcliniqColors.light.bgLightblue,
-                                      width: 2,
+                                      color: Color(0xff96BFFF),
+                                      width: 1.5,
                                     ),
                                   ),
                                   child: ClipOval(
@@ -231,12 +230,10 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                       ? null
                                       : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                         EcliniqColors
-                                              .light
-                                              .bgContainerInteractiveBrand,
-                     
-                                      
+                                    backgroundColor: EcliniqColors
+                                        .light
+                                        .bgContainerInteractiveBrand,
+
                                     disabledBackgroundColor: EcliniqColors
                                         .light
                                         .strokeNeutralSubtle
@@ -246,19 +243,19 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                     ),
                                   ),
                                   child: Text(
-                                          'Save',
-                                          style: EcliniqTextStyles.titleXBLarge
-                                              .copyWith(
-                                                color: provider.isFormValid
-                                                    ? EcliniqColors
-                                                          .light
-                                                          .textFixedLight
-                                                    : EcliniqColors
-                                                          .light
-                                                          .textTertiary,
-                                                fontWeight: FontWeight.w600,
-                                              ),
+                                    'Save',
+                                    style: EcliniqTextStyles.titleXBLarge
+                                        .copyWith(
+                                          color: provider.isFormValid
+                                              ? EcliniqColors
+                                                    .light
+                                                    .textFixedLight
+                                              : EcliniqColors
+                                                    .light
+                                                    .textTertiary,
+                                          fontWeight: FontWeight.w600,
                                         ),
+                                  ),
                                 ),
                               ),
                             );

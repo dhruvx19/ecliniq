@@ -64,14 +64,37 @@ class Doctor {
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       headline: json['headline'],
-      specialization: json['specialization'] ?? '',
-      qualifications: json['qualifications'] ?? '',
+      // API may return an array 'specializations' or a string 'specialization'
+      specialization: (json['specializations'] is List)
+          ? ((json['specializations'] as List).map((e) => e.toString()).toList()).join(', ')
+          : (json['specialization'] ?? ''),
+      // API may return an array 'qualifications'
+      qualifications: (json['qualifications'] is List)
+          ? ((json['qualifications'] as List).map((e) => e.toString()).toList()).join(', ')
+          : (json['qualifications'] ?? ''),
       experience: json['experience'],
-      rating: json['rating']?.toDouble(),
-      fee: json['fee']?.toDouble(),
+      rating: (json['rating'] is num) ? (json['rating'] as num).toDouble() : null,
+      // Fee can be a string (e.g., "600"). Parse to double when possible.
+      fee: () {
+        final f = json['fee'];
+        if (f == null) return null;
+        if (f is num) return f.toDouble();
+        final parsed = double.tryParse(f.toString());
+        return parsed;
+      }(),
       timings: json['timings'],
       location: json['location'],
-      distance: json['distance']?.toDouble(),
+      // Distance object: { meters, km }
+      distance: () {
+        final d = json['distance'];
+        if (d is Map) {
+          final km = d['km'];
+          if (km is num) return km.toDouble();
+          return double.tryParse(km?.toString() ?? '');
+        }
+        if (d is num) return d.toDouble();
+        return double.tryParse(d?.toString() ?? '');
+      }(),
       availability: json['availability'] != null
           ? DoctorAvailability.fromJson(json['availability'])
           : null,
@@ -235,6 +258,8 @@ class DoctorHospital {
   final String? pincode;
   final double? latitude;
   final double? longitude;
+  final double? distanceKm;
+  final String? consultationFee;
 
   DoctorHospital({
     required this.id,
@@ -245,6 +270,8 @@ class DoctorHospital {
     this.pincode,
     this.latitude,
     this.longitude,
+    this.distanceKm,
+    this.consultationFee,
   });
 
   factory DoctorHospital.fromJson(Map<String, dynamic> json) {
@@ -259,6 +286,17 @@ class DoctorHospital {
       pincode: json['pincode'],
       latitude: json['latitude']?.toDouble(),
       longitude: json['longitude']?.toDouble(),
+      distanceKm: () {
+        final d = json['distance'];
+        if (d is Map) {
+          final km = d['km'];
+          if (km is num) return km.toDouble();
+          return double.tryParse(km?.toString() ?? '');
+        }
+        if (d is num) return d.toDouble();
+        return double.tryParse(d?.toString() ?? '');
+      }(),
+      consultationFee: json['consultationFee']?.toString(),
     );
   }
 
@@ -272,6 +310,8 @@ class DoctorHospital {
       'pincode': pincode,
       'latitude': latitude,
       'longitude': longitude,
+      'distance': distanceKm,
+      'consultationFee': consultationFee,
     };
   }
 }

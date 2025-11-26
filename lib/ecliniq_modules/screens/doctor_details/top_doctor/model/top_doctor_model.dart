@@ -72,6 +72,18 @@ class Doctor {
       return null;
     }
 
+    // Distance can be provided as a simple number or as an object { meters, km }
+    double? parseDistanceKm(dynamic d) {
+      if (d == null) return null;
+      if (d is num) return d.toDouble();
+      if (d is Map) {
+        final km = d['km'];
+        if (km is num) return km.toDouble();
+        return double.tryParse(km?.toString() ?? '');
+      }
+      return double.tryParse(d.toString());
+    }
+
     return Doctor(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
@@ -81,12 +93,18 @@ class Doctor {
               ?.map((item) => item.toString())
               .toList() ??
           [],
-      degrees: (json['degrees'] as List<dynamic>?)
+      // New response uses 'qualifications' instead of 'degrees'
+      degrees: (json['qualifications'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
-          [],
-      yearOfExperience: json['yearOfExperience'],
-      distanceKm: json['distanceKm']?.toDouble(),
+          ((json['degrees'] as List<dynamic>?)
+                  ?.map((item) => item.toString())
+                  .toList() ??
+              []),
+      // New response uses 'experience' instead of 'yearOfExperience'
+      yearOfExperience: json['experience'] ?? json['yearOfExperience'],
+      // Handle distance object { meters, km }
+      distanceKm: parseDistanceKm(json['distance']) ?? json['distanceKm']?.toDouble(),
       hospital: parseHospital(),
       clinic: parseClinic(),
     );

@@ -89,8 +89,21 @@ class FavouriteDoctor {
     final feeStr = json['fee'] ?? '0';
     final fee = int.tryParse(feeStr.toString()) ?? 0;
     
-    // Extract distance
-    final distance = json['distance']?.toDouble() ?? 0.0;
+    // Extract distance: supports number or object { meters, km }
+    double distance = 0.0;
+    final d = json['distance'];
+    if (d is Map<String, dynamic>) {
+      final km = d['km'];
+      if (km is num) {
+        distance = km.toDouble();
+      } else {
+        distance = double.tryParse(km?.toString() ?? '0') ?? 0.0;
+      }
+    } else if (d is num) {
+      distance = d.toDouble();
+    } else if (d != null) {
+      distance = double.tryParse(d.toString()) ?? 0.0;
+    }
     
     // Extract availability information
     final availability = json['availability'] as Map<String, dynamic>?;

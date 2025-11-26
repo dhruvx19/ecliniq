@@ -83,27 +83,8 @@ class _ProfilePageState extends State<ProfilePage>
       );
 
       if (response.success && response.data != null) {
-        // Try to extract profilePhoto key from raw JSON and resolve URL
-        try {
-          final rawResp = await http.get(
-            Uri.parse(Endpoints.getPatientDetails),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $authToken',
-              'x-access-token': authToken,
-            },
-          );
-          if (rawResp.statusCode == 200) {
-            final body = jsonDecode(rawResp.body) as Map<String, dynamic>;
-            final data = body['data'] as Map<String, dynamic>?;
-            final key = data?['profilePhoto'] ?? (data?['user']?['profilePhoto']);
-            if (key is String && key.isNotEmpty) {
-              await _resolveProfileImageUrl(key, token: authToken);
-            } else {
-              _profilePhotoUrl = null;
-            }
-          }
-        } catch (_) {}
+        // Do not resolve or display profile image for now
+        _profilePhotoUrl = null;
 
         setState(() {
           _patientData = response.data;
@@ -326,7 +307,7 @@ class _ProfilePageState extends State<ProfilePage>
                 child: ClipPath(
                   clipper: TopCircleCutClipper(radius: 50, topCut: 30),
                   child: Container(
-                    padding: const EdgeInsets.only(top: 90),
+                    padding: const EdgeInsets.only(top: 32),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -344,39 +325,6 @@ class _ProfilePageState extends State<ProfilePage>
               ),
 
 
-              Positioned(
-                top: topMargin - 13,
-                left: MediaQuery.of(context).size.width / 2 - 43,
-                child: Container(
-                  height: 86,
-                  width: 86,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: const Color(0xFFDFE8FF),
-                    backgroundImage: (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty)
-                        ? NetworkImage(_profilePhotoUrl!)
-                        : null,
-                    child: (_profilePhotoUrl == null || _profilePhotoUrl!.isEmpty)
-                        ? SvgPicture.asset(
-                            'lib/ecliniq_icons/assets/Group.svg',
-                            width: 80,
-                            fit: BoxFit.contain,
-                          )
-                        : null,
-                  ),
-                ),
-              ),
             ],
           ),
         ),

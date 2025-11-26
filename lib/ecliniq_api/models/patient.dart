@@ -51,6 +51,7 @@ class PatientDetailsData {
   final bool getPromotionalMessages;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? profilePhoto;
   final PatientUser? user;
 
   PatientDetailsData({
@@ -75,6 +76,7 @@ class PatientDetailsData {
     required this.getPromotionalMessages,
     required this.createdAt,
     required this.updatedAt,
+    this.profilePhoto,
     this.user,
   });
 
@@ -129,6 +131,11 @@ class PatientDetailsData {
       getPromotionalMessages: json['getPromotionalMessages'] ?? false,
       createdAt: parseDateTime(json['createdAt']) ?? DateTime.now(),
       updatedAt: parseDateTime(json['updatedAt']) ?? DateTime.now(),
+      profilePhoto: (json['profilePhoto']?.toString().isNotEmpty == true)
+          ? json['profilePhoto']?.toString()
+          : (json['user'] is Map<String, dynamic>
+              ? (json['user']['profilePhoto']?.toString())
+              : null),
       user: json['user'] != null
           ? PatientUser.fromJson(json['user'])
           : null,
@@ -200,6 +207,7 @@ class PatientUser {
   final String? lastName;
   final String? emailId;
   final String? phone;
+  final String? profilePhoto;
 
   PatientUser({
     required this.id,
@@ -207,6 +215,7 @@ class PatientUser {
     this.lastName,
     this.emailId,
     this.phone,
+    this.profilePhoto,
   });
 
   factory PatientUser.fromJson(Map<String, dynamic> json) {
@@ -216,6 +225,7 @@ class PatientUser {
       lastName: json['lastName']?.toString(),
       emailId: json['emailId']?.toString(),
       phone: json['phone']?.toString(),
+      profilePhoto: json['profilePhoto']?.toString(),
     );
   }
 }

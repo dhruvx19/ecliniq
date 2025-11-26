@@ -5,10 +5,20 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+
+import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_api/patient_service.dart';
+import 'package:ecliniq/ecliniq_api/models/patient.dart' as patient_models;
+import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
+import 'package:ecliniq/ecliniq_modules/screens/details/widgets/add_profile_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 
 import '../add_dependent/provider/dependent_provider.dart';
 import '../add_dependent/widgets/personal_details_card.dart';
-import '../add_dependent/widgets/physical_info_card.dart';
 
 class PersonalDetails extends StatefulWidget {
   const PersonalDetails({super.key});
@@ -18,6 +28,233 @@ class PersonalDetails extends StatefulWidget {
 }
 
 class _PersonalDetailsState extends State<PersonalDetails> {
+  final PatientService _patientService = PatientService();
+  bool _isLoading = true;
+  String? _errorMessage;
+  patient_models.PatientDetailsData? _data;
+
+  // form fields
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _bloodGroupController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  DateTime? _dob;
+
+  // photo
+  String? _profilePhotoKey; // existing or uploaded
+  String? _profilePhotoUrl; // resolved public/download URL
+  File? _selectedProfilePhoto;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPatientDetails();
+  }
+
+  String _monthName(int m) {
+    const months = [
+      'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
+    ];
+    if (m < 1 || m > 12) return '';
+    return months[m - 1];
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _bloodGroupController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchPatientDetails() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final token = auth.authToken;
+    if (token == null || token.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Authentication required';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final resp = await _patientService.getPatientDetails(authToken: token);
+      if (!mounted) return;
+      if (resp.success && resp.data != null) {
+        final d = resp.data!;
+        _data = d;
+        _firstNameController.text = d.user?.firstName ?? '';
+        _lastNameController.text = d.user?.lastName ?? '';
+        _bloodGroupController.text = d.bloodGroup ?? '';
+        _heightController.text = d.height != null ? d.height.toString() : '';
+        _weightController.text = d.weight != null ? d.weight.toString() : '';
+        _dob = d.dob;
+
+        // Fetch raw JSON once to extract profilePhoto key (not present in model)
+        try {
+          final rawResp = await http.get(
+            Uri.parse(Endpoints.getPatientDetails),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+              'x-access-token': token,
+            },
+          );
+          if (rawResp.statusCode == 200) {
+            final body = jsonDecode(rawResp.body) as Map<String, dynamic>;
+            final data = body['data'] as Map<String, dynamic>?;
+            final key = data?['profilePhoto'] ?? (data?['user']?['profilePhoto']);
+            if (key is String && key.isNotEmpty) {
+              _profilePhotoKey = key;
+              await _resolveImageUrl(key, token: token);
+            }
+          }
+        } catch (_) {}
+
+        setState(() {
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = resp.message;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to load details: $e';
+      });
+    }
+  }
+
+  Future<void> _resolveImageUrl(String key, {required String token}) async {
+    try {
+      final uri = Uri.parse('${Endpoints.storagePublicUrl}?key=${Uri.encodeComponent(key)}');
+      final resp = await http.get(uri, headers: {'Content-Type': 'application/json'});
+      if (resp.statusCode == 200) {
+        final body = jsonDecode(resp.body) as Map<String, dynamic>;
+        final url = body['data']?['publicUrl'];
+        if (url is String && url.isNotEmpty) {
+          _profilePhotoUrl = url;
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _selectProfilePhoto() async {
+    final String? action = await EcliniqBottomSheet.show<String>(
+      context: context,
+      child: const ProfilePhotoSelector(),
+    );
+
+    if (action != null) {
+      final ImagePicker picker = ImagePicker();
+      XFile? pickedFile;
+      try {
+        if (action == 'take_photo') {
+          pickedFile = await picker.pickImage(
+            source: ImageSource.camera,
+            imageQuality: 85,
+            maxWidth: 1024,
+            maxHeight: 1024,
+          );
+        } else if (action == 'upload_photo') {
+          pickedFile = await picker.pickImage(
+            source: ImageSource.gallery,
+            imageQuality: 85,
+            maxWidth: 1024,
+            maxHeight: 1024,
+          );
+        }
+        if (!mounted) return;
+        if (pickedFile != null) {
+          setState(() {
+            _selectedProfilePhoto = File(pickedFile!.path);
+            _profilePhotoUrl = null; // will refresh after upload
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error picking image: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _save() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final token = auth.authToken;
+    if (token == null || token.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Authentication required')),
+      );
+      return;
+    }
+
+    setState(() { _isLoading = true; });
+
+    try {
+      String? photoKey = _profilePhotoKey;
+      if (_selectedProfilePhoto != null) {
+        final key = await auth.uploadProfileImage(_selectedProfilePhoto!);
+        if (key == null) throw Exception('Failed to upload profile photo');
+        photoKey = key;
+      }
+
+      final body = {
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'bloodGroup': _bloodGroupController.text.trim().isEmpty ? null : _bloodGroupController.text.trim(),
+        'height': int.tryParse(_heightController.text.trim()),
+        'weight': int.tryParse(_weightController.text.trim()),
+        'dob': _dob != null ? '${_dob!.year.toString().padLeft(4,'0')}-${_dob!.month.toString().padLeft(2,'0')}-${_dob!.day.toString().padLeft(2,'0')}' : null,
+        if (photoKey != null) 'profilePhoto': photoKey,
+      }..removeWhere((k, v) => v == null);
+
+      final resp = await http.post(
+        Uri.parse(Endpoints.updatePatientProfile),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'x-access-token': token,
+        },
+        body: jsonEncode(body),
+      );
+
+      if (resp.statusCode == 200) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated')),
+        );
+        _selectedProfilePhoto = null;
+        await _fetchPatientDetails();
+      } else {
+        final msg = jsonDecode(resp.body)['message'] ?? 'Failed to update';
+        throw Exception(msg);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+        setState(() { _isLoading = false; });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -85,6 +322,8 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                         mainAxisSize: MainAxisSize.max,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          const SizedBox(height: 12),
+                          // Avatar + change button
                           Stack(
                             children: [
                               Container(
@@ -100,108 +339,152 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                       color: Color(0xff96BFFF),
                                       width: 1.5,
                                     ),
+                                    image: () {
+                                      if (_selectedProfilePhoto != null) {
+                                        return DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: FileImage(_selectedProfilePhoto!),
+                                        );
+                                      }
+                                      if (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty) {
+                                        return DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: NetworkImage(_profilePhotoUrl!),
+                                        );
+                                      }
+                                      return null;
+                                    }(),
                                   ),
-                                  child: ClipOval(
-                                    child: SvgPicture.asset(
-                                      'lib/ecliniq_icons/assets/Group.svg',
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
+                                  child: (_selectedProfilePhoto == null && (_profilePhotoUrl == null || _profilePhotoUrl!.isEmpty))
+                                      ? ClipOval(
+                                          child: SvgPicture.asset(
+                                            'lib/ecliniq_icons/assets/Group.svg',
+                                            fit: BoxFit.contain,
+                                          ),
+                                        )
+                                      : null,
                                 ),
                               ),
                               Positioned(
                                 bottom: 25,
                                 right: -2,
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade700,
-                                    borderRadius: BorderRadius.circular(25),
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 2,
+                                child: GestureDetector(
+                                  onTap: _selectProfilePhoto,
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade700,
+                                      borderRadius: BorderRadius.circular(25),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
                                     ),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3),
-                                    child: SvgPicture.asset(
-                                      'lib/ecliniq_icons/assets/Refresh.svg',
-                                      fit: BoxFit.cover,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(3),
+                                      child: SvgPicture.asset(
+                                        'lib/ecliniq_icons/assets/Refresh.svg',
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              provider.togglePersonalDetails();
-                            },
+
+                          // Personal Details section
+                          Align(
+                            alignment: Alignment.centerLeft,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Personal Details',
-                                      style: EcliniqTextStyles.headlineMedium
-                                          .copyWith(
-                                            color:
-                                                EcliniqColors.light.textPrimary,
-                                          ),
-                                    ),
-                                    Text(
-                                      ' *',
-                                      style: EcliniqTextStyles.titleXBLarge
-                                          .copyWith(
-                                            color: EcliniqColors
-                                                .light
-                                                .textDestructive,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                                Icon(
-                                  provider.isPersonalDetailsExpended
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: EcliniqColors.light.textTertiary,
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (provider.isPersonalDetailsExpended) ...[
-                            const PersonalDetailsWidget(),
-                          ],
-                          SizedBox(height: 24),
-                          GestureDetector(
-                            onTap: () {
-                              provider.toggleHealthInfo();
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Health Info',
-                                  style: EcliniqTextStyles.titleXBLarge
-                                      .copyWith(
-                                        color: EcliniqColors.light.textPrimary,
-                                        fontSize: 18,
-                                      ),
+                                  'Personal Details',
+                                  style: EcliniqTextStyles.headlineMedium.copyWith(
+                                    color: EcliniqColors.light.textPrimary,
+                                  ),
                                 ),
-                                Icon(
-                                  provider.isHealthInfoExpended
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: EcliniqColors.light.textTertiary,
+                                Text(
+                                  ' *',
+                                  style: EcliniqTextStyles.titleXBLarge.copyWith(
+                                    color: EcliniqColors.light.textDestructive,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          if (provider.isHealthInfoExpended) ...[
-                            const PhysicalInfoCard(),
-                          ],
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            label: 'First Name',
+                            isRequired: true,
+                            hint: 'Enter First Name',
+                            controller: _firstNameController,
+                            onChanged: (_) {},
+                          ),
+                          Divider(color: EcliniqColors.light.strokeNeutralExtraSubtle, thickness: 1, height: 16),
+                          _buildTextField(
+                            label: 'Last Name',
+                            isRequired: true,
+                            hint: 'Enter Last Name',
+                            controller: _lastNameController,
+                            onChanged: (_) {},
+                          ),
+                          Divider(color: EcliniqColors.light.strokeNeutralExtraSubtle, thickness: 1, height: 16),
+                          _buildSelectField(
+                            label: 'Date of Birth',
+                            isRequired: true,
+                            hint: 'Select Date',
+                            value: _dob != null ? '${_dob!.day.toString().padLeft(2,'0')} ${_monthName(_dob!.month)} ${_dob!.year}' : null,
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: _dob ?? DateTime.now().subtract(const Duration(days: 365 * 25)),
+                                firstDate: DateTime(1900),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) setState(() { _dob = picked; });
+                            },
+                          ),
+
+                          const SizedBox(height: 24),
+                          // Health Info section
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Health Info',
+                              style: EcliniqTextStyles.titleXBLarge.copyWith(
+                                color: EcliniqColors.light.textPrimary,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            label: 'Blood Group',
+                            isRequired: false,
+                            hint: 'e.g. B+',
+                            controller: _bloodGroupController,
+                            onChanged: (_) {},
+                          ),
+                          Divider(color: EcliniqColors.light.strokeNeutralExtraSubtle, thickness: 1, height: 16),
+                          _buildTextField(
+                            label: 'Height (cm)',
+                            isRequired: false,
+                            hint: 'Enter height',
+                            controller: _heightController,
+                            keyboardType: TextInputType.number,
+                            onChanged: (_) {},
+                          ),
+                          Divider(color: EcliniqColors.light.strokeNeutralExtraSubtle, thickness: 1, height: 16),
+                          _buildTextField(
+                            label: 'Weight (kg)',
+                            isRequired: false,
+                            hint: 'Enter weight',
+                            controller: _weightController,
+                            keyboardType: TextInputType.number,
+                            onChanged: (_) {},
+                          ),
                           SizedBox(height: 80),
                         ],
                       ),
@@ -224,11 +507,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                 width: double.infinity,
                                 height: 52,
                                 child: ElevatedButton(
-                                  onPressed:
-                                      (!provider.isFormValid ||
-                                          provider.isLoading)
-                                      ? null
-                                      : null,
+                                  onPressed: _isLoading ? null : _save,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: EcliniqColors
                                         .light
@@ -246,13 +525,9 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                     'Save',
                                     style: EcliniqTextStyles.titleXBLarge
                                         .copyWith(
-                                          color: provider.isFormValid
-                                              ? EcliniqColors
-                                                    .light
-                                                    .textFixedLight
-                                              : EcliniqColors
-                                                    .light
-                                                    .textTertiary,
+                                          color: EcliniqColors
+                                                .light
+                                                .textFixedLight,
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),

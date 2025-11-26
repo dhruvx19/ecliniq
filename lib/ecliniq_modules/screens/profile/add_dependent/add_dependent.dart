@@ -64,6 +64,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
         }
       } catch (e) {
         if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             CustomErrorSnackBar(
               context: context,
@@ -83,6 +84,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
       final errorMessage = provider.getValidationErrorMessage();
 
       // Show detailed error snackbar (standardized)
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         CustomErrorSnackBar(
           context: context,
@@ -104,6 +106,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
         }
 
         // Show success message (standardized)
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           CustomSuccessSnackBar(
             context: context,
@@ -119,6 +122,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
           Navigator.pop(context, true); // Return true to indicate success
         }
       } else {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           CustomErrorSnackBar(
             context: context,
@@ -129,6 +133,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
         );
       }
     } catch (e) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         CustomErrorSnackBar(
           context: context,
@@ -411,18 +416,6 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                       onPressed: provider.isLoading
                           ? null
                           : () {
-                              if (!provider.isFormValid) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  CustomErrorSnackBar(
-                                    context: context,
-                                    title: 'Validation Failed',
-                                    subtitle: provider
-                                        .getValidationErrorMessage(),
-                                    duration: const Duration(seconds: 4),
-                                  ),
-                                );
-                                return;
-                              }
                               _saveDependent(provider);
                             },
                       style: ElevatedButton.styleFrom(

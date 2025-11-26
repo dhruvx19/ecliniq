@@ -17,6 +17,7 @@ class Endpoints {
   static String get storagePublicUrl => '$localhost/api/storage/public-url';
 
   static String get patientDetails => '$localhost/api/patients/create-patient-profile';
+  static String get updatePatientProfile => '$localhost/api/patients/update-profile';
   static String get topHospitals => '$localhost/api/hospitals/top-hospitals';
   static String get topDoctors => '$localhost/api/doctors/top-doctors';
   static String hospitalDetails(String hospitalId) => '$localhost/api/hospitals/getHospitalDetailsByIdbyPatient/$hospitalId';
@@ -43,3 +44,4 @@ class Endpoints {
   static String get verifyNewContact => '$localhost/api/auth/change-contact/verify-new';
 
 }
+

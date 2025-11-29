@@ -447,12 +447,21 @@ class AuthService {
   /// Response: { "success": true, "data": { "challengeId": "...", "phone": "..." } }
   Future<Map<String, dynamic>> forgetMpinSendOtp({
     required String phone,
+    String? authToken,
   }) async {
     final url = Uri.parse(Endpoints.forgetMpinSendOtp);
     try {
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+      };
+
+      if (authToken != null && authToken.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $authToken';
+      }
+
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode({
           'phone': phone,
         }),

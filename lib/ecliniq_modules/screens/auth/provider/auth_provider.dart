@@ -671,7 +671,12 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _authService.forgetMpinSendOtp(phone: phone);
+      // Include Authorization header if user has a valid session
+      final authToken = _authToken ?? await SessionService.getAuthToken();
+      final result = await _authService.forgetMpinSendOtp(
+        phone: phone,
+        authToken: authToken,
+      );
       _isLoading = false;
 
       if (result['success'] == true) {

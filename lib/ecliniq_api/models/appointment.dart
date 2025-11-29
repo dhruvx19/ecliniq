@@ -213,6 +213,7 @@ class AppointmentListItem {
   final int? tokenNo;
   final String patientName;
   final String bookedFor;
+  final int? rating;
 
   AppointmentListItem({
     required this.appointmentId,
@@ -226,6 +227,7 @@ class AppointmentListItem {
     this.tokenNo,
     required this.patientName,
     required this.bookedFor,
+    this.rating,
   });
 
   factory AppointmentListItem.fromJson(Map<String, dynamic> json) {
@@ -267,6 +269,7 @@ class AppointmentListItem {
       tokenNo: toInt(json['tokenNo']),
       patientName: json['patientName']?.toString() ?? '',
       bookedFor: json['bookedFor']?.toString() ?? '',
+      rating: toInt(json['rating']),
     );
   }
 
@@ -283,6 +286,7 @@ class AppointmentListItem {
       if (tokenNo != null) 'tokenNo': tokenNo,
       'patientName': patientName,
       'bookedFor': bookedFor,
+      if (rating != null) 'rating': rating,
     };
   }
 }
@@ -392,6 +396,7 @@ class AppointmentDetailData {
   final String paymentStatus;
   final double? consultationFee;
   final double? followUpFee;
+  final int? rating;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -411,6 +416,7 @@ class AppointmentDetailData {
     required this.paymentStatus,
     this.consultationFee,
     this.followUpFee,
+    this.rating,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -476,6 +482,7 @@ class AppointmentDetailData {
       paymentStatus: json['paymentStatus']?.toString() ?? '',
       consultationFee: toDouble(json['consultationFee']),
       followUpFee: toDouble(json['followUpFee']),
+      rating: toInt(json['rating']),
       createdAt: parseDateTime(json['createdAt']),
       updatedAt: parseDateTime(json['updatedAt']),
     );
@@ -498,6 +505,7 @@ class AppointmentDetailData {
       'paymentStatus': paymentStatus,
       if (consultationFee != null) 'consultationFee': consultationFee,
       if (followUpFee != null) 'followUpFee': followUpFee,
+      if (rating != null) 'rating': rating,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };

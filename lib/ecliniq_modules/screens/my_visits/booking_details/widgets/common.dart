@@ -237,7 +237,7 @@ class AppointmentDetailModel {
             ? 'We care for you and provide a free booking'
             : '',
       ),
-      rating: null, // Not available in API response
+      rating: apiData.rating,
       doctorId: doctorId,
       hospitalId: hospitalId,
       clinicId: clinicId,
@@ -1366,16 +1366,18 @@ class PaymentDetailsCard extends StatelessWidget {
 
 class RatingSection extends StatefulWidget {
   final int? initialRating;
-  final Function(int) onRatingChanged;
+  final Function(int)? onRatingChanged;
   final String doctorName;
   final String appointmentId;
+  final bool showAsReadOnly;
 
   const RatingSection({
     super.key,
     this.initialRating,
-    required this.onRatingChanged,
+    this.onRatingChanged,
     required this.doctorName,
     required this.appointmentId,
+    this.showAsReadOnly = false,
   });
 
   @override
@@ -1392,12 +1394,18 @@ class _RatingSectionState extends State<RatingSection> {
   }
 
   Future<void> _openRatingBottomSheet() async {
+    if (widget.showAsReadOnly || widget.onRatingChanged == null) return;
+    
     final result = await RatingBottomSheet.show(
       context: context,
       initialRating: _rating,
       doctorName: widget.doctorName,
-      onSubmit: (rating) {
-        widget.onRatingChanged(rating);
+      appointmentId: widget.appointmentId,
+      onRatingSubmitted: (rating) {
+        widget.onRatingChanged?.call(rating);
+        setState(() {
+          _rating = rating;
+        });
       },
     );
 
@@ -1410,8 +1418,11 @@ class _RatingSectionState extends State<RatingSection> {
 
   @override
   Widget build(BuildContext context) {
+    final hasRating = _rating > 0;
+    final isReadOnly = widget.showAsReadOnly || hasRating;
+
     return GestureDetector(
-      onTap: _openRatingBottomSheet,
+      onTap: isReadOnly ? null : _openRatingBottomSheet,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -1421,12 +1432,12 @@ class _RatingSectionState extends State<RatingSection> {
         ),
         child: Row(
           children: [
-            const Text(
-              'Rate your Experience :',
+            Text(
+              hasRating ? 'Your Rating :' : 'Rate your Experience :',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w400,
-                color: Color(0xFF2372EC),
+                color: hasRating ? Color(0xFF424242) : Color(0xFF2372EC),
               ),
             ),
             const SizedBox(width: 12),

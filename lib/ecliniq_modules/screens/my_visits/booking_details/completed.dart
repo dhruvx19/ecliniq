@@ -257,14 +257,18 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 padding: EdgeInsets.zero,
                 child: RatingSection(
                   initialRating: _userRating,
-                  onRatingChanged: (rating) {
-                    setState(() {
-                      _userRating = rating;
-                    });
-                    _submitRating(rating);
-                  },
+                  onRatingChanged: _userRating == null || _userRating == 0
+                      ? (rating) {
+                          setState(() {
+                            _userRating = rating;
+                          });
+                          // Reload appointment details to get updated rating
+                          _loadAppointmentDetails();
+                        }
+                      : null,
                   doctorName: _appointment!.doctor.name,
                   appointmentId: _appointment!.id,
+                  showAsReadOnly: _userRating != null && _userRating > 0,
                 ),
               ),
               const SizedBox(height: 24),

@@ -11,6 +11,7 @@ import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigati
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/ratings/rate_your_exp_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +27,7 @@ class AppointmentData {
   final String patientName;
   final AppointmentStatus status;
   final String? tokenNumber;
+  final int? rating;
 
   AppointmentData({
     required this.id,
@@ -37,6 +39,7 @@ class AppointmentData {
     required this.patientName,
     required this.status,
     this.tokenNumber,
+    this.rating,
   });
 }
 
@@ -200,6 +203,7 @@ class _MyVisitsState extends State<MyVisits>
       patientName: patientName,
       status: status,
       tokenNumber: item.tokenNo?.toString(),
+      rating: item.rating,
     );
   }
 
@@ -717,25 +721,30 @@ class _MyVisitsState extends State<MyVisits>
     if (_selectedTabIndex != 1) return SizedBox.shrink();
 
     final screenWidth = MediaQuery.of(context).size.width;
+    final hasRating = appointment.rating != null && appointment.rating! > 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(color: Color(0xFFF9F9F9)),
       child: GestureDetector(
-        onTap: () => _openRatingSheet(appointment),
+        onTap: hasRating ? null : () => _openRatingSheet(appointment),
         child: Row(
           children: [
             Text(
-              'Rate Doctor :',
-              style: TextStyle(fontSize: 16, color: Color(0xFF333333)),
+              hasRating ? 'Your Rating :' : 'Rate Doctor :',
+              style: TextStyle(
+                fontSize: 16,
+                color: hasRating ? Color(0xFF424242) : Color(0xFF333333),
+              ),
             ),
             const Spacer(),
             Row(
               children: List.generate(5, (index) {
+                final filled = hasRating && index < appointment.rating!;
                 return Icon(
-                  Icons.star_border,
+                  filled ? Icons.star : Icons.star_border,
                   size: screenWidth * 0.063,
-                  color: Color(0xFFE0E0E0),
+                  color: filled ? Colors.amber : Color(0xFFE0E0E0),
                 );
               }),
             ),
@@ -746,104 +755,14 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Future<void> _openRatingSheet(AppointmentData appointment) async {
-    int tempRating = 0;
-    await showModalBottomSheet(
+    await RatingBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
-      builder: (context) {
-        final screenWidth = MediaQuery.of(context).size.width;
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Rate your Experience',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              StatefulBuilder(
-                builder: (context, setModalState) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
-                      final filled = index < tempRating;
-                      return GestureDetector(
-                        onTap: () {
-                          setModalState(() {
-                            tempRating = index + 1;
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Icon(
-                            filled ? Icons.star : Icons.star_border,
-                            size: 40,
-                            color: filled ? Colors.amber : const Color(0xFFE0E0E0),
-                          ),
-                        ),
-                      );
-                    }),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (tempRating == 0) {
-                      Navigator.of(context).pop();
-                      return;
-                    }
-                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                    final authToken = authProvider.authToken;
-                    if (authToken == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Authentication required. Please login again.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      Navigator.of(context).pop();
-                      return;
-                    }
-                    final res = await _appointmentService.rateAppointment(
-                      appointmentId: appointment.id,
-                      rating: tempRating,
-                      authToken: authToken,
-                    );
-                    if (!mounted) return;
-                    if (res['success'] == true) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(res['message']?.toString() ?? 'Appointment rated successfully'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      Navigator.of(context).pop();
-                      _refreshAppointments();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(res['message']?.toString() ?? 'Failed to submit rating'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2372EC), padding: const EdgeInsets.symmetric(vertical: 12)),
-                  child: const Text('Submit'),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
+      initialRating: 0,
+      doctorName: appointment.doctorName,
+      appointmentId: appointment.id,
+      onRatingSubmitted: (rating) {
+        // Refresh appointments after rating is submitted
+        _refreshAppointments();
       },
     );
   }

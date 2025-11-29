@@ -1,13 +1,13 @@
+import 'dart:async';
+
+import 'package:ecliniq/ecliniq_api/auth_service.dart';
+import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'dart:async';
-
-import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
-import 'package:ecliniq/ecliniq_api/auth_service.dart';
-import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
 
 import 'add_mobile_number.dart';
 
@@ -30,7 +30,7 @@ class VerifyExistingAccount extends StatefulWidget {
 class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   final TextEditingController _otpController = TextEditingController();
   final AuthService _authService = AuthService();
-  
+
   bool _isLoading = false;
   bool _isButtonPressed = false;
   String? _errorMessage;
@@ -44,12 +44,6 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   @override
   void initState() {
     super.initState();
-    // If existing phone is available, show it immediately
-    if (widget.existingPhone != null) {
-      // Mask the phone for display (e.g., ******1234)
-      _maskedContact = _maskPhone(widget.existingPhone!);
-    }
-    
     // Use provided data or fetch if not available
     if (widget.challengeId != null && widget.maskedContact != null) {
       _challengeId = widget.challengeId;
@@ -60,12 +54,6 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       _sendOTPToExistingContact();
     }
     _startTimer();
-  }
-
-  String _maskPhone(String phone) {
-    if (phone.length <= 4) return phone;
-    final lastFour = phone.substring(phone.length - 4);
-    return '******$lastFour';
   }
 
   @override
@@ -101,7 +89,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
 
   Future<void> _sendOTPToExistingContact() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -119,7 +107,8 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       if (result['success'] == true) {
         setState(() {
           _challengeId = result['challengeId'];
-          _maskedContact = result['contact']; // Use 'contact' field from new API
+          _maskedContact =
+              result['contact']; // Use 'contact' field from new API
           _isLoading = false;
         });
       } else {
@@ -186,9 +175,8 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AddMobileNumber(
-              verificationToken: result['verificationToken'],
-            ),
+            builder: (context) =>
+                AddMobileNumber(verificationToken: result['verificationToken']),
           ),
         ).then((_) {
           if (mounted) {
@@ -255,7 +243,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
             Text(
               'For your security, please verify your existing account information.',
               style: EcliniqTextStyles.headlineXMedium.copyWith(
-            
+                color: Color(0xff424242),
               ),
             ),
             if (_isLoading && _maskedContact == null)
@@ -279,26 +267,24 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                 ),
               )
             else if (_maskedContact != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  children: [
-                    Text(
-                      'OTP sent to ',
-                      style: EcliniqTextStyles.headlineMedium.copyWith(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 18,
-                      ),
+              Row(
+                children: [
+                  Text(
+                    'OTP sent to ',
+                    style: EcliniqTextStyles.headlineMedium.copyWith(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 18,
+                      color: Color(0xff424242),
                     ),
-                    Text(
-                      _maskedContact!,
-                      style: EcliniqTextStyles.headlineMedium.copyWith(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18,
-                      ),
+                  ),
+                  Text(
+                    '+91 $_maskedContact',
+                    style: EcliniqTextStyles.headlineMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 18,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             if (_errorMessage != null)
               Padding(
@@ -326,11 +312,11 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                 activeFillColor: Colors.white,
                 selectedFillColor: Colors.white,
                 inactiveFillColor: Colors.white,
-                activeColor: Colors.blue,
+                activeColor: Color(0xff2372EC),
                 selectedColor: Colors.blue,
                 inactiveColor: Colors.grey.shade500,
                 borderWidth: 1,
-                activeBorderWidth: 1,
+                activeBorderWidth: 0.5,
                 selectedBorderWidth: 1,
                 inactiveBorderWidth: 1,
                 fieldOuterPadding: EdgeInsets.symmetric(horizontal: 4),
@@ -347,8 +333,10 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
             Row(
               children: [
                 Text(
-                  'Didn\'t receive OTP?',
-                  style: EcliniqTextStyles.bodyMedium.copyWith(color: Colors.grey.shade500),
+                  'Didn’t receive the OTP',
+                  style: EcliniqTextStyles.bodySmall.copyWith(
+                    color: Color(0xff8E8E8E),
+                  ),
                 ),
                 Spacer(),
                 Row(
@@ -359,7 +347,12 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                       height: 16,
                     ),
                     SizedBox(width: 4),
-                    Text(_formatTimer(_resendTimer), style: EcliniqTextStyles.bodyMedium.copyWith(color: Colors.grey.shade600)),
+                    Text(
+                      _formatTimer(_resendTimer),
+                      style: EcliniqTextStyles.bodyMedium.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -370,14 +363,14 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
               child: Text(
                 'Resend',
                 style: EcliniqTextStyles.headlineXMedium.copyWith(
-                  color: _canResend ? Colors.blue.shade800 : Colors.grey,
+                  color: _canResend ? Color(0xff2372EC) : Colors.grey,
                 ),
               ),
             ),
             Spacer(),
             SizedBox(
               width: double.infinity,
-              height: 46,
+              height: 52,
               child: GestureDetector(
                 onTap: _isButtonPressed ? null : _verifyAndProceed,
                 child: Container(
@@ -386,8 +379,8 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                         ? Color(0xFF0E4395)
                         : (_otpController.text.length == 6)
                         ? Colors.blue.shade800
-                        : Colors.grey.shade400,
-                    borderRadius: BorderRadius.circular(8),
+                        : Color(0xffF9F9F9),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Center(
                     child: Row(
@@ -395,14 +388,20 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                       children: [
                         Text(
                           'Verify & Next',
-                          style: EcliniqTextStyles.titleXLarge.copyWith(
-                            color: Colors.white,
+                          style: EcliniqTextStyles.headlineMedium.copyWith(
+                            color: (_otpController.text.length == 6)
+                                ? Color(0xffffffff)
+                                : Color(0xffD6D6D6),
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward,
-                          color: Colors.white,
+                        SvgPicture.asset(
+                          EcliniqIcons.arrowRight.assetPath,
+                          width: 24,
+                          height: 24,
+                          color: (_otpController.text.length == 6)
+                              ? Color(0xffffffff)
+                              : Color(0xff8E8E8E),
                         ),
                       ],
                     ),

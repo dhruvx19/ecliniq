@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/ratings/rate_your_exp_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -61,7 +63,11 @@ class AppointmentDetailModel {
       doctorId: json['doctor_id'],
       hospitalId: json['hospital_id'],
       clinicId: json['clinic_id'],
-      isRescheduled: json['is_rescheduled'] == null ? null : (json['is_rescheduled'] == true || json['is_rescheduled'] == 'true' || json['is_rescheduled'] == 1),
+      isRescheduled: json['is_rescheduled'] == null
+          ? null
+          : (json['is_rescheduled'] == true ||
+                json['is_rescheduled'] == 'true' ||
+                json['is_rescheduled'] == 1),
     );
   }
 
@@ -161,8 +167,10 @@ class AppointmentDetailModel {
         : 'In-Clinic Consultation';
 
     // Get consultation fee - prefer top-level fees, fallback to doctor fees
-    final consultationFee = apiData.consultationFee ?? apiData.doctor.consultationFee ?? 0.0;
-    final followUpFee = apiData.followUpFee ?? apiData.doctor.followUpFee ?? 0.0;
+    final consultationFee =
+        apiData.consultationFee ?? apiData.doctor.consultationFee ?? 0.0;
+    final followUpFee =
+        apiData.followUpFee ?? apiData.doctor.followUpFee ?? 0.0;
     final serviceFee = 0.0; // Service fee not in API response
     final totalPayable = consultationFee + serviceFee;
 
@@ -170,7 +178,7 @@ class AppointmentDetailModel {
     final doctorId = apiData.doctor.userId;
     String? hospitalId;
     String? clinicId;
-    
+
     if (location.type == 'HOSPITAL') {
       hospitalId = location.id;
       clinicId = null;
@@ -725,8 +733,8 @@ class StatusHeader extends StatelessWidget {
       case 'completed':
         return _StatusConfig(
           title: 'Your Appointment is Completed',
-          backgroundColor: const Color(0xFFFFEBEE),
-          textColor: const Color(0xFFF04248),
+          backgroundColor: const Color(0xFFF2FFF3),
+          textColor: const Color(0xFf3EAF3F),
         );
       case 'cancelled':
         return _StatusConfig(
@@ -806,7 +814,9 @@ class DoctorInfoCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: _borderColor, width: 1),
                 ),
-                child: doctor.profileImage != null && doctor.profileImage!.isNotEmpty
+                child:
+                    doctor.profileImage != null &&
+                        doctor.profileImage!.isNotEmpty
                     ? ClipOval(
                         child: Image.network(
                           doctor.profileImage!,
@@ -862,7 +872,9 @@ class DoctorInfoCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  doctor.specialization.isEmpty ? 'General Physician' : doctor.specialization,
+                  doctor.specialization.isEmpty
+                      ? 'General Physician'
+                      : doctor.specialization,
                   style: EcliniqTextStyles.titleXLarge.copyWith(
                     color: Color(0xff424242),
                   ),
@@ -1351,6 +1363,7 @@ class PaymentDetailsCard extends StatelessWidget {
   }
 }
 
+
 class RatingSection extends StatefulWidget {
   final int? initialRating;
   final Function(int) onRatingChanged;
@@ -1379,80 +1392,20 @@ class _RatingSectionState extends State<RatingSection> {
   }
 
   Future<void> _openRatingBottomSheet() async {
-    int tempRating = _rating;
-    await showModalBottomSheet(
+    final result = await RatingBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Rate your Experience',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.doctorName,
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
-                      final filled = index < tempRating;
-                      return GestureDetector(
-                        onTap: () {
-                          setModalState(() {
-                            tempRating = index + 1;
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Icon(
-                            filled ? Icons.star : Icons.star_border,
-                            size: 40,
-                            color: filled ? Colors.amber : const Color(0xFFE0E0E0),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (tempRating > 0) {
-                          widget.onRatingChanged(tempRating);
-                          setState(() {
-                            _rating = tempRating;
-                          });
-                        }
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2372EC),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text('Submit'),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            );
-          },
-        );
+      initialRating: _rating,
+      doctorName: widget.doctorName,
+      onSubmit: (rating) {
+        widget.onRatingChanged(rating);
       },
     );
+
+    if (result != null && result > 0) {
+      setState(() {
+        _rating = result;
+      });
+    }
   }
 
   @override
@@ -1460,37 +1413,38 @@ class _RatingSectionState extends State<RatingSection> {
     return GestureDetector(
       onTap: _openRatingBottomSheet,
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFE3F2FD),
+          color: const Color(0xFFF8FAFF),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
             const Text(
               'Rate your Experience :',
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF333333),
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+                color: Color(0xFF2372EC),
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(
-                    index < _rating ? Icons.star : Icons.star_border,
-                    size: 36,
-                    color: index < _rating
-                        ? Colors.amber
-                        : const Color(0xFFE0E0E0),
-                  ),
-                );
-              }),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Row(
+                children: List.generate(5, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: SvgPicture.asset(
+                      index < _rating
+                          ? EcliniqIcons.starRateExp.assetPath
+                          : EcliniqIcons.starRateExpUnfilled.assetPath,
+                      width: 28,
+                      height: 28,
+                    ),
+                  );
+                }),
+              ),
             ),
           ],
         ),

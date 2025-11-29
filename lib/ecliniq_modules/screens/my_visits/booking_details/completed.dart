@@ -2,7 +2,6 @@ import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
-import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -14,10 +13,10 @@ class BookingCompletedDetail extends StatefulWidget {
   appointment; // Optional for backward compatibility
 
   const BookingCompletedDetail({
-    Key? key,
+    super.key,
     required this.appointmentId,
     this.appointment,
-  }) : super(key: key);
+  });
 
   @override
   State<BookingCompletedDetail> createState() => _BookingCompletedDetailState();
@@ -150,7 +149,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Doctor info card shimmer
-                Container(
+                SizedBox(
                   height: 150,
                   child: ShimmerLoading(
                     borderRadius: BorderRadius.circular(12),
@@ -158,7 +157,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 ),
                 const SizedBox(height: 24),
                 // Rating section shimmer
-                Container(
+                SizedBox(
                   height: 100,
                   child: ShimmerLoading(
                     borderRadius: BorderRadius.circular(12),
@@ -166,7 +165,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 ),
                 const SizedBox(height: 24),
                 // Appointment details shimmer
-                Container(
+                SizedBox(
                   height: 200,
                   child: ShimmerLoading(
                     borderRadius: BorderRadius.circular(12),
@@ -174,7 +173,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 ),
                 const SizedBox(height: 24),
                 // Clinic location shimmer
-                Container(
+                SizedBox(
                   height: 120,
                   child: ShimmerLoading(
                     borderRadius: BorderRadius.circular(12),
@@ -182,7 +181,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 ),
                 const SizedBox(height: 24),
                 // Prescription section shimmer
-                Container(
+                SizedBox(
                   height: 100,
                   child: ShimmerLoading(
                     borderRadius: BorderRadius.circular(12),
@@ -190,7 +189,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 ),
                 const SizedBox(height: 24),
                 // Payment details shimmer
-                Container(
+                SizedBox(
                   height: 100,
                   child: ShimmerLoading(
                     borderRadius: BorderRadius.circular(12),
@@ -240,20 +239,23 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
       child: Column(
         children: [
           StatusHeader(status: _appointment!.status),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DoctorInfoCard(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: DoctorInfoCard(
                   doctor: _appointment!.doctor,
                   clinic: _appointment!.clinic,
                   isSimplified: true,
                 ),
-                const SizedBox(height: 12),
+              ),
+              const SizedBox(height: 12),
 
-                const SizedBox(height: 24),
-                RatingSection(
+              const SizedBox(height: 24),
+              Padding(
+                padding: EdgeInsets.zero,
+                child: RatingSection(
                   initialRating: _userRating,
                   onRatingChanged: (rating) {
                     setState(() {
@@ -264,21 +266,28 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                   doctorName: _appointment!.doctor.name,
                   appointmentId: _appointment!.id,
                 ),
-                const SizedBox(height: 24),
-                AppointmentDetailsSection(
-                  patient: _appointment!.patient,
-                  timeInfo: _appointment!.timeInfo,
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    AppointmentDetailsSection(
+                      patient: _appointment!.patient,
+                      timeInfo: _appointment!.timeInfo,
+                    ),
+                    const SizedBox(height: 24),
+                    ClinicLocationCard(clinic: _appointment!.clinic),
+                    const SizedBox(height: 24),
+                    PaymentDetailsCard(payment: _appointment!.payment),
+                    const SizedBox(height: 40),
+                    _buildCallbackSection(),
+                    const SizedBox(height: 24),
+                    _buildBottomButton(context),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                ClinicLocationCard(clinic: _appointment!.clinic),
-                const SizedBox(height: 24),
-                PaymentDetailsCard(payment: _appointment!.payment),
-                const SizedBox(height: 40),
-                _buildCallbackSection(),
-                const SizedBox(height: 24),
-                _buildBottomButton(context),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -427,14 +436,18 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(res['message']?.toString() ?? 'Appointment rated successfully'),
+            content: Text(
+              res['message']?.toString() ?? 'Appointment rated successfully',
+            ),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(res['message']?.toString() ?? 'Failed to submit rating'),
+            content: Text(
+              res['message']?.toString() ?? 'Failed to submit rating',
+            ),
             backgroundColor: Colors.red,
           ),
         );

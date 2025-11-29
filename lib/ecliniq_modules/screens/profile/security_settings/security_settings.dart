@@ -22,8 +22,7 @@ class SecuritySettingsOptions extends StatefulWidget {
 class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
   bool isOn = false;
   bool _isExpanded = false;
-  bool _isLoadingMobile = false;
-  bool _isLoadingEmail = false;
+  bool _isInitialLoading = true;
   String? _existingPhone;
   String? _existingEmail;
   final AuthService _authService = AuthService();
@@ -56,111 +55,41 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
       }
     } catch (e) {
       print('Error loading user info: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isInitialLoading = false;
+        });
+      }
     }
   }
 
   Future<void> onPressedChangeMobileNumber() async {
-    setState(() {
-      _isLoadingMobile = true;
-    });
-
-    try {
-      final authToken = await SessionService.getAuthToken();
-      final result = await _authService.sendExistingContactOTP(
-        type: 'mobile',
-        authToken: authToken,
-      );
-
-      if (mounted) {
-        setState(() {
-          _isLoadingMobile = false;
-        });
-
-        if (result['success'] == true) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerifyExistingAccount(
-                challengeId: result['challengeId'],
-                maskedContact: result['contact'], // Use 'contact' field from new API
-                existingPhone: _existingPhone,
-              ),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Failed to send OTP'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingMobile = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('An error occurred: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    // Navigate immediately, API call happens in background on next page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VerifyExistingAccount(
+          challengeId: null, // Will trigger API call on next page
+          maskedContact: null,
+          existingPhone: _existingPhone,
+        ),
+      ),
+    );
   }
 
   Future<void> onPressedChangeEmail() async {
-    setState(() {
-      _isLoadingEmail = true;
-    });
-
-    try {
-      final authToken = await SessionService.getAuthToken();
-      final result = await _authService.sendExistingContactOTP(
-        type: 'email',
-        authToken: authToken,
-      );
-
-      if (mounted) {
-        setState(() {
-          _isLoadingEmail = false;
-        });
-
-        if (result['success'] == true) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerifyExistingEmail(
-                challengeId: result['challengeId'],
-                maskedContact: result['contact'], // Use 'contact' field from new API
-                existingEmail: _existingEmail,
-              ),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Failed to send OTP'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingEmail = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('An error occurred: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    // Navigate immediately, API call happens in background on next page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VerifyExistingEmail(
+          challengeId: null, // Will trigger API call on next page
+          maskedContact: null,
+          existingEmail: _existingEmail,
+        ),
+      ),
+    );
   }
 
   @override
@@ -206,29 +135,33 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
           child: Container(color: Color(0xFFB8B8B8), height: 1.0),
         ),
       ),
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            _buildTile(
-              EcliniqIcons.smartphone.assetPath,
-              'Change Mobile Number',
-              _isLoadingMobile ? null : onPressedChangeMobileNumber,
-              _isExpanded,
-              isLoading: _isLoadingMobile,
-            ),
-            Container(
-              color: Colors.grey.shade300,
-              width: double.infinity,
-              height: 1,
-            ),
-            _buildTile(
-              EcliniqIcons.mail.assetPath,
-              'Change Email ID',
-              _isLoadingEmail ? null : onPressedChangeEmail,
-              _isExpanded,
-              isLoading: _isLoadingEmail,
-            ),
+      body: _isInitialLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue.shade800,
+              ),
+            )
+          : Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  _buildTile(
+                    EcliniqIcons.smartphone.assetPath,
+                    'Change Mobile Number',
+                    onPressedChangeMobileNumber,
+                    _isExpanded,
+                  ),
+                  Container(
+                    color: Colors.grey.shade300,
+                    width: double.infinity,
+                    height: 1,
+                  ),
+                  _buildTile(
+                    EcliniqIcons.mail.assetPath,
+                    'Change Email ID',
+                    onPressedChangeEmail,
+                    _isExpanded,
+                  ),
             Container(
               color: Colors.grey.shade300,
               width: double.infinity,
@@ -255,45 +188,45 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
               _buildDropDown(isOn, handleBiometricPermission),
             ],
 
-            Spacer(),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 30),
-              child: GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: double.infinity,
-                  height: 52,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFFF8F8),
-                    border: Border.all(color: Color(0xffEB8B85), width: 0.5),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        EcliniqIcons.delete.assetPath,
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Delete Account',
-                        style: TextStyle(
-                          color: Color(0xffF04248),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
+                  Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30),
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        width: double.infinity,
+                        height: 52,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFFF8F8),
+                          border: Border.all(color: Color(0xffEB8B85), width: 0.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              EcliniqIcons.delete.assetPath,
+                              width: 24,
+                              height: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Delete Account',
+                              style: TextStyle(
+                                color: Color(0xffF04248),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -304,7 +237,6 @@ Widget _buildTile(
   VoidCallback? onPressed,
   bool isExpanded, {
   String? subtitle,
-  bool isLoading = false,
 }) {
   return TextButton(
     onPressed: onPressed,
@@ -337,7 +269,7 @@ Widget _buildTile(
                         fontSize: 18,
                       ),
                     ),
-                    if (subtitle != null && !isLoading) ...[
+                    if (subtitle != null) ...[
                       SizedBox(height: 4),
                       Text(
                         subtitle,
@@ -345,14 +277,6 @@ Widget _buildTile(
                           color: Colors.grey.shade600,
                           fontSize: 14,
                         ),
-                      ),
-                    ],
-                    if (isLoading) ...[
-                      SizedBox(height: 4),
-                      ShimmerLoading(
-                        width: 120,
-                        height: 14,
-                        borderRadius: BorderRadius.circular(4),
                       ),
                     ],
                   ],

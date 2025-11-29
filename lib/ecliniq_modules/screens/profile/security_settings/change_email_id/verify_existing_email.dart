@@ -49,6 +49,8 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       _challengeId = widget.challengeId;
       _maskedContact = widget.maskedContact;
     } else {
+      // Show loading state and fetch OTP
+      _isLoading = true;
       _sendOTPToExistingContact();
     }
     _startTimer();
@@ -246,21 +248,24 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
               ),
             ),
             if (_isLoading && _maskedContact == null)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ShimmerLoading(
-                    width: 200,
-                    height: 20,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  SizedBox(height: 8),
-                  ShimmerLoading(
-                    width: 150,
-                    height: 20,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerLoading(
+                      width: 200,
+                      height: 20,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    SizedBox(height: 8),
+                    ShimmerLoading(
+                      width: 150,
+                      height: 20,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ],
+                ),
               )
             else if (_maskedContact != null)
               Row(

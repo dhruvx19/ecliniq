@@ -2,14 +2,14 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class RatingBottomSheet extends StatefulWidget {
-  const RatingBottomSheet({super.key});
+class ThankYou extends StatefulWidget {
+  const ThankYou({super.key});
 
   @override
-  State<RatingBottomSheet> createState() => _RatingBottomSheetState();
+  State<ThankYou> createState() => _ThankYouState();
 }
 
-class _RatingBottomSheetState extends State<RatingBottomSheet> {
+class _ThankYouState extends State<ThankYou> {
   late int _tempRating;
 
   @override

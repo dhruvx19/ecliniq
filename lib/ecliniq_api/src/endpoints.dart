@@ -1,5 +1,5 @@
 class Endpoints {
-  static const String localhost = 'http://192.168.1.10:3000';
+  static const String localhost = 'http://192.168.1.5:3000';
   static const String prod = '';
 
   /// Get WebSocket base URL (without /api path)

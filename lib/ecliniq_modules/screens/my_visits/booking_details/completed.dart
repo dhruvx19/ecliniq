@@ -262,13 +262,12 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                           setState(() {
                             _userRating = rating;
                           });
-                          // Reload appointment details to get updated rating
-                          _loadAppointmentDetails();
                         }
                       : null,
                   doctorName: _appointment!.doctor.name,
                   appointmentId: _appointment!.id,
                   showAsReadOnly: _userRating != null && _userRating > 0,
+                  onRefetch: _loadAppointmentDetails,
                 ),
               ),
               const SizedBox(height: 24),

@@ -1,33 +1,43 @@
 import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class RatingBottomSheet extends StatefulWidget {
-  final int initialRating;
+  final int? initialRating;
   final String doctorName;
   final String appointmentId;
   final Function(int rating)? onRatingSubmitted;
+  final VoidCallback? onRefetch;
 
   const RatingBottomSheet({
     super.key,
-    this.initialRating = 0,
+    this.initialRating,
     required this.doctorName,
     required this.appointmentId,
     this.onRatingSubmitted,
+    this.onRefetch,
   });
 
   /// Static method to show the bottom sheet
   static Future<int?> show({
     required BuildContext context,
-    int initialRating = 0,
+    int? initialRating,
     required String doctorName,
     required String appointmentId,
     Function(int rating)? onRatingSubmitted,
+    VoidCallback? onRefetch,
   }) {
+    // Don't allow opening if rating already exists
+    if (initialRating != null && initialRating > 0) {
+      return Future.value(null);
+    }
+    
     return showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
@@ -40,6 +50,7 @@ class RatingBottomSheet extends StatefulWidget {
         doctorName: doctorName,
         appointmentId: appointmentId,
         onRatingSubmitted: onRatingSubmitted,
+        onRefetch: onRefetch,
       ),
     );
   }
@@ -49,14 +60,15 @@ class RatingBottomSheet extends StatefulWidget {
 }
 
 class _RatingBottomSheetState extends State<RatingBottomSheet> {
-  late int _tempRating;
+  int _tempRating = 0;
   bool _isSubmitting = false;
+  bool _isButtonPressed = false;
   final _appointmentService = AppointmentService();
 
   @override
   void initState() {
     super.initState();
-    _tempRating = widget.initialRating;
+    _tempRating = widget.initialRating ?? 0;
   }
 
   @override
@@ -195,6 +207,11 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
           widget.onRatingSubmitted!(_tempRating);
         }
 
+        // Refetch appointment details to get updated rating
+        if (widget.onRefetch != null) {
+          widget.onRefetch!();
+        }
+
         // Close bottom sheet first
         Navigator.of(context).pop(_tempRating);
 
@@ -209,18 +226,10 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
           ),
         );
 
-        // Show thank you snackbar after a short delay
+        // Show thank you dialog after snackbar
         await Future.delayed(const Duration(milliseconds: 3500));
         if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            CustomSuccessSnackBar(
-              context: context,
-              title: 'Thank You!',
-              subtitle: 'Your feedback helps us improve our services',
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          _showThankYouDialog();
         }
       } else {
         setState(() {
@@ -249,32 +258,133 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
     }
   }
 
+  void _showThankYouDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.check_circle,
+              color: Color(0xFF3EAF3F),
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Thank You!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF424242),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Your feedback helps us improve our services',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Color(0xFF8E8E8E),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF2372EC),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSubmitButton() {
+    final isButtonEnabled = _tempRating > 0 && !_isSubmitting;
+
     return SizedBox(
       width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _submitRating,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2372EC),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          disabledBackgroundColor: Colors.grey[300],
-        ),
-        child: _isSubmitting
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      height: 46,
+      child: GestureDetector(
+        onTap: isButtonEnabled ? _submitRating : null,
+        onTapDown: isButtonEnabled
+            ? (_) {
+                setState(() {
+                  _isButtonPressed = true;
+                });
+              }
+            : null,
+        onTapUp: isButtonEnabled
+            ? (_) {
+                setState(() {
+                  _isButtonPressed = false;
+                });
+              }
+            : null,
+        onTapCancel: isButtonEnabled
+            ? () {
+                setState(() {
+                  _isButtonPressed = false;
+                });
+              }
+            : null,
+        child: Container(
+          decoration: BoxDecoration(
+            color: _isButtonPressed
+                ? const Color(0xFF0E4395)
+                : isButtonEnabled
+                    ? EcliniqButtonType.brandPrimary.backgroundColor(context)
+                    : EcliniqButtonType.brandPrimary.disabledBackgroundColor(
+                        context,
+                      ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_isSubmitting)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              else ...[
+                Text(
+                  'Submit Feedback',
+                  style: EcliniqTextStyles.titleXLarge.copyWith(
+                    color: _isButtonPressed
+                        ? Colors.white
+                        : isButtonEnabled
+                            ? Colors.white
+                            : Colors.grey,
+                  ),
                 ),
-              )
-            : const Text(
-                'Submit Feedback',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-              ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward,
+                  color: isButtonEnabled ? Colors.white : Colors.grey,
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1370,6 +1370,7 @@ class RatingSection extends StatefulWidget {
   final String doctorName;
   final String appointmentId;
   final bool showAsReadOnly;
+  final VoidCallback? onRefetch;
 
   const RatingSection({
     super.key,
@@ -1378,6 +1379,7 @@ class RatingSection extends StatefulWidget {
     required this.doctorName,
     required this.appointmentId,
     this.showAsReadOnly = false,
+    this.onRefetch,
   });
 
   @override
@@ -1394,11 +1396,16 @@ class _RatingSectionState extends State<RatingSection> {
   }
 
   Future<void> _openRatingBottomSheet() async {
-    if (widget.showAsReadOnly || widget.onRatingChanged == null) return;
+    // Don't allow opening if rating already exists or is read-only
+    if (widget.showAsReadOnly || 
+        widget.onRatingChanged == null || 
+        (_rating > 0)) {
+      return;
+    }
     
     final result = await RatingBottomSheet.show(
       context: context,
-      initialRating: _rating,
+      initialRating: _rating > 0 ? _rating : null,
       doctorName: widget.doctorName,
       appointmentId: widget.appointmentId,
       onRatingSubmitted: (rating) {
@@ -1407,6 +1414,7 @@ class _RatingSectionState extends State<RatingSection> {
           _rating = rating;
         });
       },
+      onRefetch: widget.onRefetch,
     );
 
     if (result != null && result > 0) {
@@ -1420,9 +1428,11 @@ class _RatingSectionState extends State<RatingSection> {
   Widget build(BuildContext context) {
     final hasRating = _rating > 0;
     final isReadOnly = widget.showAsReadOnly || hasRating;
+    // Don't allow opening if rating exists
+    final canOpen = !isReadOnly && (_rating == 0 || _rating == null);
 
     return GestureDetector(
-      onTap: isReadOnly ? null : _openRatingBottomSheet,
+      onTap: canOpen ? _openRatingBottomSheet : null,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),

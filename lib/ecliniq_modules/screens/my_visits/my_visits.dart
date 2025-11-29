@@ -755,13 +755,22 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Future<void> _openRatingSheet(AppointmentData appointment) async {
+    // Don't allow opening if rating already exists
+    if (appointment.rating != null && appointment.rating! > 0) {
+      return;
+    }
+    
     await RatingBottomSheet.show(
       context: context,
-      initialRating: 0,
+      initialRating: appointment.rating,
       doctorName: appointment.doctorName,
       appointmentId: appointment.id,
       onRatingSubmitted: (rating) {
         // Refresh appointments after rating is submitted
+        _refreshAppointments();
+      },
+      onRefetch: () {
+        // Refresh appointments to get updated rating
         _refreshAppointments();
       },
     );

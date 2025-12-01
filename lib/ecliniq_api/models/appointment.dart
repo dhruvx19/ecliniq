@@ -153,15 +153,30 @@ class BookAppointmentResponse {
     dynamic parsedData;
     if (json['data'] != null) {
       final dataMap = json['data'] as Map<String, dynamic>;
+      
+      // Debug: Log the data structure
+      print('BookAppointmentResponse.fromJson - Data keys: ${dataMap.keys.toList()}');
+      print('BookAppointmentResponse.fromJson - Has paymentRequired: ${dataMap.containsKey('paymentRequired')}');
+      print('BookAppointmentResponse.fromJson - Has payment: ${dataMap.containsKey('payment')}');
+      
       // Check if response contains payment-related fields
-      if (dataMap.containsKey('requiresGateway') || 
-          dataMap.containsKey('token') || 
+      // Backend returns: { appointmentId, status, paymentRequired, payment: {...} }
+      if (dataMap.containsKey('paymentRequired') || 
+          dataMap.containsKey('payment') ||
           dataMap.containsKey('merchantTransactionId')) {
-        // Keep as Map for payment data
+        // Keep as Map for payment data - this structure has paymentRequired and payment object
+        print('BookAppointmentResponse.fromJson - Keeping as Map (payment data detected)');
         parsedData = dataMap;
       } else {
-        // Parse as AppointmentData for regular booking response
-        parsedData = AppointmentData.fromJson(dataMap);
+        // Parse as AppointmentData for regular booking response (free appointments or wallet-only)
+        print('BookAppointmentResponse.fromJson - Parsing as AppointmentData');
+        try {
+          parsedData = AppointmentData.fromJson(dataMap);
+        } catch (e) {
+          // If parsing fails, keep as Map
+          print('BookAppointmentResponse.fromJson - Failed to parse as AppointmentData: $e');
+          parsedData = dataMap;
+        }
       }
     }
     

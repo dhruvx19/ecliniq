@@ -7,6 +7,7 @@ class BookAppointmentRequest {
   final String bookedFor;
   final String bookingType;
   final String? dependentId;
+  final bool useWallet;
 
   BookAppointmentRequest({
     required this.patientId,
@@ -17,6 +18,7 @@ class BookAppointmentRequest {
     required this.bookedFor,
     this.bookingType = 'NEW',
     this.dependentId,
+    this.useWallet = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -29,6 +31,7 @@ class BookAppointmentRequest {
       'bookingType': bookingType,
       'bookedFor': bookedFor,
       if (dependentId != null && dependentId!.isNotEmpty) 'dependentId': dependentId,
+      'useWallet': useWallet,
     };
   }
 }
@@ -958,17 +961,17 @@ class RescheduleAppointmentResponse {
 
 class VerifyAppointmentRequest {
   final String appointmentId;
-  final String paymentStatus;
+  final String merchantTransactionId;
 
   VerifyAppointmentRequest({
     required this.appointmentId,
-    required this.paymentStatus,
+    required this.merchantTransactionId,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'appointmentId': appointmentId,
-      'paymentStatus': paymentStatus,
+      'merchantTransactionId': merchantTransactionId,
     };
   }
 }

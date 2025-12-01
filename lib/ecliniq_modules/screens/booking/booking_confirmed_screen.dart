@@ -14,6 +14,13 @@ class BookingConfirmedScreen extends StatelessWidget {
   final String patientName;
   final String patientSubtitle;
   final String patientBadge;
+  
+  // Payment details (optional)
+  final String? merchantTransactionId;
+  final String? paymentMethod;
+  final double? totalAmount;
+  final double? walletAmount;
+  final double? gatewayAmount;
 
   const BookingConfirmedScreen({
     super.key,
@@ -26,6 +33,11 @@ class BookingConfirmedScreen extends StatelessWidget {
     required this.patientName,
     required this.patientSubtitle,
     required this.patientBadge,
+    this.merchantTransactionId,
+    this.paymentMethod,
+    this.totalAmount,
+    this.walletAmount,
+    this.gatewayAmount,
   });
 
   @override
@@ -143,6 +155,77 @@ class BookingConfirmedScreen extends StatelessWidget {
                 ],
               ),
             ),
+            // Payment receipt section
+            if (totalAmount != null && totalAmount! > 0) ..[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.receipt_outlined, color: Color(0xFF1976D2), size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Payment Receipt',
+                          style: EcliniqTextStyles.headlineMedium.copyWith(
+                            color: Color(0xff424242),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildPaymentRow('Total Amount', totalAmount!),
+                    if (walletAmount != null && walletAmount! > 0) ...[
+                      const SizedBox(height: 8),
+                      _buildPaymentRow('Paid from Wallet', walletAmount!, isSubItem: true),
+                    ],
+                    if (gatewayAmount != null && gatewayAmount! > 0) ...[
+                      const SizedBox(height: 8),
+                      _buildPaymentRow('Paid via PhonePe', gatewayAmount!, isSubItem: true),
+                    ],
+                    if (paymentMethod != null) ...[
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Payment Method',
+                            style: EcliniqTextStyles.buttonSmall.copyWith(
+                              color: Color(0xff626060),
+                            ),
+                          ),
+                          Text(
+                            _getPaymentMethodLabel(paymentMethod!),
+                            style: EcliniqTextStyles.buttonSmall.copyWith(
+                              color: Color(0xff424242),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (merchantTransactionId != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Transaction ID: $merchantTransactionId',
+                        style: EcliniqTextStyles.buttonXSmall.copyWith(
+                          color: Color(0xff8E8E8E),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             const Spacer(),
             SizedBox(
               width: double.infinity,
@@ -192,5 +275,39 @@ class BookingConfirmedScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildPaymentRow(String label, double amount, {bool isSubItem = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          isSubItem ? '  • $label' : label,
+          style: EcliniqTextStyles.headlineXMedium.copyWith(
+            color: Color(0xff626060),
+          ),
+        ),
+        Text(
+          '₹${amount.toStringAsFixed(0)}',
+          style: EcliniqTextStyles.headlineXMedium.copyWith(
+            color: Color(0xff424242),
+            fontWeight: isSubItem ? FontWeight.normal : FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getPaymentMethodLabel(String method) {
+    switch (method.toUpperCase()) {
+      case 'WALLET':
+        return 'Wallet Only';
+      case 'GATEWAY':
+        return 'PhonePe Gateway';
+      case 'HYBRID':
+        return 'Wallet + PhonePe';
+      default:
+        return method;
+    }
   }
 }

@@ -53,6 +53,10 @@ class Endpoints {
   // Patient notification preferences
   static String get updateNotificationPreferences => '$localhost/api/patients/update-notification-preferences';
 
+  // Payment endpoints
+  static String paymentStatus(String merchantTxnId) => '$localhost/api/payments/status/$merchantTxnId';
+  static String paymentDetails(String appointmentId) => '$localhost/api/payments/appointment/$appointmentId';
+
 }
 
 

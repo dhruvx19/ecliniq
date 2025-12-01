@@ -10,6 +10,7 @@ import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/provider/d
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/provider/eta_provider.dart';
 import 'package:ecliniq/ecliniq_core/notifications/push_notification.dart';
 import 'package:ecliniq/ecliniq_modules/screens/search_specialities/search_specialities_page.dart';
+import 'package:ecliniq/ecliniq_services/phonepe_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +32,7 @@ void main() async {
     AuthProvider().initialize(),
     SharedPreferences.getInstance(),
     EcliniqPushNotifications.init(),
+    _initializePhonePeSDK(),
   ];
   await Future.wait(futures);
   EcliniqPushNotifications.setNotificationListeners();
@@ -52,6 +54,24 @@ void main() async {
       child: const MyApp(),
     ),
   );
+}
+
+/// Initialize PhonePe SDK on app startup
+Future<void> _initializePhonePeSDK() async {
+  try {
+    final phonePeService = PhonePeService();
+    // TODO: Update merchant ID and app ID for production
+    // You can get these from PhonePe merchant dashboard
+    await phonePeService.initialize(
+      isProduction: false, // Set to true for production
+      merchantId: '', // Add your merchant ID here
+      appId: '', // Add your app ID here
+    );
+    print('PhonePe SDK initialized successfully');
+  } catch (e) {
+    print('Warning: PhonePe SDK initialization failed: $e');
+    print('Payment features may not work correctly');
+  }
 }
 
 class MyApp extends StatefulWidget {

@@ -2,8 +2,10 @@ import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_api/hospital_service.dart';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
 import 'package:ecliniq/ecliniq_api/models/patient.dart';
+import 'package:ecliniq/ecliniq_api/models/payment.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/payment_processing_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/clinic_location_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
@@ -64,7 +66,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   String? _authToken;
   String? _hospitalAddress;
   DependentData? _selectedDependent;
-
+  
+  // Payment-related state
+  bool _useWallet = false;
+  double _walletBalance = 0.0;
+  double _consultationFee = 500.0; // Default, should be fetched from doctor data
+  
   // Reason bottom sheet removed; using free-text field instead.
 
   @override
@@ -143,6 +150,17 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     setState(() {
       _patientId = patientId ?? '2ccb2364-9e21-40ad-a1f2-274b73553e44';
       _authToken = authToken;
+    });
+    
+    // Fetch wallet balance
+    await _fetchWalletBalance();
+  }
+  
+  Future<void> _fetchWalletBalance() async {
+    // TODO: Implement API call to fetch wallet balance
+    // For now, using mock data
+    setState(() {
+      _walletBalance = 200.0; // Mock balance
     });
   }
 
@@ -367,6 +385,62 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  // Wallet checkbox section
+                  if (!widget.isReschedule) ...[
+                    RepaintBoundary(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _useWallet,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _useWallet = value ?? false;
+                                    });
+                                  },
+                                  activeColor: const Color(0xFF1976D2),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Use Wallet Balance',
+                                        style: EcliniqTextStyles.headlineMedium.copyWith(
+                                          color: const Color(0xff424242),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Available balance: ₹${_walletBalance.toStringAsFixed(0)}',
+                                        style: EcliniqTextStyles.buttonSmall.copyWith(
+                                          color: _walletBalance > 0
+                                              ? const Color(0xFF4CAF50)
+                                              : const Color(0xFF757575),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   RepaintBoundary(
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -390,7 +464,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                                     .copyWith(color: Color(0xff626060)),
                               ),
                               Text(
-                                'Pay at Clinic',
+                                '₹${_consultationFee.toStringAsFixed(0)}',
                                 style: EcliniqTextStyles.headlineXMedium
                                     .copyWith(color: Color(0xff424242)),
                               ),
@@ -439,6 +513,51 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                               color: Color(0xff54B955),
                             ),
                           ),
+                          // Show wallet payment breakdown if using wallet
+                          if (_useWallet && _walletBalance > 0) ...[
+                            const Divider(height: 24),
+                            Text(
+                              'Payment Breakdown',
+                              style: EcliniqTextStyles.headlineXMedium.copyWith(
+                                color: Color(0xff424242),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'From Wallet',
+                                  style: EcliniqTextStyles.headlineXMedium
+                                      .copyWith(color: Color(0xff626060)),
+                                ),
+                                Text(
+                                  '₹${(_walletBalance >= _consultationFee ? _consultationFee : _walletBalance).toStringAsFixed(0)}',
+                                  style: EcliniqTextStyles.headlineXMedium
+                                      .copyWith(color: Color(0xFF4CAF50)),
+                                ),
+                              ],
+                            ),
+                            if (_walletBalance < _consultationFee) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Via PhonePe',
+                                    style: EcliniqTextStyles.headlineXMedium
+                                        .copyWith(color: Color(0xff626060)),
+                                  ),
+                                  Text(
+                                    '₹${(_consultationFee - _walletBalance).toStringAsFixed(0)}',
+                                    style: EcliniqTextStyles.headlineXMedium
+                                        .copyWith(color: Color(0xFF1976D2)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
                           const Divider(height: 24),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -450,9 +569,15 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                                 ),
                               ),
                               Text(
-                                'Pay at Clinic',
+                                _useWallet && _walletBalance >= _consultationFee
+                                    ? 'Paid from Wallet'
+                                    : _useWallet && _walletBalance > 0
+                                        ? '₹${(_consultationFee - _walletBalance).toStringAsFixed(0)}'
+                                        : '₹${_consultationFee.toStringAsFixed(0)}',
                                 style: EcliniqTextStyles.headlineLarge.copyWith(
-                                  color: Color(0xff424242),
+                                  color: _useWallet && _walletBalance >= _consultationFee
+                                      ? Color(0xFF4CAF50)
+                                      : Color(0xff424242),
                                 ),
                               ),
                             ],
@@ -584,6 +709,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               : _referByController.text.trim(),
           bookedFor: isDependent ? 'DEPENDENT' : 'SELF',
           dependentId: isDependent ? _selectedDependent!.id : null,
+          useWallet: _useWallet,
         );
 
         final response = await _appointmentService.bookAppointment(
@@ -593,39 +719,117 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
         if (mounted) {
           if (response.success && response.data != null) {
-            final appointmentId = response.data!.id;
+            // Try to parse payment data from response
+            final responseDataJson = response.data is Map<String, dynamic>
+                ? response.data as Map<String, dynamic>
+                : null;
 
-            // Verify appointment payment
-            final verifyRequest = VerifyAppointmentRequest(
-              appointmentId: appointmentId,
-              paymentStatus: 'COMPLETED',
-            );
+            // Check if payment data is present
+            if (responseDataJson != null &&
+                responseDataJson.containsKey('requiresGateway')) {
+              final paymentData =
+                  BookingPaymentData.fromJson(responseDataJson);
 
-            await _appointmentService.verifyAppointment(
-              request: verifyRequest,
-              authToken: _authToken,
-            );
+              if (paymentData.requiresGateway) {
+                // Navigate to payment processing screen
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentProcessingScreen(
+                      appointmentId: paymentData.appointmentId,
+                      merchantTransactionId:
+                          paymentData.merchantTransactionId,
+                      token: paymentData.token ?? '',
+                      totalAmount: paymentData.totalAmount,
+                      walletAmount: paymentData.walletAmount,
+                      gatewayAmount: paymentData.gatewayAmount,
+                      provider: paymentData.provider,
+                      doctorName: widget.doctorName,
+                      doctorSpecialization: widget.doctorSpecialization,
+                      selectedSlot: widget.selectedSlot,
+                      selectedDate: widget.selectedDate,
+                      hospitalAddress: _hospitalAddress,
+                      patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
+                      patientSubtitle: _selectedDependent != null
+                          ? _formatDependentSubtitle(_selectedDependent!)
+                          : 'Male, 02/02/1996 (29Y)',
+                      patientBadge: _selectedDependent?.relation ?? 'You',
+                    ),
+                  ),
+                );
+              } else {
+                // Wallet-only payment - appointment auto-confirmed
+                // Parse appointment data
+                final appointmentData = response.data is AppointmentData
+                    ? response.data as AppointmentData
+                    : null;
+                final tokenNumber =
+                    appointmentData?.tokenNo.toString() ?? '--';
 
-            final tokenNumber = response.data!.tokenNo.toString();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AppointmentRequestScreen(
+                      doctorName: widget.doctorName,
+                      doctorSpecialization: widget.doctorSpecialization,
+                      selectedSlot: widget.selectedSlot,
+                      selectedDate: widget.selectedDate,
+                      hospitalAddress: _hospitalAddress,
+                      tokenNumber: tokenNumber,
+                      patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
+                      patientSubtitle: _selectedDependent != null
+                          ? _formatDependentSubtitle(_selectedDependent!)
+                          : 'Male, 02/02/1996 (29Y)',
+                      patientBadge: _selectedDependent?.relation ?? 'You',
+                      merchantTransactionId: paymentData.merchantTransactionId,
+                      paymentMethod: paymentData.provider,
+                      totalAmount: paymentData.totalAmount,
+                      walletAmount: paymentData.walletAmount,
+                      gatewayAmount: paymentData.gatewayAmount,
+                    ),
+                  ),
+                );
+              }
+            } else {
+              // Legacy response format - no payment data
+              // Verify appointment with default payment status
+              final appointmentData = response.data is AppointmentData
+                  ? response.data as AppointmentData
+                  : null;
+              final appointmentId =
+                  appointmentData?.id ?? responseDataJson?['id'] ?? '';
 
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AppointmentRequestScreen(
-                  doctorName: widget.doctorName,
-                  doctorSpecialization: widget.doctorSpecialization,
-                  selectedSlot: widget.selectedSlot,
-                  selectedDate: widget.selectedDate,
-                  hospitalAddress: _hospitalAddress,
-                  tokenNumber: tokenNumber,
-                  patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
-                  patientSubtitle: _selectedDependent != null
-                      ? _formatDependentSubtitle(_selectedDependent!)
-                      : 'Male, 02/02/1996 (29Y)',
-                  patientBadge: _selectedDependent?.relation ?? 'You',
+              final verifyRequest = VerifyAppointmentRequest(
+                appointmentId: appointmentId,
+                merchantTransactionId: 'LEGACY_${DateTime.now().millisecondsSinceEpoch}',
+              );
+
+              await _appointmentService.verifyAppointment(
+                request: verifyRequest,
+                authToken: _authToken,
+              );
+
+              final tokenNumber = appointmentData?.tokenNo.toString() ?? '--';
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AppointmentRequestScreen(
+                    doctorName: widget.doctorName,
+                    doctorSpecialization: widget.doctorSpecialization,
+                    selectedSlot: widget.selectedSlot,
+                    selectedDate: widget.selectedDate,
+                    hospitalAddress: _hospitalAddress,
+                    tokenNumber: tokenNumber,
+                    patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
+                    patientSubtitle: _selectedDependent != null
+                        ? _formatDependentSubtitle(_selectedDependent!)
+                        : 'Male, 02/02/1996 (29Y)',
+                    patientBadge: _selectedDependent?.relation ?? 'You',
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           } else {
             setState(() {
               _isBooking = false;
@@ -701,7 +905,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 )
               else ...[
                 Text(
-                  widget.isReschedule ? 'Confirm Reschedule' : 'Confirm Visit',
+                  _getButtonText(),
                   style: EcliniqTextStyles.headlineMedium.copyWith(
                     color: Colors.white,
                   ),
@@ -712,5 +916,23 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         ),
       ),
     );
+  }
+  
+  String _getButtonText() {
+    if (widget.isReschedule) {
+      return 'Confirm Reschedule';
+    }
+    
+    if (_useWallet && _walletBalance >= _consultationFee) {
+      // Full wallet payment
+      return 'Pay ₹${_consultationFee.toStringAsFixed(0)} with Wallet';
+    } else if (_useWallet && _walletBalance > 0) {
+      // Hybrid payment
+      final gatewayAmount = _consultationFee - _walletBalance;
+      return 'Pay ₹${gatewayAmount.toStringAsFixed(0)} (₹${_walletBalance.toStringAsFixed(0)} from Wallet)';
+    } else {
+      // Full gateway payment or no payment
+      return 'Proceed to Payment';
+    }
   }
 }

@@ -3,6 +3,8 @@ import 'package:ecliniq/ecliniq_modules/screens/booking/booking_confirmed_screen
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 
+import '../profile/add_dependent/add_dependent.dart';
+
 class AppointmentRequestScreen extends StatefulWidget {
   const AppointmentRequestScreen({super.key});
 
@@ -39,6 +41,20 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    void _showAddDependentBottomSheet(BuildContext context) async {
+      final selectedMember = await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const AddDependentBottomSheet(),
+      );
+
+      if (selectedMember != null) {
+        print('Selected: ${selectedMember.name}');
+        // Handle the selected member here
+      }
+    }
+
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -144,11 +160,16 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                 ),
                 child: Column(
                   children: [
-                    _buildDetailRow(
-                      Icons.person_outline,
-                      'Ketan Patni',
-                      'Male, 02/02/1996 (29Y)',
-                      badge: 'You',
+                    InkWell(
+                      onTap: () {
+                        _showAddDependentBottomSheet(context);
+                      },
+                      child: _buildDetailRow(
+                        Icons.person_outline,
+                        'Ketan Patni',
+                        'Male, 02/02/1996 (29Y)',
+                        badge: 'You',
+                      ),
                     ),
                     const Divider(height: 24),
                     _buildDetailRow(

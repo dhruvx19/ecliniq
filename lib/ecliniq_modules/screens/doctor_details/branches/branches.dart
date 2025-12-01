@@ -4,10 +4,8 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-
 class Branches extends StatelessWidget {
   const Branches({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

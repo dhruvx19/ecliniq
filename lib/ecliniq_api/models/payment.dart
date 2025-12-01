@@ -4,6 +4,8 @@
 /// Payment data returned from booking API
 class BookingPaymentData {
   final String appointmentId;
+  final String status;
+  final bool paymentRequired;
   final String? paymentId;
   final String merchantTransactionId;
   final double totalAmount;
@@ -12,11 +14,12 @@ class BookingPaymentData {
   final String provider; // WALLET, GATEWAY, HYBRID
   final String? token;
   final String? orderId;
-  final String? expiresAt;
-  final bool requiresGateway;
+  final DateTime? expiresAt;
 
   BookingPaymentData({
     required this.appointmentId,
+    required this.status,
+    required this.paymentRequired,
     this.paymentId,
     required this.merchantTransactionId,
     required this.totalAmount,
@@ -26,58 +29,80 @@ class BookingPaymentData {
     this.token,
     this.orderId,
     this.expiresAt,
-    required this.requiresGateway,
   });
 
   factory BookingPaymentData.fromJson(Map<String, dynamic> json) {
-    final toDouble = (dynamic value) {
-      if (value == null) return 0.0;
-      if (value is double) return value;
-      if (value is int) return value.toDouble();
-      if (value is String) return double.tryParse(value) ?? 0.0;
-      return 0.0;
-    };
-
-    final toBool = (dynamic value) {
-      if (value == null) return false;
-      if (value is bool) return value;
-      if (value is String) {
-        return value.toLowerCase() == 'true' || value == '1';
-      }
-      if (value is int) return value != 0;
-      return false;
-    };
-
+    // Backend response structure:
+    // {
+    //   "appointmentId": "...",
+    //   "status": "CREATED",
+    //   "paymentRequired": true,
+    //   "payment": {
+    //     "paymentId": "...",
+    //     "merchantTransactionId": "...",
+    //     "totalAmount": "100",
+    //     ...
+    //   }
+    // }
+    
+    final payment = json['payment'] as Map<String, dynamic>? ?? {};
+    
     return BookingPaymentData(
-      appointmentId: json['appointmentId']?.toString() ?? '',
-      paymentId: json['paymentId']?.toString(),
-      merchantTransactionId: json['merchantTransactionId']?.toString() ?? '',
-      totalAmount: toDouble(json['totalAmount']),
-      walletAmount: toDouble(json['walletAmount']),
-      gatewayAmount: toDouble(json['gatewayAmount']),
-      provider: json['provider']?.toString() ?? 'GATEWAY',
-      token: json['token']?.toString(),
-      orderId: json['orderId']?.toString(),
-      expiresAt: json['expiresAt']?.toString(),
-      requiresGateway: toBool(json['requiresGateway']),
+      appointmentId: json['appointmentId'] as String? ?? '',
+      status: json['status'] as String? ?? 'CREATED',
+      paymentRequired: json['paymentRequired'] as bool? ?? false,
+      paymentId: payment['paymentId'] as String?,
+      merchantTransactionId: payment['merchantTransactionId'] as String? ?? '',
+      totalAmount: _parseDouble(payment['totalAmount']),
+      walletAmount: _parseDouble(payment['walletAmount']),
+      gatewayAmount: _parseDouble(payment['gatewayAmount']),
+      provider: payment['provider'] as String? ?? 'GATEWAY',
+      token: payment['token'] as String?,
+      orderId: payment['orderId'] as String?,
+      expiresAt: payment['expiresAt'] != null
+          ? DateTime.tryParse(payment['expiresAt'] as String)
+          : null,
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   Map<String, dynamic> toJson() {
     return {
       'appointmentId': appointmentId,
-      if (paymentId != null) 'paymentId': paymentId,
-      'merchantTransactionId': merchantTransactionId,
-      'totalAmount': totalAmount,
-      'walletAmount': walletAmount,
-      'gatewayAmount': gatewayAmount,
-      'provider': provider,
-      if (token != null) 'token': token,
-      if (orderId != null) 'orderId': orderId,
-      if (expiresAt != null) 'expiresAt': expiresAt,
-      'requiresGateway': requiresGateway,
+      'status': status,
+      'paymentRequired': paymentRequired,
+      'payment': {
+        'paymentId': paymentId,
+        'merchantTransactionId': merchantTransactionId,
+        'totalAmount': totalAmount.toString(),
+        'walletAmount': walletAmount.toString(),
+        'gatewayAmount': gatewayAmount.toString(),
+        'provider': provider,
+        'token': token,
+        'orderId': orderId,
+        'expiresAt': expiresAt?.toIso8601String(),
+      },
     };
   }
+
+  /// Whether gateway payment is required (not fully paid by wallet)
+  bool get requiresGateway => paymentRequired && gatewayAmount > 0;
+
+  /// Whether payment is wallet-only
+  bool get isWalletOnly => paymentRequired && gatewayAmount == 0 && walletAmount > 0;
+
+  /// Whether payment is gateway-only
+  bool get isGatewayOnly => paymentRequired && walletAmount == 0 && gatewayAmount > 0;
+
+  /// Whether payment is hybrid (wallet + gateway)
+  bool get isHybrid => paymentRequired && walletAmount > 0 && gatewayAmount > 0;
 }
 
 /// Payment status data

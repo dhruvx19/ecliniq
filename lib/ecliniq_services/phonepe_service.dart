@@ -57,6 +57,7 @@ class PhonePeService {
   Future<PhonePePaymentResult> startPayment({
     required String request,
     required String appSchema,
+    String? packageName,
   }) async {
     if (!_isInitialized) {
       throw PhonePeException('PhonePe SDK not initialized. Call initialize() first.');
@@ -65,95 +66,113 @@ class PhonePeService {
     print('========== PHONEPE SERVICE: START PAYMENT ==========');
     print('Request (base64) length: ${request.length}');
     print('Request (first 100 chars): ${request.substring(0, request.length > 100 ? 100 : request.length)}');
-    print('App schema: $appSchema');
-    print('Environment: $_environment');
-    print('Package name: $_packageName');
-    print('====================================================');
-
     try {
-      final response = await PhonePePaymentSdk.startTransaction(request, appSchema);
+      print('Starting payment with PhonePe...');
+      print('Request (token) length: ${request.length}');
+      print('App schema: $appSchema');
+      print('Package name: ${packageName ?? "default"}');
       
-      print('========== PHONEPE SDK RAW RESPONSE ==========');
-      print('Response type: ${response.runtimeType}');
-      print('Response: $response');
-      print('==============================================');
-
-      if (response != null) {
-        // Cast Map<dynamic, dynamic> to Map<String, dynamic>
-        final Map<String, dynamic> responseMap = Map<String, dynamic>.from(response);
-        
-        final status = responseMap['status']?.toString() ?? '';
-        final error = responseMap['error']?.toString();
-
-        return PhonePePaymentResult(
-          success: status == 'SUCCESS',
-          status: status,
-          error: error,
-          data: responseMap,
-        );
-      }
-
-      return PhonePePaymentResult(
-        success: false,
-        status: 'INCOMPLETE',
-        error: 'Flow incomplete - no response received',
+      // Call PhonePe SDK to start payment
+      // This will open the selected UPI app or PhonePe app for user to complete payment
+      final response = await PhonePePaymentSdk.startTransaction(
+        request, // base64 token from backend
+        appSchema, // callback URL schema
+        null, // checksum - not needed as token is already signed
+        packageName, // specific UPI app or null for PhonePe
       );
+
+      print('PhonePe SDK response: $response');
+      
+      return PhonePePaymentResult.fromSdkResult(response);
     } catch (e) {
+      print('PhonePe payment error: $e');
       throw PhonePeException('Failed to start payment: $e');
     }
   }
 
   /// Get list of installed UPI apps
-  Future<List<UpiAppInfo>> getInstalledUpiApps() async {
+  /// Returns list of UPI apps that can be used for payment
+  Future<List<UpiApp>> getInstalledUpiApps() async {
     try {
-      if (Platform.isAndroid) {
-        return await _getUpiAppsForAndroid();
-      } else {
-        return await _getUpiAppsForIOS();
+      // Get UPI apps list from PhonePe SDK
+      final apps = await PhonePePaymentSdk.getInstalledUpiApps();
+      
+      if (apps == null || apps.isEmpty) {
+        print('No UPI apps found');
+        return [];
       }
+
+      print('Found ${apps.length} UPI apps');
+      
+      // Parse the apps list
+      final upiApps = <UpiApp>[];
+      for (final app in apps) {
+        if (app is Map) {
+          final appMap = Map<String, dynamic>.from(app);
+          upiApps.add(UpiApp.fromJson(appMap));
+        }
+      }
+      
+      return upiApps;
     } catch (e) {
-      throw PhonePeException('Failed to get installed UPI apps: $e');
+      print('Error getting UPI apps: $e');
+      return [];
     }
-  }
-
-  Future<List<UpiAppInfo>> _getUpiAppsForAndroid() async {
-    final apps = await PhonePePaymentSdk.getUpiAppsForAndroid();
-    if (apps == null) return [];
-
-    final List<dynamic> decoded = json.decode(apps);
-    return decoded.map((app) => UpiAppInfo.fromJson(app)).toList();
-  }
-
-  Future<List<UpiAppInfo>> _getUpiAppsForIOS() async {
-    final apps = await PhonePePaymentSdk.getInstalledUpiAppsForiOS();
-    if (apps == null) return [];
-
-    return apps
-        .whereType<String>()
-        .map((name) => UpiAppInfo(applicationName: name))
-        .toList();
   }
 
   /// Check if PhonePe app is installed
   Future<bool> isPhonePeInstalled() async {
     try {
-      final apps = await getInstalledUpiApps();
-      return apps.any((app) =>
-          app.applicationName?.toUpperCase() == 'PHONEPE' ||
-          app.packageName == 'com.phonepe.app');
+      final result = await PhonePePaymentSdk.isPhonePeInstalled();
+      return result == 'true' || result == true;
     } catch (e) {
+      print('Error checking PhonePe installation: $e');
       return false;
     }
   }
 
-  /// Get the appropriate package name based on environment
-  String get packageName => _packageName;
+  /// Get the current environment
+  String? get environment => _environment;
+
+  /// Get the package name
+  String? get packageName => _packageName;
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
+}
 
-  /// Current environment
-  String get environment => _environment;
+/// UPI App information
+class UpiApp {
+  final String name;
+  final String packageName;
+  final String? version;
+  final String? icon;
+
+  UpiApp({
+    required this.name,
+    required this.packageName,
+    this.version,
+    this.icon,
+  });
+
+  factory UpiApp.fromJson(Map<String, dynamic> json) {
+    return UpiApp(
+      name: json['applicationName'] ?? json['name'] ?? 'Unknown',
+      packageName: json['packageName'] ?? '',
+      version: json['version'],
+      icon: json['icon'],
+    );
+  }
+
+  /// Common UPI app identifiers
+  bool get isPhonePe => packageName.toLowerCase().contains('phonepe');
+  bool get isGPay => packageName.toLowerCase().contains('google') || 
+                     packageName.toLowerCase().contains('gpay');
+  bool get isPaytm => packageName.toLowerCase().contains('paytm');
+  bool get isBhim => packageName.toLowerCase().contains('bhim');
+
+  @override
+  String toString() => 'UpiApp($name, $packageName)';
 }
 
 /// Payment result from PhonePe SDK
@@ -161,7 +180,7 @@ class PhonePePaymentResult {
   final bool success;
   final String status;
   final String? error;
-  final Map<String, dynamic>? data;
+  final dynamic data;
 
   PhonePePaymentResult({
     required this.success,
@@ -170,23 +189,42 @@ class PhonePePaymentResult {
     this.data,
   });
 
-  @override
-  String toString() => 'PhonePePaymentResult(success: $success, status: $status, error: $error)';
-}
+  factory PhonePePaymentResult.fromSdkResult(dynamic result) {
+    print('Parsing SDK result: $result');
+    print('Result type: ${result.runtimeType}');
+    
+    // PhonePe SDK returns different formats:
+    // - String: "SUCCESS", "FAILURE", "INCOMPLETE"
+    // - Map: {"status": "SUCCESS", ...}
+    
+    if (result == null) {
+      return PhonePePaymentResult(
+        success: false,
+        status: 'INCOMPLETE',
+        error: 'Payment was cancelled or failed',
+      );
+    }
 
-/// UPI App information
-class UpiAppInfo {
-  final String? applicationName;
-  final String? version;
-  final String? packageName;
+    String status = 'INCOMPLETE';
+    String? error;
+    
+    if (result is String) {
+      status = result.toUpperCase();
+    } else if (result is Map) {
+      status = (result['status'] ?? result['STATUS'] ?? 'INCOMPLETE').toString().toUpperCase();
+      error = result['error']?.toString();
+    } else {
+      status = result.toString().toUpperCase();
+    }
 
-  UpiAppInfo({this.applicationName, this.version, this.packageName});
-
-  factory UpiAppInfo.fromJson(Map<String, dynamic> json) {
-    return UpiAppInfo(
-      applicationName: json['applicationName'],
-      version: json['version'],
-      packageName: json['packageName'],
+    // Normalize status
+    final success = status.contains('SUCCESS') || status == 'COMPLETED';
+    
+    return PhonePePaymentResult(
+      success: success,
+      status: status,
+      error: error,
+      data: result,
     );
   }
 }
@@ -194,6 +232,7 @@ class UpiAppInfo {
 /// Custom exception for PhonePe operations
 class PhonePeException implements Exception {
   final String message;
+
   PhonePeException(this.message);
 
   @override

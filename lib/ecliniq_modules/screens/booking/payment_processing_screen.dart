@@ -5,6 +5,7 @@ import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/booking_confirmed_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/upi_app_selector.dart';
 import 'package:ecliniq/ecliniq_services/phonepe_service.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
@@ -92,9 +93,14 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       print('App schema: ${widget.appSchema}');
       print('==============================================');
       
+      // Validate token
+      if (widget.token.isEmpty) {
+        throw PhonePeException('Payment token is missing. Please try booking again.');
+      }
+      
       setState(() {
         _currentStatus = PaymentStatus.initiating;
-        _statusMessage = 'Initializing PhonePe...';
+        _statusMessage = 'Preparing payment...';
       });
 
       // Initialize PhonePe SDK if not already initialized
@@ -142,19 +148,85 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
     try {
       setState(() {
         _currentStatus = PaymentStatus.processing;
-        _statusMessage = 'Starting PhonePe payment...';
+        _statusMessage = 'Preparing payment...';
       });
 
       await Future.delayed(const Duration(milliseconds: 300));
 
+      // Get installed UPI apps
+      setState(() {
+        _statusMessage = 'Checking for UPI apps...';
+      });
+      
+      final upiApps = await _phonePeService.getInstalledUpiApps();
+      
+      print('========== UPI APPS ==========');
+      print('Found ${upiApps.length} UPI apps');
+      for (final app in upiApps) {
+        print('  - ${app.name} (${app.packageName})');
+      }
+      print('==============================');
+
+      if (!mounted) return;
+
+      // Show app selector - prompt user to select and open UPI app
+      String? selectedPackage;
+      if (upiApps.isNotEmpty) {
+        setState(() {
+          _statusMessage = 'Select a UPI app to open and complete payment';
+        });
+
+        // Show UPI app selector with clear messaging
+        final selectedApp = await UpiAppSelectorSheet.show(
+          context, 
+          upiApps,
+          amount: widget.gatewayAmount,
+        );
+        
+        if (selectedApp == null) {
+          // User cancelled
+          setState(() {
+            _currentStatus = PaymentStatus.failed;
+            _statusMessage = 'Payment cancelled';
+            _errorMessage = 'You cancelled the payment. Please try again.';
+          });
+          return;
+        }
+
+        selectedPackage = selectedApp.packageName;
+        print('User selected: ${selectedApp.name} ($selectedPackage)');
+        
+        // Update message to indicate app will open
+        setState(() {
+          _statusMessage = 'Opening ${selectedApp.name}...\nPlease complete payment in the app';
+        });
+      } else {
+        // No UPI apps found - show error
+        setState(() {
+          _currentStatus = PaymentStatus.failed;
+          _statusMessage = 'No UPI apps found';
+          _errorMessage = 'Please install a UPI app (PhonePe, Google Pay, Paytm, BHIM UPI, etc.) to complete payment.\n\nYou can install one from the Play Store or App Store.';
+        });
+        return;
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _statusMessage = 'Opening UPI app for payment...';
+      });
+
       print('========== STARTING PHONEPE PAYMENT ==========');
       print('Calling startPayment with token and schema...');
+      print('Package: ${selectedPackage ?? "default"}');
       print('==============================================');
 
-      // Start PhonePe payment with correct parameters
+      // Start PhonePe payment with selected app
+      // This will open the UPI app for the user to complete payment
       final result = await _phonePeService.startPayment(
         request: widget.token, // base64 encoded request
         appSchema: widget.appSchema,
+        packageName: selectedPackage, 
       );
 
       print('========== PHONEPE PAYMENT RESULT ==========');
@@ -371,6 +443,43 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
+                  // Show helpful message when processing payment
+                  if (_currentStatus == PaymentStatus.processing ||
+                      _currentStatus == PaymentStatus.verifying) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF1976D2).withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.info_outline,
+                                color: Color(0xFF1976D2),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _currentStatus == PaymentStatus.processing
+                                      ? 'Please complete the payment in the UPI app that opened. Do not close this screen.'
+                                      : 'Verifying your payment. Please wait...',
+                                  style: EcliniqTextStyles.headlineXMedium.copyWith(
+                                    color: const Color(0xFF1976D2),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   if (_errorMessage != null) ...[
                     Container(
                       padding: const EdgeInsets.all(16),

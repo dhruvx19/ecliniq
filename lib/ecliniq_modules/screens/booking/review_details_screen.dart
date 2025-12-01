@@ -728,27 +728,29 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             print('========== BOOKING RESPONSE DEBUG ==========');
             print('Response success: ${response.success}');
             print('Response data type: ${response.data.runtimeType}');
+            print('responseDataJson is null: ${responseDataJson == null}');
             if (responseDataJson != null) {
-              print('Contains requiresGateway: ${responseDataJson.containsKey("requiresGateway")}');
-              print('Contains token: ${responseDataJson.containsKey("token")}');
-              print('requiresGateway value: ${responseDataJson["requiresGateway"]}');
-              final tokenStr = responseDataJson["token"]?.toString() ?? '';
-              print('token value (first 50 chars): ${tokenStr.length > 50 ? tokenStr.substring(0, 50) : tokenStr}');
-              print('token length: ${tokenStr.length}');
-              print('merchantTransactionId: ${responseDataJson["merchantTransactionId"]}');
-              print('totalAmount: ${responseDataJson["totalAmount"]}');
-              print('walletAmount: ${responseDataJson["walletAmount"]}');
-              print('gatewayAmount: ${responseDataJson["gatewayAmount"]}');
-              print('provider: ${responseDataJson["provider"]}');
+              print('responseDataJson keys: ${responseDataJson.keys}');
+              print('Contains paymentRequired: ${responseDataJson.containsKey('paymentRequired')}');
+              print('paymentRequired: ${responseDataJson['paymentRequired']}');
+              if (responseDataJson.containsKey('payment')) {
+                final payment = responseDataJson['payment'];
+                print('Payment object present: true');
+                print('Payment keys: ${payment.keys}');
+                print('Merchant Txn ID: ${payment['merchantTransactionId']}');
+                print('Token present: ${payment['token'] != null}');
+                print('Token length: ${payment['token']?.length ?? 0}');
+              }
             } else {
               print('responseDataJson is null - data type is: ${response.data.runtimeType}');
-              print('This means the backend returned AppointmentData instead of payment data');
+              print('⚠️ Backend returned old format');
             }
             print('============================================');
 
-            // Check if payment data is present
+            // Check if payment data is present (new backend format)
             if (responseDataJson != null &&
-                responseDataJson.containsKey('requiresGateway')) {
+                responseDataJson.containsKey('paymentRequired') &&
+                responseDataJson['paymentRequired'] == true) {
               final paymentData =
                   BookingPaymentData.fromJson(responseDataJson);
 
@@ -761,7 +763,25 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 print('Gateway amount: ${paymentData.gatewayAmount}');
                 print('==========================================');
                 
+                // Validate token is present
+                if (paymentData.token == null || paymentData.token!.isEmpty) {
+                  setState(() {
+                    _isBooking = false;
+                  });
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    CustomErrorSnackBar(
+                      context: context,
+                      title: 'Payment Error',
+                      subtitle: 'Payment token is missing. Please try booking again.',
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                  return;
+                }
+                
                 // Navigate to payment processing screen
+                // This will prompt user to select and open a UPI app
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -769,7 +789,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                       appointmentId: paymentData.appointmentId,
                       merchantTransactionId:
                           paymentData.merchantTransactionId,
-                      token: paymentData.token ?? '',
+                      token: paymentData.token!,
                       totalAmount: paymentData.totalAmount,
                       walletAmount: paymentData.walletAmount,
                       gatewayAmount: paymentData.gatewayAmount,

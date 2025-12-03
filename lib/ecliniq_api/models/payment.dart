@@ -47,6 +47,10 @@ class BookingPaymentData {
     
     final payment = json['payment'] as Map<String, dynamic>? ?? {};
     
+    // Backend may return 'request' or 'token' - both are the base64 payment token
+    // Priority: 'request' (new format) > 'token' (legacy format)
+    final paymentToken = payment['request'] as String? ?? payment['token'] as String?;
+    
     return BookingPaymentData(
       appointmentId: json['appointmentId'] as String? ?? '',
       status: json['status'] as String? ?? 'CREATED',
@@ -57,7 +61,7 @@ class BookingPaymentData {
       walletAmount: _parseDouble(payment['walletAmount']),
       gatewayAmount: _parseDouble(payment['gatewayAmount']),
       provider: payment['provider'] as String? ?? 'GATEWAY',
-      token: payment['token'] as String?,
+      token: paymentToken,
       orderId: payment['orderId'] as String?,
       expiresAt: payment['expiresAt'] != null
           ? DateTime.tryParse(payment['expiresAt'] as String)

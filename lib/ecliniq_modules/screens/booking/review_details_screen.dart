@@ -740,6 +740,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 print('Merchant Txn ID: ${payment['merchantTransactionId']}');
                 print('Token present: ${payment['token'] != null}');
                 print('Token length: ${payment['token']?.length ?? 0}');
+                print('Request present: ${payment['request'] != null}');
+                print('Request length: ${payment['request']?.length ?? 0}');
               }
             } else {
               print('responseDataJson is null - data type is: ${response.data.runtimeType}');

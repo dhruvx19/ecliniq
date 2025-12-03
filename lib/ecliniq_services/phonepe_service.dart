@@ -59,28 +59,39 @@ class PhonePeService {
   /// 
   /// [request] - The base64 encoded payment request payload from backend
   /// [appSchema] - Your app's custom URL scheme for callback (e.g., 'ecliniq')
+  /// [packageName] - Optional package name to explicitly specify which app to use
   Future<PhonePePaymentResult> startPayment({
     required String request,
     required String appSchema,
-    String? packageName, // Optional: Not used currently, PhonePe SDK handles app selection
+    String? packageName,
   }) async {
     if (!_isInitialized) {
       throw PhonePeException('PhonePe SDK not initialized. Call initialize() first.');
     }
+
+    // In sandbox mode, explicitly use simulator package name if not provided
+    final targetPackageName = packageName ?? 
+        (_environment == 'SANDBOX' ? 'com.phonepe.simulator' : null);
 
     print('========== PHONEPE SERVICE: START PAYMENT ==========');
     print('Request (base64) length: ${request.length}');
     print('Request (first 100 chars): ${request.substring(0, request.length > 100 ? 100 : request.length)}');
     print('App schema: $appSchema');
     print('Environment: $_environment');
-    print('Package name: ${packageName ?? "PhonePe SDK will handle"}');
+    print('Target package name: ${targetPackageName ?? "PhonePe SDK will auto-select"}');
+    print('===================================================');
     
     try {
       // PhonePe SDK startTransaction automatically:
-      // 1. Opens PhonePe app (or simulator in sandbox)
+      // 1. Opens PhonePe app (or simulator in sandbox mode based on environment)
       // 2. Shows payment method selector (UPI apps, UPI ID, Card, etc.)
       // 3. User completes payment
       // 4. Returns to app via deep link (appSchema)
+      //
+      // Note: The SDK automatically selects the app based on environment:
+      // - SANDBOX: Uses com.phonepe.simulator
+      // - PRODUCTION: Uses com.phonepe.app
+      // The package name is determined during SDK initialization, not here
       final response = await PhonePePaymentSdk.startTransaction(
         request, // base64 token from backend
         appSchema, // callback URL schema (e.g., 'ecliniq')
@@ -96,7 +107,41 @@ class PhonePeService {
       print('========== PHONEPE PAYMENT ERROR ==========');
       print('Error: $e');
       print('Error type: ${e.runtimeType}');
+      print('Error details: ${e.toString()}');
       print('==========================================');
+      
+      // Check for specific error types and provide helpful guidance
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('signature') || 
+          errorString.contains('package') ||
+          errorString.contains('signature_mismatched')) {
+        if (_environment == 'SANDBOX') {
+          throw PhonePeException(
+            'PhonePe Simulator not found or signature mismatch.\n\n'
+            'Please ensure:\n'
+            '1. PhonePe Simulator app is installed from Play Store\n'
+            '2. Package name: com.phonepe.simulator\n'
+            '3. The simulator app is up to date\n\n'
+            'If the real PhonePe app is installed, you may need to uninstall it temporarily for sandbox testing.\n\n'
+            'Error details: $e'
+          );
+        } else {
+          throw PhonePeException(
+            'PhonePe app signature mismatch. Please ensure PhonePe app is installed and up to date. Error: $e'
+          );
+        }
+      }
+      
+      if (errorString.contains('api mapping') || errorString.contains('config')) {
+        throw PhonePeException(
+          'PhonePe SDK configuration error. Please verify:\n'
+          '1. Merchant ID is correct: M237OHQ3YCVAO_2511191950\n'
+          '2. Environment is set to SANDBOX for testing\n'
+          '3. PhonePe Simulator is installed\n\n'
+          'Error: $e'
+        );
+      }
+      
       throw PhonePeException('Failed to start payment: $e');
     }
   }

@@ -146,6 +146,11 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
 
   Future<void> _startPhonePePayment() async {
     try {
+      // Validate token before proceeding
+      if (widget.token.isEmpty) {
+        throw PhonePeException('Payment token is empty. Please try booking again.');
+      }
+
       setState(() {
         _currentStatus = PaymentStatus.processing;
         _statusMessage = 'Opening PhonePe...\nYou can choose UPI apps, UPI ID, Card, or Net Banking';
@@ -158,7 +163,10 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       print('========== STARTING PHONEPE PAYMENT ==========');
       print('Calling PhonePe SDK directly...');
       print('Token length: ${widget.token.length}');
+      print('Token (first 50 chars): ${widget.token.substring(0, widget.token.length > 50 ? 50 : widget.token.length)}');
       print('App schema: ${widget.appSchema}');
+      print('Environment: ${_phonePeService.environment}');
+      print('Package name: ${_phonePeService.packageName}');
       print('==============================================');
 
       // PhonePe SDK will automatically:
@@ -197,14 +205,33 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
         await _verifyPayment();
       }
     } catch (e) {
-      // On error, still try to verify (PhonePe might have processed it)
-      if (e.toString().contains('cancelled')) {
+      print('========== PHONEPE PAYMENT EXCEPTION ==========');
+      print('Exception: $e');
+      print('Exception type: ${e.runtimeType}');
+      print('===============================================');
+      
+      // On error, check if it's a cancellation or app not found
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('cancelled') || errorString.contains('cancel')) {
         setState(() {
           _currentStatus = PaymentStatus.failed;
           _statusMessage = 'Payment cancelled';
           _errorMessage = 'Payment was cancelled. You can try booking again.';
         });
+      } else if (errorString.contains('not found') || 
+                 errorString.contains('not installed') ||
+                 errorString.contains('no app found')) {
+        setState(() {
+          _currentStatus = PaymentStatus.failed;
+          _statusMessage = 'PhonePe app not found';
+          _errorMessage = 'Please install PhonePe app or PhonePe Simulator to proceed with payment.';
+        });
       } else {
+        // For other errors, still try to verify (PhonePe might have processed it)
+        // But also show the error to user
+        setState(() {
+          _errorMessage = 'Error opening PhonePe: ${e.toString()}';
+        });
         await _verifyPayment();
       }
     }

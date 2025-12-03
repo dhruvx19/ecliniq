@@ -51,12 +51,19 @@ class PhonePeService {
   }
 
   /// Start payment transaction
-  /// [request] - The base64 encoded payment request payload
-  /// [appSchema] - Your app's custom URL scheme for callback
+  /// 
+  /// PhonePe SDK will automatically:
+  /// - Open PhonePe app (or simulator in sandbox)
+  /// - Show all payment options (UPI apps, UPI ID, Card, Net Banking)
+  /// - User selects and completes payment
+  /// - Returns to app via deep link
+  /// 
+  /// [request] - The base64 encoded payment request payload from backend
+  /// [appSchema] - Your app's custom URL scheme for callback (e.g., 'ecliniq')
   Future<PhonePePaymentResult> startPayment({
     required String request,
     required String appSchema,
-    String? packageName,
+    String? packageName, // Optional: Not used currently, PhonePe SDK handles app selection
   }) async {
     if (!_isInitialized) {
       throw PhonePeException('PhonePe SDK not initialized. Call initialize() first.');
@@ -65,25 +72,32 @@ class PhonePeService {
     print('========== PHONEPE SERVICE: START PAYMENT ==========');
     print('Request (base64) length: ${request.length}');
     print('Request (first 100 chars): ${request.substring(0, request.length > 100 ? 100 : request.length)}');
+    print('App schema: $appSchema');
+    print('Environment: $_environment');
+    print('Package name: ${packageName ?? "PhonePe SDK will handle"}');
+    
     try {
-      print('Starting payment with PhonePe...');
-      print('Request (token) length: ${request.length}');
-      print('App schema: $appSchema');
-      print('Package name: ${packageName ?? "default"}');
-      
-      // Call PhonePe SDK to start payment
-      // This will open the selected UPI app or PhonePe app for user to complete payment
-      // PhonePe SDK startTransaction takes: (request, appSchema)
+      // PhonePe SDK startTransaction automatically:
+      // 1. Opens PhonePe app (or simulator in sandbox)
+      // 2. Shows payment method selector (UPI apps, UPI ID, Card, etc.)
+      // 3. User completes payment
+      // 4. Returns to app via deep link (appSchema)
       final response = await PhonePePaymentSdk.startTransaction(
         request, // base64 token from backend
-        appSchema, // callback URL schema
+        appSchema, // callback URL schema (e.g., 'ecliniq')
       );
 
-      print('PhonePe SDK response: $response');
+      print('========== PHONEPE SDK RESPONSE ==========');
+      print('Response: $response');
+      print('Response type: ${response.runtimeType}');
+      print('==========================================');
       
       return PhonePePaymentResult.fromSdkResult(response);
     } catch (e) {
-      print('PhonePe payment error: $e');
+      print('========== PHONEPE PAYMENT ERROR ==========');
+      print('Error: $e');
+      print('Error type: ${e.runtimeType}');
+      print('==========================================');
       throw PhonePeException('Failed to start payment: $e');
     }
   }

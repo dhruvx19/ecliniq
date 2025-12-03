@@ -5,7 +5,7 @@ import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/booking_confirmed_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
-import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/upi_app_selector.dart';
+// import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/upi_app_selector.dart'; // Uncomment for production UPI selector UI
 import 'package:ecliniq/ecliniq_services/phonepe_service.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
@@ -148,85 +148,30 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
     try {
       setState(() {
         _currentStatus = PaymentStatus.processing;
-        _statusMessage = 'Preparing payment...';
+        _statusMessage = 'Opening PhonePe...\nYou can choose UPI apps, UPI ID, Card, or Net Banking';
       });
 
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // Get installed UPI apps
-      setState(() {
-        _statusMessage = 'Checking for UPI apps...';
-      });
-      
-      final upiApps = await _phonePeService.getInstalledUpiApps();
-      
-      print('========== UPI APPS ==========');
-      print('Found ${upiApps.length} UPI apps');
-      for (final app in upiApps) {
-        print('  - ${app.name} (${app.packageName})');
-      }
-      print('==============================');
+      await Future.delayed(const Duration(milliseconds: 500));
 
       if (!mounted) return;
-
-      // Show app selector - prompt user to select and open UPI app
-      String? selectedPackage;
-      if (upiApps.isNotEmpty) {
-        setState(() {
-          _statusMessage = 'Select a UPI app to open and complete payment';
-        });
-
-        // Show UPI app selector with clear messaging
-        final selectedApp = await UpiAppSelectorSheet.show(
-          context, 
-          upiApps,
-          amount: widget.gatewayAmount,
-        );
-        
-        if (selectedApp == null) {
-          // User cancelled
-          setState(() {
-            _currentStatus = PaymentStatus.failed;
-            _statusMessage = 'Payment cancelled';
-            _errorMessage = 'You cancelled the payment. Please try again.';
-          });
-          return;
-        }
-
-        selectedPackage = selectedApp.packageName;
-        print('User selected: ${selectedApp.name} ($selectedPackage)');
-        
-        // Update message to indicate app will open
-        setState(() {
-          _statusMessage = 'Opening ${selectedApp.name}...\nPlease complete payment in the app';
-        });
-      } else {
-        // No UPI apps found - show error
-        setState(() {
-          _currentStatus = PaymentStatus.failed;
-          _statusMessage = 'No UPI apps found';
-          _errorMessage = 'Please install a UPI app (PhonePe, Google Pay, Paytm, BHIM UPI, etc.) to complete payment.\n\nYou can install one from the Play Store or App Store.';
-        });
-        return;
-      }
-
-      if (!mounted) return;
-
-      setState(() {
-        _statusMessage = 'Opening UPI app for payment...';
-      });
 
       print('========== STARTING PHONEPE PAYMENT ==========');
-      print('Calling startPayment with token and schema...');
-      print('Package: ${selectedPackage ?? "default"}');
+      print('Calling PhonePe SDK directly...');
+      print('Token length: ${widget.token.length}');
+      print('App schema: ${widget.appSchema}');
       print('==============================================');
 
-      // Start PhonePe payment with selected app
-      // This will open the UPI app for the user to complete payment
+      // PhonePe SDK will automatically:
+      // 1. Open PhonePe app (or simulator in sandbox mode)
+      // 2. Show all payment options (UPI apps, UPI ID, Card, Net Banking)
+      // 3. User selects payment method and completes payment
+      // 4. Returns to app via deep link (appSchema)
+      //
+      // NOTE: For production, you can optionally add UPI app selector UI before this
+      // by uncommenting the UPI selector code below and passing packageName
       final result = await _phonePeService.startPayment(
-        request: widget.token, // base64 encoded request
-        appSchema: widget.appSchema,
-        packageName: selectedPackage, 
+        request: widget.token, // base64 encoded request from backend
+        appSchema: widget.appSchema, // 'ecliniq' - your app's URL scheme
       );
 
       print('========== PHONEPE PAYMENT RESULT ==========');

@@ -7,12 +7,14 @@ class UpiAppSelectorSheet extends StatelessWidget {
   final List<UpiApp> upiApps;
   final Function(UpiApp?) onAppSelected;
   final double? amount;
+  final bool showPhonePeOption;
 
   const UpiAppSelectorSheet({
     super.key,
     required this.upiApps,
     required this.onAppSelected,
     this.amount,
+    this.showPhonePeOption = false,
   });
 
   @override
@@ -66,7 +68,9 @@ class UpiAppSelectorSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Tap on an app below to open it and complete payment',
+                    showPhonePeOption
+                        ? 'Choose a payment method below. PhonePe will show all options (UPI, Card, etc.)'
+                        : 'Tap on an app below to open it and complete payment',
                     style: EcliniqTextStyles.buttonSmall.copyWith(
                       color: const Color(0xff626060),
                     ),
@@ -78,8 +82,59 @@ class UpiAppSelectorSheet extends StatelessWidget {
 
           const Divider(height: 1),
 
+          // PhonePe Option (shows all payment methods)
+          if (showPhonePeOption)
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF5F259F).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.phone_android,
+                  color: Color(0xFF5F259F),
+                  size: 28,
+                ),
+              ),
+              title: Text(
+                'Pay with PhonePe',
+                style: EcliniqTextStyles.headlineMedium.copyWith(
+                  color: const Color(0xff424242),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                'All payment options: UPI apps, UPI ID, Card, Net Banking',
+                style: EcliniqTextStyles.buttonSmall.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.grey,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Return PhonePe app or null to use default
+                onAppSelected(UpiApp(
+                  name: 'PhonePe',
+                  packageName: 'com.phonepe.app',
+                ));
+              },
+            ),
+
+          if (showPhonePeOption && upiApps.isNotEmpty)
+            const Divider(height: 1),
+
           // UPI Apps List
-          if (upiApps.isEmpty)
+          if (upiApps.isEmpty && !showPhonePeOption)
             Padding(
               padding: const EdgeInsets.all(32.0),
               child: Column(
@@ -107,7 +162,7 @@ class UpiAppSelectorSheet extends StatelessWidget {
                 ],
               ),
             )
-          else
+          else if (upiApps.isNotEmpty)
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -224,6 +279,7 @@ class UpiAppSelectorSheet extends StatelessWidget {
     BuildContext context,
     List<UpiApp> upiApps, {
     double? amount,
+    bool showPhonePeOption = false,
   }) async {
     UpiApp? selectedApp;
 
@@ -234,6 +290,7 @@ class UpiAppSelectorSheet extends StatelessWidget {
       builder: (context) => UpiAppSelectorSheet(
         upiApps: upiApps,
         amount: amount,
+        showPhonePeOption: showPhonePeOption,
         onAppSelected: (app) {
           selectedApp = app;
         },

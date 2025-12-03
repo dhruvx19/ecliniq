@@ -69,6 +69,17 @@ class PhonePeService {
       throw PhonePeException('PhonePe SDK not initialized. Call initialize() first.');
     }
 
+    // Validate request is not empty
+    if (request.isEmpty) {
+      throw PhonePeException('Payment request cannot be empty');
+    }
+
+    // Validate base64 format (basic check)
+    final base64Regex = RegExp(r'^[A-Za-z0-9+/=]+$');
+    if (!base64Regex.hasMatch(request)) {
+      throw PhonePeException('Invalid base64 format in payment request');
+    }
+
     print('========== PHONEPE SERVICE: START PAYMENT ==========');
     print('Request (base64) length: ${request.length}');
     print('Request (first 100 chars): ${request.substring(0, request.length > 100 ? 100 : request.length)}');
@@ -88,6 +99,9 @@ class PhonePeService {
       // - SANDBOX: Uses com.phonepe.simulator
       // - PRODUCTION: Uses com.phonepe.app
       // The package name is determined during SDK initialization, not here
+      //
+      // IMPORTANT: The request parameter must be a base64-encoded JSON string
+      // Format: Base64(JSON.stringify({orderId, merchantId, token, paymentMode}))
       final response = await PhonePePaymentSdk.startTransaction(
         request, // base64 token from backend
         appSchema, // callback URL schema (e.g., 'ecliniq')
@@ -135,6 +149,22 @@ class PhonePeService {
           '2. Environment is set to SANDBOX for testing\n'
           '3. PhonePe Simulator is installed\n\n'
           'Error: $e'
+        );
+      }
+      
+      // Check for specific Android SDK JSON parsing error
+      e.toString().toLowerCase();
+      if (errorString.contains('cannot be converted to jsonobject') ||
+          errorString.contains('jsonobject')) {
+        throw PhonePeException(
+          'PhonePe SDK Error: Invalid request format.\n\n'
+          'This appears to be a bug in the PhonePe Flutter plugin where the Android SDK '
+          'is trying to parse the base64 string as JSON without decoding it first.\n\n'
+          'Please ensure:\n'
+          '1. You are using the latest version of phonepe_payment_sdk\n'
+          '2. PhonePe Simulator is installed and up to date\n'
+          '3. The backend is sending a properly base64-encoded JSON payload\n\n'
+          'Error details: $e'
         );
       }
       

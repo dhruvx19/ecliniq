@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:phonepe_payment_sdk/phonepe_payment_sdk.dart';
 
 /// Service wrapper for PhonePe Payment SDK
@@ -86,6 +87,25 @@ class PhonePeService {
     print('App schema: $appSchema');
     print('Environment: $_environment');
     print('Expected package: ${_packageName} (SDK will auto-select based on environment)');
+    
+    // Decode and validate the base64 string to ensure it's properly formatted
+    String? decodedJson;
+    try {
+      decodedJson = utf8.decode(base64Decode(request));
+      print('Decoded request: $decodedJson');
+      
+      // Validate it's valid JSON
+      final jsonData = jsonDecode(decodedJson);
+      print('Valid JSON structure: ${jsonData.keys}');
+      print('Order ID: ${jsonData['orderId']}');
+      print('Merchant ID: ${jsonData['merchantId']}');
+      print('Token present: ${jsonData['token'] != null}');
+      print('Payment mode: ${jsonData['paymentMode']}');
+    } catch (e) {
+      print('ERROR: Could not decode/validate base64 request: $e');
+      throw PhonePeException('Invalid payment request format. The base64 string cannot be decoded or is not valid JSON.');
+    }
+    
     print('===================================================');
     
     try {
@@ -102,8 +122,15 @@ class PhonePeService {
       //
       // IMPORTANT: The request parameter must be a base64-encoded JSON string
       // Format: Base64(JSON.stringify({orderId, merchantId, token, paymentMode}))
+      //
+      // The base64 string should be passed directly to the SDK
+      // Re-encode to ensure proper base64 formatting (handles padding, etc.)
+      final cleanedBase64 = base64Encode(utf8.encode(decodedJson!));
+      
+      print('Sending cleaned base64 to SDK (length: ${cleanedBase64.length})');
+      
       final response = await PhonePePaymentSdk.startTransaction(
-        request, // base64 token from backend
+        cleanedBase64, // base64 token from backend (validated and re-encoded)
         appSchema, // callback URL schema (e.g., 'ecliniq')
       );
 

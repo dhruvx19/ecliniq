@@ -14,6 +14,7 @@ class BookingPaymentData {
   final String provider; // WALLET, GATEWAY, HYBRID
   final String? token; // PhonePe SDK token (used to construct base64 payload)
   final String? orderId; // PhonePe order ID (used to construct base64 payload)
+  final String? requestPayload; // Base64-encoded payment payload from backend (ready to use)
   final DateTime? expiresAt;
 
   BookingPaymentData({
@@ -28,6 +29,7 @@ class BookingPaymentData {
     required this.provider,
     this.token,
     this.orderId,
+    this.requestPayload,
     this.expiresAt,
   });
 
@@ -47,9 +49,11 @@ class BookingPaymentData {
     
     final payment = json['payment'] as Map<String, dynamic>? ?? {};
     
-    // Backend now returns only 'token' and 'orderId' (not 'request')
-    // Flutter app will construct the base64 payload from these fields
+    // Backend now returns 'requestPayload' which is the base64-encoded payload ready to use
+    // This is the preferred method as per PhonePe documentation
+    // Fallback to token/orderId if requestPayload is not available
     final paymentToken = payment['token'] as String?;
+    final requestPayload = payment['requestPayload'] as String?;
     
     return BookingPaymentData(
       appointmentId: json['appointmentId'] as String? ?? '',
@@ -63,6 +67,7 @@ class BookingPaymentData {
       provider: payment['provider'] as String? ?? 'GATEWAY',
       token: paymentToken,
       orderId: payment['orderId'] as String?,
+      requestPayload: requestPayload,
       expiresAt: payment['expiresAt'] != null
           ? DateTime.tryParse(payment['expiresAt'] as String)
           : null,
@@ -91,6 +96,7 @@ class BookingPaymentData {
         'provider': provider,
         'token': token,
         'orderId': orderId,
+        'requestPayload': requestPayload,
         'expiresAt': expiresAt?.toIso8601String(),
       },
     };

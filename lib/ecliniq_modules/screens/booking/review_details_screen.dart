@@ -738,10 +738,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 print('Payment object present: true');
                 print('Payment keys: ${payment.keys}');
                 print('Merchant Txn ID: ${payment['merchantTransactionId']}');
+                print('RequestPayload present: ${payment['requestPayload'] != null}');
+                print('RequestPayload length: ${payment['requestPayload']?.length ?? 0}');
                 print('Token present: ${payment['token'] != null}');
                 print('Token length: ${payment['token']?.length ?? 0}');
-                print('Request present: ${payment['request'] != null}');
-                print('Request length: ${payment['request']?.length ?? 0}');
+                print('Order ID present: ${payment['orderId'] != null}');
+                print('Order ID: ${payment['orderId']}');
               }
             } else {
               print('responseDataJson is null - data type is: ${response.data.runtimeType}');
@@ -767,37 +769,40 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 print('Gateway amount: ${paymentData.gatewayAmount}');
                 print('==========================================');
                 
-                // Validate token and orderId are present
-                if (paymentData.token == null || paymentData.token!.isEmpty) {
-                  setState(() {
-                    _isBooking = false;
-                  });
+                // Validate requestPayload (preferred) or token/orderId (fallback)
+                if (paymentData.requestPayload == null || paymentData.requestPayload!.isEmpty) {
+                  // Fallback: validate token and orderId if requestPayload not available
+                  if (paymentData.token == null || paymentData.token!.isEmpty) {
+                    setState(() {
+                      _isBooking = false;
+                    });
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      CustomErrorSnackBar(
+                        context: context,
+                        title: 'Payment Error',
+                        subtitle: 'Payment data is missing. Please try booking again.',
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                    return;
+                  }
                   
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    CustomErrorSnackBar(
-                      context: context,
-                      title: 'Payment Error',
-                      subtitle: 'Payment token is missing. Please try booking again.',
-                      duration: const Duration(seconds: 4),
-                    ),
-                  );
-                  return;
-                }
-                
-                if (paymentData.orderId == null || paymentData.orderId!.isEmpty) {
-                  setState(() {
-                    _isBooking = false;
-                  });
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    CustomErrorSnackBar(
-                      context: context,
-                      title: 'Payment Error',
-                      subtitle: 'Order ID is missing. Please try booking again.',
-                      duration: const Duration(seconds: 4),
-                    ),
-                  );
-                  return;
+                  if (paymentData.orderId == null || paymentData.orderId!.isEmpty) {
+                    setState(() {
+                      _isBooking = false;
+                    });
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      CustomErrorSnackBar(
+                        context: context,
+                        title: 'Payment Error',
+                        subtitle: 'Order ID is missing. Please try booking again.',
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                    return;
+                  }
                 }
                 
                 // Navigate to payment processing screen
@@ -809,8 +814,9 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                       appointmentId: paymentData.appointmentId,
                       merchantTransactionId:
                           paymentData.merchantTransactionId,
-                      token: paymentData.token!, // Only token is passed
-                      orderId: paymentData.orderId, // Order ID for payload construction
+                      requestPayload: paymentData.requestPayload, // Use requestPayload from backend (preferred)
+                      token: paymentData.token, // Fallback if requestPayload not available
+                      orderId: paymentData.orderId, // Fallback if requestPayload not available
                       totalAmount: paymentData.totalAmount,
                       walletAmount: paymentData.walletAmount,
                       gatewayAmount: paymentData.gatewayAmount,

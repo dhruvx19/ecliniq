@@ -60,56 +60,73 @@ class PhonePeService {
   /// - User selects and completes payment
   /// - Returns to app via deep link
   /// 
-  /// [token] - PhonePe SDK token from backend
-  /// [orderId] - PhonePe order ID from backend
+  /// [requestPayload] - Base64-encoded payment payload from backend (preferred method)
+  /// [token] - PhonePe SDK token from backend (fallback if requestPayload not available)
+  /// [orderId] - PhonePe order ID from backend (fallback if requestPayload not available)
   /// [appSchema] - Your app's custom URL scheme for callback (e.g., 'ecliniq')
   Future<PhonePePaymentResult> startPayment({
-    required String token,
-    required String orderId,
+    String? requestPayload,
+    String? token,
+    String? orderId,
     required String appSchema,
   }) async {
     if (!_isInitialized) {
       throw PhonePeException('PhonePe SDK not initialized. Call initialize() first.');
     }
 
-    if (_merchantId == null || _merchantId!.isEmpty) {
-      throw PhonePeException('Merchant ID not available. Please initialize SDK with merchantId first.');
-    }
-
-    // Validate token and orderId
-    if (token.isEmpty) {
-      throw PhonePeException('Payment token cannot be empty');
-    }
-    if (orderId.isEmpty) {
-      throw PhonePeException('Order ID cannot be empty');
-    }
-
     print('========== PHONEPE SERVICE: START PAYMENT ==========');
-    print('Token length: ${token.length}');
-    print('Order ID: $orderId');
-    print('Merchant ID: $_merchantId');
+    print('Request payload present: ${requestPayload != null}');
+    if (requestPayload != null) {
+      print('Request payload length: ${requestPayload.length}');
+      print('Request payload (first 100 chars): ${requestPayload.substring(0, requestPayload.length > 100 ? 100 : requestPayload.length)}');
+    } else {
+      print('Token length: ${token?.length ?? 0}');
+      print('Order ID: $orderId');
+      print('Merchant ID: $_merchantId');
+    }
     print('App schema: $appSchema');
     print('Environment: $_environment');
     print('Expected package: $_packageName');
     
     try {
-      // Construct the payment payload
-      // PhonePe SDK expects: Base64(JSON.stringify({orderId, merchantId, token, paymentMode}))
-      final payload = {
-        'orderId': orderId,
-        'merchantId': _merchantId,
-        'token': token,
-        'paymentMode': {'type': 'PAY_PAGE'},
-      };
+      String base64Request;
       
-      // Convert to JSON string
-      final jsonString = jsonEncode(payload);
-      print('Payment payload JSON: $jsonString');
-      
-      // Base64 encode the JSON string
-      final base64Request = base64Encode(utf8.encode(jsonString));
-      print('Base64 request length: ${base64Request.length}');
-      print('Base64 request (first 100 chars): ${base64Request.substring(0, base64Request.length > 100 ? 100 : base64Request.length)}');
+      // Use requestPayload directly if available (preferred method as per PhonePe docs)
+      if (requestPayload != null && requestPayload.isNotEmpty) {
+        base64Request = requestPayload;
+        print('Using requestPayload from backend (already base64-encoded)');
+      } else {
+        // Fallback: Construct payload from token and orderId (legacy support)
+        if (_merchantId == null || _merchantId!.isEmpty) {
+          throw PhonePeException('Merchant ID not available. Please initialize SDK with merchantId first.');
+        }
+        
+        // Validate token and orderId
+        if (token == null || token.isEmpty) {
+          throw PhonePeException('Payment token cannot be empty');
+        }
+        if (orderId == null || orderId.isEmpty) {
+          throw PhonePeException('Order ID cannot be empty');
+        }
+        
+        // Construct the payment payload
+        // PhonePe SDK expects: Base64(JSON.stringify({orderId, merchantId, token, paymentMode}))
+        final payload = {
+          'orderId': orderId,
+          'merchantId': _merchantId,
+          'token': token,
+          'paymentMode': {'type': 'PAY_PAGE'},
+        };
+        
+        // Convert to JSON string
+        final jsonString = jsonEncode(payload);
+        print('Payment payload JSON: $jsonString');
+        
+        // Base64 encode the JSON string
+        base64Request = base64Encode(utf8.encode(jsonString));
+        print('Base64 request length: ${base64Request.length}');
+        print('Base64 request (first 100 chars): ${base64Request.substring(0, base64Request.length > 100 ? 100 : base64Request.length)}');
+      }
       
       print('===================================================');
       

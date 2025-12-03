@@ -12,8 +12,8 @@ class BookingPaymentData {
   final double walletAmount;
   final double gatewayAmount;
   final String provider; // WALLET, GATEWAY, HYBRID
-  final String? token;
-  final String? orderId;
+  final String? token; // PhonePe SDK token (used to construct base64 payload)
+  final String? orderId; // PhonePe order ID (used to construct base64 payload)
   final DateTime? expiresAt;
 
   BookingPaymentData({
@@ -47,9 +47,9 @@ class BookingPaymentData {
     
     final payment = json['payment'] as Map<String, dynamic>? ?? {};
     
-    // Backend may return 'request' or 'token' - both are the base64 payment token
-    // Priority: 'request' (new format) > 'token' (legacy format)
-    final paymentToken = payment['request'] as String? ?? payment['token'] as String?;
+    // Backend now returns only 'token' and 'orderId' (not 'request')
+    // Flutter app will construct the base64 payload from these fields
+    final paymentToken = payment['token'] as String?;
     
     return BookingPaymentData(
       appointmentId: json['appointmentId'] as String? ?? '',

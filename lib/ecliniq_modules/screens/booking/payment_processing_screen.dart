@@ -14,7 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class PaymentProcessingScreen extends StatefulWidget {
   final String appointmentId;
   final String merchantTransactionId;
-  final String token; // This is the base64 encoded request payload
+  final String token; // PhonePe SDK token (not base64 payload)
+  final String? orderId; // PhonePe order ID
   final double totalAmount;
   final double walletAmount;
   final double gatewayAmount;
@@ -38,6 +39,7 @@ class PaymentProcessingScreen extends StatefulWidget {
     required this.appointmentId,
     required this.merchantTransactionId,
     required this.token,
+    this.orderId,
     required this.totalAmount,
     required this.walletAmount,
     required this.gatewayAmount,
@@ -84,8 +86,8 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       print('========== PAYMENT PROCESSING START ==========');
       print('Appointment ID: ${widget.appointmentId}');
       print('Merchant Txn ID: ${widget.merchantTransactionId}');
-      print('Token length: ${widget.token.length}');
-      print('Token (first 100 chars): ${widget.token.substring(0, widget.token.length > 100 ? 100 : widget.token.length)}');
+      print('Token: ${widget.token}');
+      print('Order ID: ${widget.orderId}');
       print('Total amount: ${widget.totalAmount}');
       print('Wallet amount: ${widget.walletAmount}');
       print('Gateway amount: ${widget.gatewayAmount}');
@@ -93,9 +95,12 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       print('App schema: ${widget.appSchema}');
       print('==============================================');
       
-      // Validate token
+      // Validate token and orderId
       if (widget.token.isEmpty) {
         throw PhonePeException('Payment token is missing. Please try booking again.');
+      }
+      if (widget.orderId == null || widget.orderId!.isEmpty) {
+        throw PhonePeException('Order ID is missing. Please try booking again.');
       }
       
       setState(() {
@@ -161,9 +166,9 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       if (!mounted) return;
 
       print('========== STARTING PHONEPE PAYMENT ==========');
-      print('Calling PhonePe SDK directly...');
-      print('Token length: ${widget.token.length}');
-      print('Token (first 50 chars): ${widget.token.substring(0, widget.token.length > 50 ? 50 : widget.token.length)}');
+      print('Calling PhonePe SDK with token only...');
+      print('Token: ${widget.token}');
+      print('Order ID: ${widget.orderId}');
       print('App schema: ${widget.appSchema}');
       print('Environment: ${_phonePeService.environment}');
       print('Package name: ${_phonePeService.packageName}');
@@ -175,10 +180,10 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       // 3. User selects payment method and completes payment
       // 4. Returns to app via deep link (appSchema)
       //
-      // NOTE: For production, you can optionally add UPI app selector UI before this
-      // by uncommenting the UPI selector code below and passing packageName
+      // PhonePeService will construct the base64 payload internally from token, orderId, and merchantId
       final result = await _phonePeService.startPayment(
-        request: widget.token, // base64 encoded request from backend
+        token: widget.token, // PhonePe SDK token from backend
+        orderId: widget.orderId!, // PhonePe order ID from backend
         appSchema: widget.appSchema, // 'ecliniq' - your app's URL scheme
       );
 

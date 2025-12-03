@@ -10,6 +10,7 @@ class PhonePeService {
   bool _isInitialized = false;
   String _environment = 'SANDBOX';
   String _packageName = 'com.phonepe.simulator';
+  String? _merchantId; // Store merchantId for constructing payment payload
 
   /// Initialize PhonePe SDK
   /// [isProduction] - Set true for production, false for sandbox
@@ -35,6 +36,7 @@ class PhonePeService {
     try {
       _environment = isProduction ? 'PRODUCTION' : 'SANDBOX';
       _packageName = isProduction ? 'com.phonepe.app' : 'com.phonepe.simulator';
+      _merchantId = merchantId; // Store merchantId for later use
 
       final isInitialized = await PhonePePaymentSdk.init(
         _environment,
@@ -58,79 +60,66 @@ class PhonePeService {
   /// - User selects and completes payment
   /// - Returns to app via deep link
   /// 
-  /// [request] - The base64 encoded payment request payload from backend
+  /// [token] - PhonePe SDK token from backend
+  /// [orderId] - PhonePe order ID from backend
   /// [appSchema] - Your app's custom URL scheme for callback (e.g., 'ecliniq')
-  /// [packageName] - Optional package name to explicitly specify which app to use
   Future<PhonePePaymentResult> startPayment({
-    required String request,
+    required String token,
+    required String orderId,
     required String appSchema,
-    String? packageName,
   }) async {
     if (!_isInitialized) {
       throw PhonePeException('PhonePe SDK not initialized. Call initialize() first.');
     }
 
-    // Validate request is not empty
-    if (request.isEmpty) {
-      throw PhonePeException('Payment request cannot be empty');
+    if (_merchantId == null || _merchantId!.isEmpty) {
+      throw PhonePeException('Merchant ID not available. Please initialize SDK with merchantId first.');
     }
 
-    // Validate base64 format (basic check)
-    final base64Regex = RegExp(r'^[A-Za-z0-9+/=]+$');
-    if (!base64Regex.hasMatch(request)) {
-      throw PhonePeException('Invalid base64 format in payment request');
+    // Validate token and orderId
+    if (token.isEmpty) {
+      throw PhonePeException('Payment token cannot be empty');
+    }
+    if (orderId.isEmpty) {
+      throw PhonePeException('Order ID cannot be empty');
     }
 
     print('========== PHONEPE SERVICE: START PAYMENT ==========');
-    print('Request (base64) length: ${request.length}');
-    print('Request (first 100 chars): ${request.substring(0, request.length > 100 ? 100 : request.length)}');
+    print('Token length: ${token.length}');
+    print('Order ID: $orderId');
+    print('Merchant ID: $_merchantId');
     print('App schema: $appSchema');
     print('Environment: $_environment');
-    print('Expected package: ${_packageName} (SDK will auto-select based on environment)');
+    print('Expected package: $_packageName');
     
-    // Decode and validate the base64 string to ensure it's properly formatted
-    String? decodedJson;
     try {
-      decodedJson = utf8.decode(base64Decode(request));
-      print('Decoded request: $decodedJson');
+      // Construct the payment payload
+      // PhonePe SDK expects: Base64(JSON.stringify({orderId, merchantId, token, paymentMode}))
+      final payload = {
+        'orderId': orderId,
+        'merchantId': _merchantId,
+        'token': token,
+        'paymentMode': {'type': 'PAY_PAGE'},
+      };
       
-      // Validate it's valid JSON
-      final jsonData = jsonDecode(decodedJson);
-      print('Valid JSON structure: ${jsonData.keys}');
-      print('Order ID: ${jsonData['orderId']}');
-      print('Merchant ID: ${jsonData['merchantId']}');
-      print('Token present: ${jsonData['token'] != null}');
-      print('Payment mode: ${jsonData['paymentMode']}');
-    } catch (e) {
-      print('ERROR: Could not decode/validate base64 request: $e');
-      throw PhonePeException('Invalid payment request format. The base64 string cannot be decoded or is not valid JSON.');
-    }
-    
-    print('===================================================');
-    
-    try {
+      // Convert to JSON string
+      final jsonString = jsonEncode(payload);
+      print('Payment payload JSON: $jsonString');
+      
+      // Base64 encode the JSON string
+      final base64Request = base64Encode(utf8.encode(jsonString));
+      print('Base64 request length: ${base64Request.length}');
+      print('Base64 request (first 100 chars): ${base64Request.substring(0, base64Request.length > 100 ? 100 : base64Request.length)}');
+      
+      print('===================================================');
+      
       // PhonePe SDK startTransaction automatically:
       // 1. Opens PhonePe app (or simulator in sandbox mode based on environment)
       // 2. Shows payment method selector (UPI apps, UPI ID, Card, etc.)
       // 3. User completes payment
       // 4. Returns to app via deep link (appSchema)
-      //
-      // Note: The SDK automatically selects the app based on environment:
-      // - SANDBOX: Uses com.phonepe.simulator
-      // - PRODUCTION: Uses com.phonepe.app
-      // The package name is determined during SDK initialization, not here
-      //
-      // IMPORTANT: The request parameter must be a base64-encoded JSON string
-      // Format: Base64(JSON.stringify({orderId, merchantId, token, paymentMode}))
-      //
-      // The base64 string should be passed directly to the SDK
-      // Re-encode to ensure proper base64 formatting (handles padding, etc.)
-      final cleanedBase64 = base64Encode(utf8.encode(decodedJson!));
-      
-      print('Sending cleaned base64 to SDK (length: ${cleanedBase64.length})');
-      
       final response = await PhonePePaymentSdk.startTransaction(
-        cleanedBase64, // base64 token from backend (validated and re-encoded)
+        base64Request, // base64 encoded payment payload
         appSchema, // callback URL schema (e.g., 'ecliniq')
       );
 

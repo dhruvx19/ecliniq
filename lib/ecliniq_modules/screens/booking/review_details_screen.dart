@@ -761,11 +761,13 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 print('Appointment ID: ${paymentData.appointmentId}');
                 print('Merchant Txn ID: ${paymentData.merchantTransactionId}');
                 print('Token present: ${paymentData.token != null}');
-                print('Token length: ${paymentData.token?.length ?? 0}');
+                print('Token: ${paymentData.token}');
+                print('Order ID present: ${paymentData.orderId != null}');
+                print('Order ID: ${paymentData.orderId}');
                 print('Gateway amount: ${paymentData.gatewayAmount}');
                 print('==========================================');
                 
-                // Validate token is present
+                // Validate token and orderId are present
                 if (paymentData.token == null || paymentData.token!.isEmpty) {
                   setState(() {
                     _isBooking = false;
@@ -782,6 +784,22 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   return;
                 }
                 
+                if (paymentData.orderId == null || paymentData.orderId!.isEmpty) {
+                  setState(() {
+                    _isBooking = false;
+                  });
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    CustomErrorSnackBar(
+                      context: context,
+                      title: 'Payment Error',
+                      subtitle: 'Order ID is missing. Please try booking again.',
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                  return;
+                }
+                
                 // Navigate to payment processing screen
                 // This will prompt user to select and open a UPI app
                 Navigator.pushReplacement(
@@ -791,7 +809,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                       appointmentId: paymentData.appointmentId,
                       merchantTransactionId:
                           paymentData.merchantTransactionId,
-                      token: paymentData.token!,
+                      token: paymentData.token!, // Only token is passed
+                      orderId: paymentData.orderId, // Order ID for payload construction
                       totalAmount: paymentData.totalAmount,
                       walletAmount: paymentData.walletAmount,
                       gatewayAmount: paymentData.gatewayAmount,

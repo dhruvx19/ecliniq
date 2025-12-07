@@ -42,6 +42,7 @@ dependencies:
   firebase_core: ^4.2.0
   firebase_messaging: ^16.0.3
   phonepe_payment_sdk: ^3.0.2
+  package_info_plus: ^9.0.0
 
 
 dev_dependencies:

@@ -39,6 +39,8 @@ class Endpoints {
   static String get getFavouriteDoctors => '$localhost/api/patients/get-favourite-doctors';
   static String doctorDetailsById(String doctorId) => '$localhost/api/doctors/doctorDetailsByIdByPatient/$doctorId';
 
+  static String get registerDeviceToken => '$localhost/api/device-tokens/register';
+
   // Change contact endpoints (4-step flow)
   static String get sendExistingContactOTP => '$localhost/api/auth/change-contact/send-existing-otp';
   static String get verifyExistingContactOtp => '$localhost/api/auth/change-contact/verify-existing-otp';

@@ -7,6 +7,11 @@ import 'package:ecliniq/ecliniq_modules/screens/my_visits/my_visits.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/health_files.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/profile_page.dart';
 import 'package:page_transition/page_transition.dart';
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:ecliniq/ecliniq_api/device_token_service.dart';
+
 
 /// Background message handler - must be a top-level function
 @pragma('vm:entry-point')
@@ -27,6 +32,9 @@ class EcliniqPushNotifications {
     try {
       final token = await _messaging.getToken();
       log('FCM Token: $token');
+      print('=============================================');
+      print('FCM TOKEN: $token');
+      print('=============================================');
       return token;
     } catch (e) {
       log('Error getting FCM token: $e');
@@ -48,12 +56,79 @@ class EcliniqPushNotifications {
         sound: true,
       );
 
+
       // Check if app was opened from a notification
       _initialMessage = await _messaging.getInitialMessage();
       
       log('Push notifications initialized');
+
+      // Register device token
+      await registerDeviceToken();
     } catch (e) {
       log('Error initializing push notifications: $e');
+    }
+  }
+
+  /// Register device token with backend
+  static Future<void> registerDeviceToken() async {
+    try {
+      final token = await getToken();
+      if (token == null) return;
+
+      final deviceInfo = DeviceInfoPlugin();
+      final packageInfo = await PackageInfo.fromPlatform();
+      
+      String deviceId = '';
+      String deviceName = '';
+      String deviceModel = '';
+      String osVersion = '';
+      String platform = '';
+
+      if (Platform.isAndroid) {
+        platform = 'ANDROID';
+        final androidInfo = await deviceInfo.androidInfo;
+        deviceId = androidInfo.id;
+        deviceName = androidInfo.brand; // or model
+        deviceModel = androidInfo.model;
+        osVersion = 'Android ${androidInfo.version.release}';
+      } else if (Platform.isIOS) {
+        platform = 'IOS';
+        final iosInfo = await deviceInfo.iosInfo;
+        deviceId = iosInfo.identifierForVendor ?? '';
+        deviceName = iosInfo.name;
+        deviceModel = iosInfo.utsname.machine;
+        osVersion = 'iOS ${iosInfo.systemVersion}';
+      }
+
+      await DeviceTokenService().registerDeviceToken(
+        token: token,
+        platform: platform,
+        deviceId: deviceId,
+        deviceName: deviceName,
+        deviceModel: deviceModel,
+        appVersion: packageInfo.version,
+        osVersion: osVersion,
+      );
+      
+      // Listen for token refresh
+      _messaging.onTokenRefresh.listen((newToken) async {
+        log('FCM Token refreshed: $newToken');
+        print('=============================================');
+        print('FCM TOKEN REFRESHED: $newToken');
+        print('=============================================');
+        await DeviceTokenService().registerDeviceToken(
+          token: newToken,
+          platform: platform,
+          deviceId: deviceId,
+          deviceName: deviceName,
+          deviceModel: deviceModel,
+          appVersion: packageInfo.version,
+          osVersion: osVersion,
+        );
+      });
+
+    } catch (e) {
+      log('Error registering device token: $e');
     }
   }
 
@@ -77,6 +152,13 @@ class EcliniqPushNotifications {
 
     // Handle foreground notifications
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('=== FOREGROUND NOTIFICATION RECEIVED ===');
+      print('ID: ${message.messageId}');
+      print('Title: ${message.notification?.title}');
+      print('Body: ${message.notification?.body}');
+      print('Data: ${message.data}');
+      print('========================================');
+
       log('Foreground notification received: ${message.messageId}');
       log('Notification title: ${message.notification?.title}');
       log('Notification body: ${message.notification?.body}');

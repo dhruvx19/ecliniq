@@ -252,7 +252,7 @@ Future<void> _initializePhonePe() async {
     }
 
     // TODO: Replace with your actual merchant ID
-    const String merchantId = 'M237OHQ3YCVAO_2511191950';
+    const String merchantId = 'PGTESTPAYUAT';
     const bool isProduction = false; // Set to true for production
 
     final initialized = await phonePe.initialize(
@@ -286,7 +286,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const EcliniqWelcomeScreen(), // Replace with your home screen
+      home: const LoginPage(), // Replace with your home screen
     );
   }
 }

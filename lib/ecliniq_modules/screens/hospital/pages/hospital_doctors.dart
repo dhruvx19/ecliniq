@@ -147,18 +147,47 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       final response = await _doctorService.getFilteredDoctors(request);
 
       if (response.success && response.data != null && mounted) {
+        // Filter API returns data.data (nested structure)
         // Convert API doctors to hospital doctor model
         final convertedDoctors = response.data!.doctors.map((apiDoctor) {
           return Doctor(
             id: apiDoctor.id,
-            name: apiDoctor.name,
-            specializations: apiDoctor.specializations,
-            degreeTypes: apiDoctor.degreeTypes,
+            firstName: apiDoctor.firstName ?? '',
+            lastName: apiDoctor.lastName ?? '',
+            headline: apiDoctor.headline,
+            specialization: apiDoctor.specializations.join(', '),
             qualifications: apiDoctor.degreeTypes.join(', '),
             experience: apiDoctor.yearOfExperience,
             rating: apiDoctor.rating,
+            fee: apiDoctor.fee,
             timings: null, // Not available in filter API
             availability: null, // Not available in filter API
+            profilePhoto: apiDoctor.profilePhoto,
+            hospitals: apiDoctor.hospitals.map((h) {
+              return DoctorHospital(
+                id: h.id,
+                name: h.name,
+                city: h.city,
+                state: h.state,
+                latitude: h.latitude,
+                longitude: h.longitude,
+                distanceKm: h.distance,
+                consultationFee: h.consultationFee?.toString(),
+              );
+            }).toList(),
+            clinics: apiDoctor.clinics.map((c) {
+              return {
+                'id': c.id,
+                'name': c.name,
+                'city': c.city,
+                'state': c.state,
+                'latitude': c.latitude,
+                'longitude': c.longitude,
+                'distance': c.distance,
+                'consultationFee': c.consultationFee,
+              };
+            }).toList(),
+            isFavourite: apiDoctor.isFavourite,
           );
         }).toList();
 

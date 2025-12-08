@@ -62,7 +62,7 @@ class Doctor {
       profilePhoto: json['profilePhoto'],
       headline: json['headline'],
       gender: json['gender'],
-      rating: json['rating']?.toDouble(),
+      rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
       specializations: (json['specializations'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
@@ -79,8 +79,8 @@ class Doctor {
           ?.map((item) => item.toString())
           .toList(),
       practiceArea: json['practiceArea'],
-      fee: json['fee']?.toDouble(),
-      distance: json['distance']?.toDouble(),
+      fee: json['fee'] != null ? (json['fee'] as num).toDouble() : null,
+      distance: json['distance'] != null ? (json['distance'] as num).toDouble() : null,
       availability: json['availability'],
       hospitals: (json['hospitals'] as List<dynamic>?)
               ?.map((item) => DoctorHospital.fromJson(item))
@@ -146,10 +146,10 @@ class DoctorHospital {
       name: json['name'] ?? '',
       city: json['city'],
       state: json['state'],
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
-      consultationFee: json['consultationFee']?.toDouble(),
-      distance: json['distance']?.toDouble(),
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
+      consultationFee: json['consultationFee'] != null ? (json['consultationFee'] as num).toDouble() : null,
+      distance: json['distance'] != null ? (json['distance'] as num).toDouble() : null,
     );
   }
 
@@ -194,10 +194,10 @@ class DoctorClinic {
       name: json['name'] ?? '',
       city: json['city'],
       state: json['state'],
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
-      consultationFee: json['consultationFee']?.toDouble(),
-      distance: json['distance']?.toDouble(),
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
+      consultationFee: json['consultationFee'] != null ? (json['consultationFee'] as num).toDouble() : null,
+      distance: json['distance'] != null ? (json['distance'] as num).toDouble() : null,
     );
   }
 
@@ -432,8 +432,8 @@ class ClinicDetails {
       city: json['city'] ?? '',
       state: json['state'] ?? '',
       pincode: json['pincode'] ?? '',
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
       contactEmail: json['contactEmail'],
       contactNumber: json['contactNumber'],
       photos: (json['photos'] as List<dynamic>?)
@@ -699,7 +699,7 @@ class DoctorDetails {
       doctorHospitals: json['doctorHospitals'],
       workExperience: json['workExperience'],
       patientsServed: json['patientsServed'],
-      rating: json['rating']?.toDouble(),
+      rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
       currentTokenNumber: json['currentTokenNumber'],
       contactDetails: json['contactDetails'] != null
           ? ContactDetails.fromJson(json['contactDetails'])

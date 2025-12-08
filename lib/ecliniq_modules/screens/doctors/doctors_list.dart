@@ -4,6 +4,7 @@ import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/doctor_details.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctors/widgets/doctor_filter_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';

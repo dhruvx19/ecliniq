@@ -1,6 +1,5 @@
 import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/input/input.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 
@@ -93,31 +92,43 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                 children: [
                   _buildSectionTitle('Location'),
                   const SizedBox(height: 8),
-                  EcliniqInput(
+                  TextField(
                     controller: _cityController,
-                    hintText: 'Enter City',
-                    label: 'City',
+                    decoration: const InputDecoration(
+                      hintText: 'Enter City',
+                      labelText: 'City',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  EcliniqInput(
+                  TextField(
                     controller: _distanceController,
-                    hintText: 'Distance (km)',
-                    label: 'Distance',
+                    decoration: const InputDecoration(
+                      hintText: 'Distance (km)',
+                      labelText: 'Distance',
+                      border: OutlineInputBorder(),
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 20),
                   _buildSectionTitle('Consultation'),
                   const SizedBox(height: 8),
-                  EcliniqInput(
+                  TextField(
                     controller: _specialityController,
-                    hintText: 'e.g. Cardiology, Dermatology',
-                    label: 'Speciality (comma separated)',
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. Cardiology, Dermatology',
+                      labelText: 'Speciality (comma separated)',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  EcliniqInput(
+                  TextField(
                     controller: _experienceController,
-                    hintText: 'e.g. any, 5',
-                    label: 'Work Experience',
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. any, 5',
+                      labelText: 'Work Experience',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   _buildSectionTitle('Preferences'),
@@ -134,10 +145,13 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                     onChanged: (val) => setState(() => _selectedGender = val),
                   ),
                   const SizedBox(height: 12),
-                  EcliniqInput(
+                  TextField(
                     controller: _languageController,
-                    hintText: 'e.g. English, Hindi',
-                    label: 'Languages (comma separated)',
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. English, Hindi',
+                      labelText: 'Languages (comma separated)',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   _buildSectionTitle('Availability'),

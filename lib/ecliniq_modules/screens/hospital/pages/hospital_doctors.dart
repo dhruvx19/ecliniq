@@ -1,5 +1,7 @@
 // lib/ecliniq_modules/screens/hospital/hospital_doctors_screen.dart
 
+import 'dart:async';
+
 import 'package:ecliniq/ecliniq_api/hospital_service.dart';
 import 'package:ecliniq/ecliniq_api/doctor_service.dart';
 import 'package:ecliniq/ecliniq_api/models/hospital_doctor_model.dart';
@@ -45,10 +47,12 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   String _searchQuery = '';
+  Timer? _filterDebounceTimer;
   
   // Filter state
-  Map<String, dynamic>? _appliedFilters;
-  bool _isUsingFilters = false;
+  List<String>? _selectedSpecialities;
+  String? _selectedAvailability;
+  Map<String, dynamic>? _otherFilters;
 
   @override
   void initState() {
@@ -61,6 +65,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _filterDebounceTimer?.cancel();
     super.dispose();
   }
 
@@ -122,12 +127,28 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     }
   }
 
-  Future<void> _applyFilters(Map<String, dynamic> filterData) async {
+  void _applyFiltersDebounced() {
+    _filterDebounceTimer?.cancel();
+    _filterDebounceTimer = Timer(const Duration(milliseconds: 800), () {
+      _applyFilters();
+    });
+  }
+
+  Future<void> _applyFilters() async {
+    // Check if any filters are actually applied
+    final hasFilters = (_selectedSpecialities != null && _selectedSpecialities!.isNotEmpty) ||
+        _selectedAvailability != null ||
+        (_otherFilters != null && _otherFilters!.isNotEmpty);
+
+    if (!hasFilters) {
+      // No filters, fetch original hospital doctors
+      _fetchDoctors();
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-      _appliedFilters = filterData;
-      _isUsingFilters = true;
     });
 
     try {
@@ -135,13 +156,11 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       final request = api_doctor.FilterDoctorsRequest(
         latitude: 28.6139, // TODO: Get from user's location
         longitude: 77.209,
-        speciality: filterData['specialities'] != null 
-            ? List<String>.from(filterData['specialities']) 
-            : null,
-        gender: filterData['gender']?.toString().toUpperCase(),
-        distance: filterData['distance']?.toInt(),
-        workExperience: _mapExperienceFilter(filterData['experience']),
-        availability: _mapAvailabilityFilter(filterData['availability']),
+        speciality: _selectedSpecialities,
+        gender: _otherFilters?['gender']?.toString().toUpperCase(),
+        distance: _otherFilters?['distance']?.toInt(),
+        workExperience: _mapExperienceFilter(_otherFilters?['experience']),
+        availability: _mapAvailabilityFilter(_selectedAvailability),
       );
 
       final response = await _doctorService.getFilteredDoctors(request);
@@ -425,29 +444,36 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               );
               
               if (filterData != null) {
-                _applyFilters(filterData);
+                setState(() {
+                  _otherFilters = filterData;
+                });
+                _applyFiltersDebounced();
               }
             },
           ),
           const SizedBox(width: 8),
           _buildFilterChip(
             label: 'Specialities',
-            isSelected: true,
-            onTap: () async {
-              final specialities = await EcliniqBottomSheet.show<List<String>>(
+            isSelected: _selectedSpecialities != null && _selectedSpecialities!.isNotEmpty,
+            onTap: () {
+              EcliniqBottomSheet.show(
                 context: context,
-                child: SelectSpecialitiesBottomSheet(),
+                child: SelectSpecialitiesBottomSheet(
+                  initialSelection: _selectedSpecialities,
+                  onSelectionChanged: (specialities) {
+                    setState(() {
+                      _selectedSpecialities = specialities.isEmpty ? null : specialities;
+                    });
+                    _applyFiltersDebounced();
+                  },
+                ),
               );
-              
-              if (specialities != null && specialities.isNotEmpty) {
-                _applyFilters({'specialities': specialities});
-              }
             },
           ),
           const SizedBox(width: 8),
           _buildFilterChip(
             label: 'Availability',
-            isSelected: false,
+            isSelected: _selectedAvailability != null,
             onTap: () async {
               final availability = await EcliniqBottomSheet.show<String>(
                 context: context,
@@ -455,7 +481,10 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               );
               
               if (availability != null) {
-                _applyFilters({'availability': availability});
+                setState(() {
+                  _selectedAvailability = availability;
+                });
+                _applyFiltersDebounced();
               }
             },
           ),

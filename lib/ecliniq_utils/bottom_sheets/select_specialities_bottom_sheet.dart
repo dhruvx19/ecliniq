@@ -4,7 +4,14 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
 
 class SelectSpecialitiesBottomSheet extends StatefulWidget {
-  const SelectSpecialitiesBottomSheet({super.key});
+  final List<String>? initialSelection;
+  final Function(List<String>)? onSelectionChanged;
+
+  const SelectSpecialitiesBottomSheet({
+    super.key,
+    this.initialSelection,
+    this.onSelectionChanged,
+  });
 
   @override
   State<SelectSpecialitiesBottomSheet> createState() =>
@@ -16,6 +23,7 @@ class _SelectSpecialitiesBottomSheetState
   Set<String> selectedSpecialities = {};
   List<String> filteredSpecialities = [];
   String searchQuery = '';
+  Timer? _debounceTimer;
 
   final List<String> allSpecialities = [
     'General Physician / Family Doctor',
@@ -35,6 +43,15 @@ class _SelectSpecialitiesBottomSheetState
   void initState() {
     super.initState();
     filteredSpecialities = allSpecialities;
+    if (widget.initialSelection != null) {
+      selectedSpecialities = widget.initialSelection!.toSet();
+    }
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 
   void _filterSpecialities(String query) {
@@ -49,6 +66,15 @@ class _SelectSpecialitiesBottomSheetState
                   speciality.toLowerCase().contains(query.toLowerCase()),
             )
             .toList();
+      }
+    });
+  }
+
+  void _onSelectionChanged() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (widget.onSelectionChanged != null) {
+        widget.onSelectionChanged!(selectedSpecialities.toList());
       }
     });
   }
@@ -92,54 +118,13 @@ class _SelectSpecialitiesBottomSheetState
           // List of specialities
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: filteredSpecialities.length,
               itemBuilder: (context, index) {
                 final speciality = filteredSpecialities[index];
                 final isSelected = selectedSpecialities.contains(speciality);
                 return _buildSpecialityItem(speciality, isSelected);
               },
-            ),
-          ),
-          // Apply button
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: selectedSpecialities.isEmpty
-                    ? null
-                    : () {
-                        Navigator.pop(context, selectedSpecialities.toList());
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2372EC),
-                  disabledBackgroundColor: Colors.grey[300],
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Apply (${selectedSpecialities.length})',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -157,6 +142,7 @@ class _SelectSpecialitiesBottomSheetState
             selectedSpecialities.add(speciality);
           }
         });
+        _onSelectionChanged();
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),

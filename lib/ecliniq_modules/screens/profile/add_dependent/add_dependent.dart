@@ -8,6 +8,7 @@ import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/widgets/ph
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
@@ -238,8 +239,8 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Primitives.lightBlue,
-                                      width: 2,
+                                      color: Color(0xff96BFFF),
+                                      width: 0.5,
                                     ),
                                     image: provider.selectedProfilePhoto != null
                                         ? DecorationImage(
@@ -260,8 +261,8 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                           children: [
                                             SvgPicture.asset(
                                               EcliniqIcons.add.assetPath,
-                                              width: 42,
-                                              height: 42,
+                                              width: 48,
+                                              height: 48,
                                               colorFilter: ColorFilter.mode(
                                                 Color(0xff2372EC),
                                                 BlendMode.srcIn,
@@ -338,12 +339,14 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                 ],
                               ),
 
-                              // Icon(
-                              //   _isExpanded
-                              //       ? Icons.keyboard_arrow_up
-                              //       : Icons.keyboard_arrow_down,
-                              //   color: EcliniqColors.light.textTertiary,
-                              // ),
+                              SvgPicture.asset(
+                                width: 24,
+                                height: 24,
+                                _isExpanded
+                                    ? EcliniqIcons.arrowUp.assetPath
+                                    : EcliniqIcons.arrowDown.assetPath,
+                                color: Color(0xff8E8E8E),
+                              ),
                             ],
                           ),
                         ),
@@ -364,11 +367,8 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                 children: [
                                   Text(
                                     'Physical Info',
-                                    style: EcliniqTextStyles.titleXBLarge
-                                        .copyWith(
-                                          color:
-                                              EcliniqColors.light.textPrimary,
-                                        ),
+                                    style: EcliniqTextStyles.headlineMedium
+                                        .copyWith(color: Color(0xff424242)),
                                   ),
                                   Text(
                                     '•',
@@ -379,11 +379,13 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                   ),
                                 ],
                               ),
-                              Icon(
+                              SvgPicture.asset(
+                                width: 24,
+                                height: 24,
                                 _isExpandedPhysicalInfo
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: EcliniqColors.light.textTertiary,
+                                    ? EcliniqIcons.arrowUp.assetPath
+                                    : EcliniqIcons.arrowDown.assetPath,
+                                color: Color(0xff8E8E8E),
                               ),
                             ],
                           ),
@@ -395,60 +397,67 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                 ),
 
                 Container(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: screenSize.getResponsiveValue(
-                      mobile: 20.0,
-                      mobileSmall: 16.0,
-                      mobileMedium: 20.0,
-                      mobileLarge: 24.0,
-                    ),
-                    vertical: screenSize.getResponsiveValue(
-                      mobile: 18.0,
-                      mobileSmall: 16.0,
-                      mobileMedium: 18.0,
-                      mobileLarge: 20.0,
-                    ),
+  margin: EdgeInsets.symmetric(
+    horizontal: screenSize.getResponsiveValue(
+      mobile: 20.0,
+      mobileSmall: 16.0,
+      mobileMedium: 20.0,
+      mobileLarge: 24.0,
+    ),
+    vertical: screenSize.getResponsiveValue(
+      mobile: 18.0,
+      mobileSmall: 16.0,
+      mobileMedium: 18.0,
+      mobileLarge: 20.0,
+    ),
+  ),
+  child: SizedBox(
+    width: double.infinity,
+    height: buttonHeight,
+    child: GestureDetector(
+      onTap: provider.isLoading
+          ? null
+          : () {
+              _saveDependent(provider);
+            },
+      child: Container(
+        decoration: BoxDecoration(
+          color: provider.isFormValid
+              ? Color(0xFF2372EC)
+              : Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: provider.isLoading
+              ? SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
                   ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: buttonHeight,
-                    child: ElevatedButton(
-                      onPressed: provider.isLoading
-                          ? null
-                          : () {
-                              _saveDependent(provider);
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: provider.isFormValid
-                            ? EcliniqColors.light.bgContainerInteractiveBrand
-                            : Color(0xFFF9F9F9),
-
-                        disabledBackgroundColor: Color(0xffF9F9F9),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Save',
+                      style: EcliniqTextStyles.titleXBLarge.copyWith(
+                        color: provider.isFormValid
+                            ? Colors.white
+                            : Color(0xffD6D6D6),
+                        fontWeight: FontWeight.w500,
                       ),
-                      child: provider.isLoading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: EcliniqColors.light.textFixedLight,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              'Save',
-                              style: EcliniqTextStyles.titleXBLarge.copyWith(
-                                color: provider.isFormValid
-                                    ? EcliniqColors.light.textFixedLight
-                                    : Color(0xffD6D6D6),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    
+                  ],
                 ),
+        ),
+      ),
+    ),
+  ),
+),
                 SizedBox(height: 8),
               ],
             ),

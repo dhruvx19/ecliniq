@@ -7,7 +7,7 @@ import '../../../../../ecliniq_utils/responsive_helper.dart';
 import '../provider/dependent_provider.dart';
 
 class PhysicalInfoCard extends StatefulWidget {
-  const PhysicalInfoCard({super.key,});
+  const PhysicalInfoCard({super.key});
 
   @override
   State<PhysicalInfoCard> createState() => _PhysicalInfoCardState();
@@ -27,7 +27,10 @@ class _PhysicalInfoCardState extends State<PhysicalInfoCard> {
     // Initialize controllers with existing values if any
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final provider = Provider.of<AddDependentProvider>(context, listen: false);
+        final provider = Provider.of<AddDependentProvider>(
+          context,
+          listen: false,
+        );
         if (provider.height != null && _heightController.text.isEmpty) {
           _heightController.text = provider.height.toString();
         }
@@ -58,131 +61,132 @@ class _PhysicalInfoCardState extends State<PhysicalInfoCard> {
     return bmi.toStringAsFixed(1);
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     final screenSize = ResponsiveHelper.getScreenSize(context);
     final provider = Provider.of<AddDependentProvider>(context);
     return Container(
-        margin: EdgeInsets.symmetric(
-          vertical: screenSize.getResponsiveValue(
+      margin: EdgeInsets.symmetric(
+        vertical: screenSize.getResponsiveValue(
+          mobile: 8.0,
+          mobileSmall: 6.0,
+          mobileMedium: 8.0,
+          mobileLarge: 10.0,
+        ),
+      ),
+      decoration: BoxDecoration(
+        color: Color(0xffF9F9F9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(
+          screenSize.getResponsiveValue(
             mobile: 8.0,
             mobileSmall: 6.0,
             mobileMedium: 8.0,
             mobileLarge: 10.0,
           ),
         ),
-        decoration: BoxDecoration(
-          color: EcliniqColors.light.bgContainerNonInteractiveNeutralExtraSubtle,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(screenSize.getResponsiveValue(
-            mobile: 8.0,
-            mobileSmall: 6.0,
-            mobileMedium: 8.0,
-            mobileLarge: 10.0,
-          )),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: EdgeInsets.symmetric(
-                  vertical: screenSize.getResponsiveValue(
-                    mobile: 8.0,
-                    mobileSmall: 6.0,
-                    mobileMedium: 8.0,
-                    mobileLarge: 10.0,
-                  ),
-                ),
-                height: screenSize.getResponsiveValue(
-                  mobile: 30.0,
-                  mobileSmall: 28.0,
-                  mobileMedium: 30.0,
-                  mobileLarge: 32.0,
-                ),
-                child: _buildTextField(
-                  label: 'Height (cm)',
-                  hint: 'Enter Height',
-                  controller: _heightController,
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    final height = int.tryParse(value);
-                    provider.setHeight(height);
-                  },
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(3),
-                  ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.symmetric(
+                vertical: screenSize.getResponsiveValue(
+                  mobile: 8.0,
+                  mobileSmall: 6.0,
+                  mobileMedium: 8.0,
+                  mobileLarge: 10.0,
                 ),
               ),
-
-              Divider(
-                color: EcliniqColors.light.strokeNeutralExtraSubtle,
-                thickness: 1,
-                height: 0,
+              height: screenSize.getResponsiveValue(
+                mobile: 30.0,
+                mobileSmall: 28.0,
+                mobileMedium: 30.0,
+                mobileLarge: 32.0,
               ),
-
-              Container(
-                margin: EdgeInsets.symmetric(
-                  vertical: screenSize.getResponsiveValue(
-                    mobile: 8.0,
-                    mobileSmall: 6.0,
-                    mobileMedium: 8.0,
-                    mobileLarge: 10.0,
-                  ),
-                ),
-                height: screenSize.getResponsiveValue(
-                  mobile: 30.0,
-                  mobileSmall: 28.0,
-                  mobileMedium: 30.0,
-                  mobileLarge: 32.0,
-                ),
-                child: _buildTextField(
-                  label: 'Weight (kg)',
-                  hint: 'Enter Weight',
-                  controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    final weight = int.tryParse(value);
-                    provider.setWeight(weight);
-                  },
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(3),
-                  ],
-                ),
-              ),
-
-              Divider(
-                color: EcliniqColors.light.strokeNeutralExtraSubtle,
-                thickness: 1,
-                height: 0,
-              ),
-              Consumer<AddDependentProvider>(
-                builder: (context, provider, child) {
-                  return Row(
-                children: [
-                  Text('BMI',
-                  style: EcliniqTextStyles.headlineXMedium.copyWith(
-                    color: EcliniqColors.light.textSecondary,
-                  ),
-                  ),
-                  Spacer(),
-                  Text(
-                        _calculateBMI(provider.height, provider.weight),
-                    style: EcliniqTextStyles.headlineXMedium.copyWith(
-                      color: EcliniqColors.light.textSecondary,
-                    ),
-                  )
-                ],
-                  );
+              child: _buildTextField(
+                label: 'Height (cm)',
+                hint: 'Enter Height',
+                controller: _heightController,
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  final height = int.tryParse(value);
+                  provider.setHeight(height);
                 },
-              )
-            ],
-          ),
-        )
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(3),
+                ],
+              ),
+            ),
+
+            Divider(
+              color: EcliniqColors.light.strokeNeutralExtraSubtle,
+              thickness: 1,
+              height: 0,
+            ),
+
+            Container(
+              margin: EdgeInsets.symmetric(
+                vertical: screenSize.getResponsiveValue(
+                  mobile: 8.0,
+                  mobileSmall: 6.0,
+                  mobileMedium: 8.0,
+                  mobileLarge: 10.0,
+                ),
+              ),
+              height: screenSize.getResponsiveValue(
+                mobile: 30.0,
+                mobileSmall: 28.0,
+                mobileMedium: 30.0,
+                mobileLarge: 32.0,
+              ),
+              child: _buildTextField(
+                label: 'Weight (kg)',
+                hint: 'Enter Weight',
+                controller: _weightController,
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  final weight = int.tryParse(value);
+                  provider.setWeight(weight);
+                },
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(3),
+                ],
+              ),
+            ),
+
+            Divider(
+              color: EcliniqColors.light.strokeNeutralExtraSubtle,
+              thickness: 1,
+              height: 0,
+            ),
+            Consumer<AddDependentProvider>(
+              builder: (context, provider, child) {
+                return Row(
+                  children: [
+                    Text(
+                      'BMI',
+                      style: EcliniqTextStyles.headlineXMedium.copyWith(
+                        color: EcliniqColors.light.textSecondary,
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      _calculateBMI(provider.height, provider.weight),
+                      style: EcliniqTextStyles.headlineXMedium.copyWith(
+                        color: EcliniqColors.light.textSecondary,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -204,7 +208,7 @@ Widget _buildTextField({
             Text(
               label,
               style: EcliniqTextStyles.headlineXMedium.copyWith(
-                 color: Color(0xff626060),
+                color: Color(0xff626060),
               ),
             ),
           ],
@@ -229,12 +233,10 @@ Widget _buildTextField({
             contentPadding: EdgeInsets.zero,
           ),
           style: EcliniqTextStyles.headlineXMedium.copyWith(
-            color: Color(0xff424242),
+            color: Color(0xff626060),
           ),
         ),
       ),
     ],
   );
 }
-
-

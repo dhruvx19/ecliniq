@@ -36,7 +36,7 @@ class _ProfilePageState extends State<ProfilePage>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late AnimationController _animationController;
   final PatientService _patientService = PatientService();
-  
+
   PatientDetailsData? _patientData;
   List<DependentData> _dependents = [];
   bool _isLoading = true;
@@ -105,12 +105,19 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
-  Future<void> _resolveProfileImageUrl(String key, {required String token}) async {
+  Future<void> _resolveProfileImageUrl(
+    String key, {
+    required String token,
+  }) async {
     // Try public URL
     try {
       final publicUri = Uri.parse(
-          '${Endpoints.storagePublicUrl}?key=${Uri.encodeComponent(key)}');
-      final resp = await http.get(publicUri, headers: {'Content-Type': 'application/json'});
+        '${Endpoints.storagePublicUrl}?key=${Uri.encodeComponent(key)}',
+      );
+      final resp = await http.get(
+        publicUri,
+        headers: {'Content-Type': 'application/json'},
+      );
       if (resp.statusCode == 200) {
         final body = jsonDecode(resp.body) as Map<String, dynamic>;
         final url = body['data']?['publicUrl'];
@@ -124,12 +131,16 @@ class _ProfilePageState extends State<ProfilePage>
     // Fallback to download URL with auth
     try {
       final downloadUri = Uri.parse(
-          '${Endpoints.storageDownloadUrl}?key=${Uri.encodeComponent(key)}');
-      final resp = await http.get(downloadUri, headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-        'x-access-token': token,
-      });
+        '${Endpoints.storageDownloadUrl}?key=${Uri.encodeComponent(key)}',
+      );
+      final resp = await http.get(
+        downloadUri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'x-access-token': token,
+        },
+      );
       if (resp.statusCode == 200) {
         final body = jsonDecode(resp.body) as Map<String, dynamic>;
         final url = body['data']?['downloadUrl'];
@@ -148,8 +159,7 @@ class _ProfilePageState extends State<ProfilePage>
       return;
     }
 
-    setState(() {
-    });
+    setState(() {});
 
     try {
       final response = await _patientService.getDependents(
@@ -161,12 +171,10 @@ class _ProfilePageState extends State<ProfilePage>
           _dependents = response.data;
         });
       } else {
-        setState(() {
-        });
+        setState(() {});
       }
     } catch (e) {
-      setState(() {
-      });
+      setState(() {});
     }
   }
 
@@ -177,20 +185,17 @@ class _ProfilePageState extends State<ProfilePage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => 
-      DraggableScrollableSheet(
+      builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, controller) => AddDependentBottomSheet(
           onDependentAdded: () {
-            // Refresh dependents immediately after successful save
             _fetchDependents();
           },
         ),
       ),
     ).then((result) {
-      // Also refresh when bottom sheet is closed (in case it was closed without saving)
       if (result == true) {
         _fetchDependents();
       }
@@ -210,28 +215,27 @@ class _ProfilePageState extends State<ProfilePage>
   void _navigateToPersonalDetails() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const PersonalDetails(),
-      ));
+      MaterialPageRoute(builder: (context) => const PersonalDetails()),
+    );
   }
 
   void _onMyDoctorsPressed() {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const MyDoctors(),
-        ));
+      context,
+      MaterialPageRoute(builder: (context) => const MyDoctors()),
+    );
   }
 
   void _navigateToSecuritySettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const SecuritySettingsOptions(),
-      ));
+      MaterialPageRoute(builder: (context) => const SecuritySettingsOptions()),
+    );
   }
 
-  Future<void> _onNotificationSettingsChanged(NotificationSettings settings) async {
+  Future<void> _onNotificationSettingsChanged(
+    NotificationSettings settings,
+  ) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final authToken = authProvider.authToken;
     if (authToken == null) return;
@@ -266,98 +270,92 @@ class _ProfilePageState extends State<ProfilePage>
             children: [
               Expanded(
                 child: Stack(
-            children: [
-              Container(
-                height: topMargin * 2,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF2372EC), Color(0xFFF3F5FF)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
-
-              // Background pattern
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: (MediaQuery.of(context).size.height / 3),
-                child: Opacity(
-                  opacity: 0.3,
-                  child: Image.asset(
-                    EcliniqIcons.lottie.assetPath,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-
-              // Profile Header
-              ProfileHeader(onSettingsPressed: _handleSettings),
-
-
-              Positioned(
-                top: topMargin,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: ClipPath(
-                  clipper: TopCircleCutClipper(radius: 50, topCut: 30),
-                  child: Container(
-                    padding: const EdgeInsets.only(top: 90),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(25),
-                        topRight: Radius.circular(25),
+                  children: [
+                    Container(
+                      height: topMargin * 2,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF2372EC), Color(0xFFF3F5FF)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
                       ),
                     ),
-                    child: _isLoading
-                        ? _buildShimmerLoading()
-                        : _errorMessage != null
-                            ? _buildErrorWidget()
-                            : _buildProfileContent(),
-                  ),
-                ),
-              ),
 
-              // Static avatar placeholder (no network image)
-              Positioned(
-                top: topMargin - 13,
-                left: MediaQuery.of(context).size.width / 2 - 43,
-                child: Container(
-                  height: 86,
-                  width: 86,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
+                    // Background pattern
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: (MediaQuery.of(context).size.height / 3),
+                      child: Opacity(
+                        opacity: 0.3,
+                        child: Image.asset(
+                          EcliniqIcons.lottie.assetPath,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: const CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Color(0xFFDFE8FF),
-                    child: _ProfileAvatarIcon(),
-                  ),
+                    ),
+
+                    // Profile Header
+                    ProfileHeader(onSettingsPressed: _handleSettings),
+
+                    Positioned(
+                      top: topMargin,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: ClipPath(
+                        clipper: TopCircleCutClipper(radius: 50, topCut: 30),
+                        child: Container(
+                          padding: const EdgeInsets.only(top: 90),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(25),
+                              topRight: Radius.circular(25),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? _buildShimmerLoading()
+                              : _errorMessage != null
+                              ? _buildErrorWidget()
+                              : _buildProfileContent(),
+                        ),
+                      ),
+                    ),
+
+                    // Static avatar placeholder (no network image)
+                    Positioned(
+                      top: topMargin - 13,
+                      left: MediaQuery.of(context).size.width / 2 - 43,
+                      child: Container(
+                        height: 86,
+                        width: 86,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: const CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Color(0xFFDFE8FF),
+                          child: _ProfileAvatarIcon(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-
-            ],
-          ),
-        ),
-              EcliniqBottomNavigationBar(
-                currentIndex: 3,
-                onTap: _onTabTapped,
-              ),
+              EcliniqBottomNavigationBar(currentIndex: 3, onTap: _onTabTapped),
             ],
           ),
         );
@@ -431,6 +429,7 @@ extension _ProfilePageContent on _ProfilePageState {
     };
     return map[backendValue] ?? backendValue;
   }
+
   Widget _buildShimmerLoading() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -538,16 +537,10 @@ extension _ProfilePageContent on _ProfilePageState {
           ),
           const SizedBox(height: 30),
           // Physical Health Card Shimmer
-          ShimmerLoading(
-            height: 200,
-            borderRadius: BorderRadius.circular(16),
-          ),
+          ShimmerLoading(height: 200, borderRadius: BorderRadius.circular(16)),
           const SizedBox(height: 30),
           // Dependents Shimmer
-          ShimmerLoading(
-            height: 100,
-            borderRadius: BorderRadius.circular(16),
-          ),
+          ShimmerLoading(height: 100, borderRadius: BorderRadius.circular(16)),
         ],
       ),
     );
@@ -560,18 +553,11 @@ extension _ProfilePageContent on _ProfilePageState {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               _errorMessage ?? 'Failed to load patient details',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.red,
-              ),
+              style: const TextStyle(fontSize: 16, color: Colors.red),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -591,9 +577,7 @@ extension _ProfilePageContent on _ProfilePageState {
     }
 
     final patient = _patientData!;
-    final userName = patient.fullName.isNotEmpty
-        ? patient.fullName
-        : 'User';
+    final userName = patient.fullName.isNotEmpty ? patient.fullName : 'User';
     final userPhone = patient.displayPhone;
     final userEmail = patient.displayEmail;
     final isPhoneVerified = patient.user?.phone != null;
@@ -606,126 +590,121 @@ extension _ProfilePageContent on _ProfilePageState {
     final weight = patient.displayWeight;
     final currentVersion = "v1.0.0";
     final newVersion = "v1.0.1";
-    final dependents = _dependents.map((dep) => Dependent(
-          id: dep.id,
-          name: dep.fullName,
-          relation: dep.relation,
-        )).toList();
+    final dependents = _dependents
+        .map(
+          (dep) =>
+              Dependent(id: dep.id, name: dep.fullName, relation: dep.relation),
+        )
+        .toList();
 
     return SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          UserInfoSection(
-                            name: userName,
-                            phone: userPhone,
-                            email: userEmail,
-                            isPhoneVerified: isPhoneVerified,
-                          ),
-                          const SizedBox(height: 30),
-                          BasicInfoCards(
-                            age: age,
-                            gender: gender,
-                            bloodGroup: bloodGroup,
-                          ),
-                          const SizedBox(height: 30),
-                          PhysicalHealthCard(
-                            status: healthStatus,
-                            bmi: bmi,
-                            height: height,
-                            weight: weight,
-                          ),
-                          Divider(color: Color(0xffD6D6D6), height: 40),
-                          
-                          DependentsSection(
-                            dependents: dependents,
-                            onAddDependent: _handleAddDependent,
-                            onDependentTap: _handleDependentTap,
-                          ),
-                          Divider(color: Color(0xffD6D6D6), height: 40),
-                          const SizedBox(height: 10),
-                          AppUpdateBanner(
-                            currentVersion: currentVersion,
-                            newVersion: newVersion,
-                            onUpdate: _handleAppUpdate,
-                          ),
-                          const SizedBox(height: 20),
-                          AccountSettingsMenu(
-            onPersonalDetailsPressed: _navigateToPersonalDetails,
-                            onMyDoctorsPressed: _onMyDoctorsPressed,
-            onSecuritySettingsPressed: _navigateToSecuritySettings,
-                          ),
-                          const SizedBox(height: 20),
-                          NotificationsSettingsWidget(
-                            initialWhatsAppEnabled: patient.getWhatsAppNotifications,
-                            initialSmsEnabled: patient.getPhoneNotifications,
-                            initialInAppEnabled: patient.getInAppNotifications,
-                            initialEmailEnabled: patient.getEmailNotifications,
-                            initialPromotionalEnabled: patient.getPromotionalMessages,
-                            onSettingsChanged: _onNotificationSettingsChanged,
-                          ),
-                          const SizedBox(height: 20),
-                          MoreSettingsMenuWidget(
-                            appVersion: 'v1.0.0',
-                            supportEmail: 'Support@eclinicq.com',
-                            onReferEarnPressed: () {},
-                            onHelpSupportPressed: () {},
-                            onTermsPressed: () {},
-                            onPrivacyPressed: () {},
-                            onFaqPressed: () {},
-                            onAboutPressed: () {},
-                            onLogoutPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Logout'),
-                                  content: const Text(
-                                    'Are you sure you want to logout?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Logout'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            onDeleteAccountPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Delete Account'),
-                                  content: const Text(
-                                    'Are you sure you want to delete your account? This action cannot be undone.',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text(
-                                        'Delete',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-              ),
-            ],
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          UserInfoSection(
+            name: userName,
+            phone: userPhone,
+            email: userEmail,
+            isPhoneVerified: isPhoneVerified,
           ),
-        );
+          const SizedBox(height: 30),
+          BasicInfoCards(age: age, gender: gender, bloodGroup: bloodGroup),
+          const SizedBox(height: 30),
+          PhysicalHealthCard(
+            status: healthStatus,
+            bmi: bmi,
+            height: height,
+            weight: weight,
+          ),
+          Divider(color: Color(0xffD6D6D6), height: 40),
+
+          DependentsSection(
+            dependents: dependents,
+            onAddDependent: _handleAddDependent,
+            onDependentTap: _handleDependentTap,
+          ),
+          Divider(color: Color(0xffD6D6D6), height: 40),
+          const SizedBox(height: 10),
+          AppUpdateBanner(
+            currentVersion: currentVersion,
+            newVersion: newVersion,
+            onUpdate: _handleAppUpdate,
+          ),
+          const SizedBox(height: 20),
+          AccountSettingsMenu(
+            onPersonalDetailsPressed: _navigateToPersonalDetails,
+            onMyDoctorsPressed: _onMyDoctorsPressed,
+            onSecuritySettingsPressed: _navigateToSecuritySettings,
+          ),
+          const SizedBox(height: 20),
+          NotificationsSettingsWidget(
+            initialWhatsAppEnabled: patient.getWhatsAppNotifications,
+            initialSmsEnabled: patient.getPhoneNotifications,
+            initialInAppEnabled: patient.getInAppNotifications,
+            initialEmailEnabled: patient.getEmailNotifications,
+            initialPromotionalEnabled: patient.getPromotionalMessages,
+            onSettingsChanged: _onNotificationSettingsChanged,
+          ),
+          const SizedBox(height: 20),
+          MoreSettingsMenuWidget(
+            appVersion: 'v1.0.0',
+            supportEmail: 'Support@eclinicq.com',
+            onReferEarnPressed: () {},
+            onHelpSupportPressed: () {},
+            onTermsPressed: () {},
+            onPrivacyPressed: () {},
+            onFaqPressed: () {},
+            onAboutPressed: () {},
+            onLogoutPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            onDeleteAccountPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Delete Account'),
+                  content: const Text(
+                    'Are you sure you want to delete your account? This action cannot be undone.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -21,6 +21,7 @@ class CustomSuccessSnackBar extends SnackBar {
          padding: EdgeInsets.zero,
          elevation: 8,
          duration: duration ?? const Duration(seconds: 15),
+         dismissDirection: DismissDirection.horizontal,
        );
 
   factory CustomSuccessSnackBar({

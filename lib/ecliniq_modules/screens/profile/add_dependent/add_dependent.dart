@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:ecliniq/ecliniq_icons/icons.dart';
@@ -8,6 +9,7 @@ import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/widgets/ph
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/action_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
@@ -79,11 +81,9 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
   }
 
   Future<void> _saveDependent(AddDependentProvider provider) async {
-    // Check form validity before attempting save
     if (!provider.isFormValid) {
       final errorMessage = provider.getValidationErrorMessage();
 
-      // Show detailed error snackbar (standardized)
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         CustomErrorSnackBar(
@@ -100,12 +100,10 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
       final success = await provider.saveDependent(context);
 
       if (success) {
-        // Call callback to refresh dependents list immediately
         if (widget.onDependentAdded != null) {
           widget.onDependentAdded!();
         }
 
-        // Show success message (standardized)
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           CustomSuccessSnackBar(
@@ -116,18 +114,39 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
           ),
         );
 
-        // Close bottom sheet after showing snackbar
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
-          Navigator.pop(context, true); // Return true to indicate success
+          Navigator.pop(context, true);
         }
       } else {
+        String errorTitle = 'Failed to Add Dependent';
+        String errorSubtitle = provider.errorMessage ?? 'Please try again';
+        
+        if (provider.errorMessage != null) {
+          final apiErrors = _parseApiErrors(provider.errorMessage!);
+          if (apiErrors.isNotEmpty) {
+            errorTitle = 'Action Required';
+            errorSubtitle = apiErrors.join('\n');
+            
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              CustomActionSnackBar(
+                context: context,
+                title: errorTitle,
+                subtitle: errorSubtitle,
+                duration: const Duration(seconds: 6),
+              ),
+            );
+            return;
+          }
+        }
+        
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           CustomErrorSnackBar(
             context: context,
-            title: 'Failed to Add Dependent',
-            subtitle: provider.errorMessage ?? 'Please try again',
+            title: errorTitle,
+            subtitle: errorSubtitle,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -143,6 +162,25 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
         ),
       );
     }
+  }
+
+  List<String> _parseApiErrors(String errorMessage) {
+    try {
+      final decoded = json.decode(errorMessage);
+      if (decoded is Map && decoded.containsKey('errors')) {
+        final errors = decoded['errors'];
+        if (errors is List) {
+          return errors.map((error) {
+            if (error is Map && error.containsKey('message')) {
+              return error['message'].toString();
+            }
+            return error.toString();
+          }).toList();
+        }
+      }
+    } catch (e) {
+    }
+    return [];
   }
 
   @override

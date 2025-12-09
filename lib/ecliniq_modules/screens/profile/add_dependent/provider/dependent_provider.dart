@@ -337,7 +337,11 @@ class AddDependentProvider extends ChangeNotifier {
       notifyListeners();
       return true;
       } else {
-        _errorMessage = response.message;
+        if (response.errors != null) {
+          _errorMessage = response.errors.toString();
+        } else {
+          _errorMessage = response.message;
+        }
         _isLoading = false;
         notifyListeners();
         return false;

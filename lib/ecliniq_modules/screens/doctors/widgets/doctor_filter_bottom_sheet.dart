@@ -1,14 +1,15 @@
 import 'package:ecliniq/ecliniq_api/models/doctor.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
 
 class DoctorFilterBottomSheet extends StatefulWidget {
   final FilterDoctorsRequest currentFilter;
+  final ValueChanged<FilterDoctorsRequest> onChanged;
 
   const DoctorFilterBottomSheet({
     super.key,
     required this.currentFilter,
+    required this.onChanged,
   });
 
   @override
@@ -99,6 +100,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                       labelText: 'City',
                       border: OutlineInputBorder(),
                     ),
+                    onChanged: (_) => _applyAndEmit(),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -109,6 +111,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
+                    onChanged: (_) => _applyAndEmit(),
                   ),
                   const SizedBox(height: 20),
                   _buildSectionTitle('Consultation'),
@@ -120,6 +123,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                       labelText: 'Speciality (comma separated)',
                       border: OutlineInputBorder(),
                     ),
+                    onChanged: (_) => _applyAndEmit(),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -129,6 +133,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                       labelText: 'Work Experience',
                       border: OutlineInputBorder(),
                     ),
+                    onChanged: (_) => _applyAndEmit(),
                   ),
                   const SizedBox(height: 20),
                   _buildSectionTitle('Preferences'),
@@ -142,7 +147,10 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                     items: _genders
                         .map((g) => DropdownMenuItem(value: g, child: Text(g)))
                         .toList(),
-                    onChanged: (val) => setState(() => _selectedGender = val),
+                    onChanged: (val) {
+                      setState(() => _selectedGender = val);
+                      _applyAndEmit();
+                    },
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -152,6 +160,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                       labelText: 'Languages (comma separated)',
                       border: OutlineInputBorder(),
                     ),
+                    onChanged: (_) => _applyAndEmit(),
                   ),
                   const SizedBox(height: 20),
                   _buildSectionTitle('Availability'),
@@ -167,6 +176,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                           setState(() {
                             _selectedAvailability = selected ? avail : null;
                           });
+                          _applyAndEmit();
                         },
                       );
                     }).toList(),
@@ -183,6 +193,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                         );
                         if (date != null) {
                           setState(() => _selectedDate = date);
+                          _applyAndEmit();
                         }
                       },
                       child: Text(
@@ -195,31 +206,6 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: EcliniqButton(
-                  type: EcliniqButtonType.brandSecondary,
-                  label: 'Clear',
-                  onPressed: () {
-                    Navigator.pop(context, FilterDoctorsRequest(
-                      latitude: widget.currentFilter.latitude,
-                      longitude: widget.currentFilter.longitude,
-                    ));
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: EcliniqButton(
-                  type: EcliniqButtonType.brandPrimary,
-                  label: 'Apply',
-                  onPressed: _applyFilters,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -237,7 +223,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
     );
   }
 
-  void _applyFilters() {
+  void _applyAndEmit() {
     final city = _cityController.text.trim();
     final distance = double.tryParse(_distanceController.text.trim());
     final experience = _experienceController.text.trim();
@@ -264,6 +250,6 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
       page: 1, // Reset to page 1 on new filter
     );
 
-    Navigator.pop(context, newFilter);
+    widget.onChanged(newFilter);
   }
 }

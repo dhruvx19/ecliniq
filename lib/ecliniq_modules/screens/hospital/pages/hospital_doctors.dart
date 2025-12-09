@@ -48,6 +48,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   String? _errorMessage;
   String _searchQuery = '';
   Timer? _filterDebounceTimer;
+  String? _selectedSortOption;
   
   // Filter state
   List<String>? _selectedSpecialities;
@@ -59,6 +60,93 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     super.initState();
     _fetchDoctors();
     _searchController.addListener(_onSearchChanged);
+  }
+
+  void _applySort() {
+    if (_filteredDoctors.isEmpty || _selectedSortOption == null) return;
+    final option = _selectedSortOption!;
+    int safeCompare<T extends Comparable>(T? a, T? b) {
+      if (a == null && b == null) return 0;
+      if (a == null) return 1;
+      if (b == null) return -1;
+      return a.compareTo(b);
+    }
+
+    double? _computeFee(Doctor d) {
+      if (d.fee != null) return d.fee;
+      double? minFee;
+      for (final h in d.hospitals) {
+        final val = double.tryParse(h.consultationFee ?? '');
+        if (val != null) {
+          if (minFee == null || val < minFee) minFee = val;
+        }
+      }
+      for (final c in d.clinics) {
+        final val = (c is Map && c['consultationFee'] != null)
+            ? (c['consultationFee'] is num
+                ? (c['consultationFee'] as num).toDouble()
+                : double.tryParse(c['consultationFee'].toString()))
+            : null;
+        if (val != null) {
+          if (minFee == null || val < minFee) minFee = val;
+        }
+      }
+      return minFee;
+    }
+
+    double? _computeDistance(Doctor d) {
+      double? minDist;
+      for (final h in d.hospitals) {
+        final val = h.distanceKm;
+        if (val != null) {
+          if (minDist == null || val < minDist) minDist = val;
+        }
+      }
+      for (final c in d.clinics) {
+        final val = (c is Map && c['distance'] != null)
+            ? (c['distance'] is num
+                ? (c['distance'] as num).toDouble()
+                : double.tryParse(c['distance'].toString()))
+            : null;
+        if (val != null) {
+          if (minDist == null || val < minDist) minDist = val;
+        }
+      }
+      return minDist;
+    }
+
+    setState(() {
+      switch (option) {
+        case 'Price: Low - High':
+          _filteredDoctors.sort((a, b) => safeCompare(_computeFee(a), _computeFee(b)));
+          break;
+        case 'Price: High - Low':
+          _filteredDoctors.sort((a, b) => safeCompare(_computeFee(b), _computeFee(a)));
+          break;
+        case 'Experience - Most Experience first':
+          _filteredDoctors.sort((a, b) => safeCompare(b.experience, a.experience));
+          break;
+        case 'Distance - Nearest First':
+          _filteredDoctors.sort((a, b) => safeCompare(_computeDistance(a), _computeDistance(b)));
+          break;
+        case 'Order A-Z':
+          _filteredDoctors.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())) ;
+          break;
+        case 'Order Z-A':
+          _filteredDoctors.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase())) ;
+          break;
+        case 'Rating High - low':
+          _filteredDoctors.sort((a, b) => safeCompare(b.rating, a.rating));
+          break;
+        case 'Rating Low - High':
+          _filteredDoctors.sort((a, b) => safeCompare(a.rating, b.rating));
+          break;
+        case 'Relevance':
+        default:
+          // no-op
+          break;
+      }
+    });
   }
 
   @override
@@ -89,6 +177,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
             qualifications.contains(_searchQuery);
       }).toList();
     }
+    _applySort();
   }
 
   Future<void> _fetchDoctors() async {
@@ -109,6 +198,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
           _filteredDoctors = response.data;
           _isLoading = false;
         });
+        _applySort();
       } else {
         if (mounted) {
           setState(() {
@@ -215,6 +305,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
           _filteredDoctors = convertedDoctors;
           _isLoading = false;
         });
+        _applySort();
       } else {
         if (mounted) {
           setState(() {
@@ -428,7 +519,14 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
             onTap: () {
               EcliniqBottomSheet.show(
                 context: context,
-                child: SortByBottomSheet(),
+                child: SortByBottomSheet(
+                  onChanged: (option) {
+                    setState(() {
+                      _selectedSortOption = option;
+                      _applySort();
+                    });
+                  },
+                ),
               );
             },
           ),
@@ -437,18 +535,26 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
             iconAssetPath:
                 EcliniqIcons.filter.assetPath, 
             label: 'Filters',
-            onTap: () async {
-              final filterData = await EcliniqBottomSheet.show<Map<String, dynamic>>(
+            onTap: () {
+              EcliniqBottomSheet.show(
                 context: context,
-                child: DoctorFilterBottomSheet(),
+                child: DoctorFilterBottomSheet(
+                  onFilterChanged: (filterData) {
+                    setState(() {
+                      _otherFilters = filterData;
+                      final specs = filterData['specialities'];
+                      if (specs is List) {
+                        _selectedSpecialities = specs.cast<String>();
+                      }
+                      final avail = filterData['availability'];
+                      if (avail is String?) {
+                        _selectedAvailability = avail;
+                      }
+                    });
+                    _applyFiltersDebounced();
+                  },
+                ),
               );
-              
-              if (filterData != null) {
-                setState(() {
-                  _otherFilters = filterData;
-                });
-                _applyFiltersDebounced();
-              }
             },
           ),
           const SizedBox(width: 8),

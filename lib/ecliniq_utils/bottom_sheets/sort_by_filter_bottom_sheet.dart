@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SortByBottomSheet extends StatefulWidget {
-  const SortByBottomSheet({super.key});
+  final ValueChanged<String> onChanged;
+
+  const SortByBottomSheet({super.key, required this.onChanged});
 
   @override
   State<SortByBottomSheet> createState() => _SortByBottomSheetState();
@@ -78,6 +80,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
         setState(() {
           selectedSortOption = option;
         });
+        widget.onChanged(option);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),

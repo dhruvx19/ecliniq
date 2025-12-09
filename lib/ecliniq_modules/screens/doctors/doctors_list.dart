@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:ecliniq/ecliniq_api/doctor_service.dart';
 import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
@@ -31,6 +32,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   final Set<String> _pressedButtons = {};
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -71,17 +73,19 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   }
 
   void _openFilter() async {
-    final newFilter = await ecliniq_sheet.EcliniqBottomSheet.show<FilterDoctorsRequest>(
+    ecliniq_sheet.EcliniqBottomSheet.show(
       context: context,
-      child: DoctorFilterBottomSheet(currentFilter: _currentFilter),
+      child: DoctorFilterBottomSheet(
+        currentFilter: _currentFilter,
+        onChanged: (filter) {
+          setState(() {
+            _currentFilter = filter;
+          });
+          _debounce?.cancel();
+          _debounce = Timer(const Duration(milliseconds: 600), _fetchDoctors);
+        },
+      ),
     );
-
-    if (newFilter != null) {
-      setState(() {
-        _currentFilter = newFilter;
-      });
-      _fetchDoctors();
-    }
   }
 
   void _bookClinicVisit(Doctor doctor) async {
@@ -368,7 +372,7 @@ class _BookButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: isPressed
               ? const Color(0xFF0E4395)
-              : EcliniqButtonType.brandPrimary.backgroundColor(context),
+              : const Color(0xFF2372EC),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
           ),

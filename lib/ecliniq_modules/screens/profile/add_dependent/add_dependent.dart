@@ -235,13 +235,15 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
       create: (_) => AddDependentProvider(),
       child: Consumer<AddDependentProvider>(
         builder: (context, provider, child) {
-          return Container(
-            decoration: BoxDecoration(
-              color: EcliniqColors.light.bgBaseOverlay,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Container(
+              decoration: BoxDecoration(
+                color: EcliniqColors.light.bgBaseOverlay,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
               ),
-            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -489,6 +491,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                 ),
                 SizedBox(height: 8),
               ],
+            ),
             ),
           );
         },

@@ -12,8 +12,11 @@ enum EcliniqIcons {
   home('$_base/Home.png'),
   nameLogo('$_base/namelogo.svg'),
   quick1('$_base/Sthethoscope.svg'),
-
+ coinLarge('$_base/CoinLarge.svg'),
+  upcharCoin('$_base/upcharCoinLogo.svg'),
+  upcharCoinSmall('$_base/upcharCoinSmall.svg'),
   bell('$_base/Bell.png'),
+  arrowUp('$_base/Angle Up.svg'),
   microphone('$_base/Microphone.svg'),
   hospitalorange('$_base/HospitalOrange.svg'),
   verify('$_base/Verified Check.png'),

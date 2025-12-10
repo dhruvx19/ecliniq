@@ -111,8 +111,8 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
         ),
       ),
       decoration: BoxDecoration(
-        color: EcliniqColors.light.bgContainerNonInteractiveNeutralExtraSubtle,
-        borderRadius: BorderRadius.circular(12),
+        color: Color(0xffF9F9F9),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
         padding: EdgeInsets.all(

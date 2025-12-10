@@ -10,12 +10,14 @@ import 'package:ecliniq/ecliniq_modules/screens/profile/security_settings/securi
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/account_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/basic_info.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/dependent.dart';
+import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/feedback_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/more_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/notification_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/physical_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/user_info.dart'
     hide BasicInfoCards, ProfileHeader;
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigation.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
@@ -655,6 +657,12 @@ extension _ProfilePageContent on _ProfilePageState {
             onPrivacyPressed: () {},
             onFaqPressed: () {},
             onAboutPressed: () {},
+            onFeedbackPressed: () {
+              EcliniqBottomSheet.show(
+                context: context,
+                child: FeedbackBottomSheet(),
+              );
+            },
             onLogoutPressed: () {
               showDialog(
                 context: context,

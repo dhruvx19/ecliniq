@@ -11,6 +11,7 @@ class MoreSettingsMenuWidget extends StatelessWidget {
   final VoidCallback? onFaqPressed;
   final VoidCallback? onAboutPressed;
   final VoidCallback? onLogoutPressed;
+  final VoidCallback? onFeedbackPressed;
   final VoidCallback? onDeleteAccountPressed;
   final String appVersion;
   final String supportEmail;
@@ -25,6 +26,7 @@ class MoreSettingsMenuWidget extends StatelessWidget {
     this.onAboutPressed,
     this.onLogoutPressed,
     this.onDeleteAccountPressed,
+    this.onFeedbackPressed,
     this.appVersion = 'v1.0.0',
     this.supportEmail = 'Support@eclinicq.com',
   });
@@ -102,7 +104,7 @@ class MoreSettingsMenuWidget extends StatelessWidget {
           _MoreMenuItem(
             icon: EcliniqIcons.like.assetPath,
             title: 'Send feedback',
-            onTap: onAboutPressed,
+            onTap: onFeedbackPressed,
           ),
 
           _buildDivider(),
@@ -113,40 +115,6 @@ class MoreSettingsMenuWidget extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: GestureDetector(
-              onTap: onDeleteAccountPressed,
-              child: Container(
-                width: 396,
-                height: 52,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.red.withOpacity(0.3),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Delete Account',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
 
           const SizedBox(height: 30),
 

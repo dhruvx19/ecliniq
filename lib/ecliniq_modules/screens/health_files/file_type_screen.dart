@@ -11,6 +11,8 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/health_files/delete_file_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/health_files/health_files_filter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path/path.dart' as path;
@@ -203,10 +205,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   void _showFilterBottomSheet() {
     EcliniqBottomSheet.show<String>(
       context: context,
-      child: _FilterBottomSheet(
-        options: _recordForOptions,
-        selectedOption: _selectedRecordFor ?? 'All',
-      ),
+      child: HealthFilesFilter(),
     ).then((selected) {
       if (selected != null) {
         setState(() {
@@ -225,7 +224,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
         },
         onDownloadDocument: () => _handleFileDownload(file),
-        onDeleteDocument: () => _handleFileDelete(file),
+        onDeleteDocument: () => EcliniqBottomSheet.show(
+          context: context,
+          child: DeleteFileBottomSheet(),
+        ),
       ),
     );
   }
@@ -237,41 +239,41 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     return Column(
       children: [
         Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+          height: 50,
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               children: allTabs.asMap().entries.map((entry) {
                 final index = entry.key;
                 final fileType = entry.value;
-          final isSelected = fileType == _selectedFileType;
+                final isSelected = fileType == _selectedFileType;
                 final displayName = fileType == null
                     ? 'All'
                     : fileType.displayName;
 
-          return GestureDetector(
-            onTap: () => _onFileTypeSelected(fileType),
+                return GestureDetector(
+                  onTap: () => _onFileTypeSelected(fileType),
                   child: Padding(
                     padding: EdgeInsets.only(
                       right: index < allTabs.length - 1 ? 16.0 : 0,
                     ),
-            child: Container(
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 4,
-              ),
+                      ),
                       child: Text(
-                    displayName,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      color: isSelected
-                          ? const Color(0xFF2372EC)
-                          : const Color(0xFF626060),
-                    ),
-                  ),
+                        displayName,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: isSelected
+                              ? const Color(0xFF2372EC)
+                              : const Color(0xFF626060),
+                        ),
+                      ),
                     ),
                   ),
                 );
@@ -283,23 +285,19 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         Stack(
           children: [
             // Divider for the whole row
-            const Divider(
-              height: 1,
-              thickness: 1,
-              color: Color(0xFFB8B8B8),
-            ),
+            const Divider(height: 1, thickness: 1, color: Color(0xFFB8B8B8)),
             // Blue container for selected tab, positioned to overlay divider
             if (selectedIndex != -1)
               Positioned(
                 bottom: 0,
                 left: _calculateSelectedTabLeftPosition(selectedIndex, allTabs),
                 child: Container(
-                      height: 3,
-                      width: 120,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2372EC),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+                  height: 3,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2372EC),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
           ],
@@ -312,7 +310,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     int selectedIndex,
     List<HealthFileType?> allTabs,
   ) {
-    double position = 16.0; 
+    double position = 16.0;
 
     for (int i = 0; i < selectedIndex; i++) {
       final tab = allTabs[i];
@@ -322,10 +320,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     }
 
     final selectedTab = allTabs[selectedIndex];
-    final selectedDisplayName = selectedTab == null ? 'All' : selectedTab.displayName;
+    final selectedDisplayName = selectedTab == null
+        ? 'All'
+        : selectedTab.displayName;
     final selectedTextWidth = selectedDisplayName.length * 10.0;
-    final selectedTabWidth = selectedTextWidth + 32.0; 
-    position += (selectedTabWidth - 120) / 2; 
+    final selectedTabWidth = selectedTextWidth + 32.0;
+    position += (selectedTabWidth - 120) / 2;
 
     return position;
   }

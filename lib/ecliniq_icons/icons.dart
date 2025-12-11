@@ -157,6 +157,7 @@ enum EcliniqIcons {
   faceId('$_base/Face Scan Square.svg'),
   notificationBell('$_base/Bell.svg'),
   hospitalBuilding('$_base/Hospital_1.svg'),
+  deleteFile('$_base/Clip path group.svg'),
   requestedIcon('$_base/Diploma Verified.svg');
 
   //speciality

@@ -1,5 +1,6 @@
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/search_specialities/search_specialities_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -66,7 +67,9 @@ class MostSearchedSpecialities extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    EcliniqRouter.push(SearchSpecialities());
+                  },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     minimumSize: Size.zero,

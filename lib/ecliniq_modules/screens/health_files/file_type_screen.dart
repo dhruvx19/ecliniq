@@ -21,7 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 class FileTypeScreen extends StatefulWidget {
-  final HealthFileType? fileType; // null means "All"
+  final HealthFileType? fileType;
 
   const FileTypeScreen({super.key, this.fileType});
 
@@ -30,9 +30,16 @@ class FileTypeScreen extends StatefulWidget {
 }
 
 class _FileTypeScreenState extends State<FileTypeScreen> {
-  String? _selectedRecordFor; // null means "All"
+  String? _selectedRecordFor;
   final List<String> _recordForOptions = ['All'];
-  HealthFileType? _selectedFileType; // null means "All"
+  HealthFileType? _selectedFileType;
+
+  // Selection mode state
+  bool _isSelectionMode = false;
+  final Set<String> _selectedFileIds = {};
+
+  // ScrollController for syncing tab indicator
+  final ScrollController _tabScrollController = ScrollController();
 
   @override
   void initState() {
@@ -44,6 +51,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         _updateRecordForOptions();
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _tabScrollController.dispose();
+    super.dispose();
   }
 
   void _updateRecordForOptions() {
@@ -59,9 +72,123 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   void _onFileTypeSelected(HealthFileType? fileType) {
     setState(() {
       _selectedFileType = fileType;
-      _selectedRecordFor = null; // Reset filter when changing type
+      _selectedRecordFor = null;
     });
     _updateRecordForOptions();
+  }
+
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      if (!_isSelectionMode) {
+        _selectedFileIds.clear();
+      }
+    });
+  }
+
+  void _toggleFileSelection(HealthFile file) {
+    setState(() {
+      if (_selectedFileIds.contains(file.id)) {
+        _selectedFileIds.remove(file.id);
+      } else {
+        _selectedFileIds.add(file.id);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedFileIds.clear();
+    });
+  }
+
+  Future<void> _handleBulkDelete(List<HealthFile> files) async {
+    if (_selectedFileIds.isEmpty) return;
+
+    final confirmed = await EcliniqBottomSheet.show<bool>(
+      context: context,
+      child: const DeleteFileBottomSheet(),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        final provider = context.read<HealthFilesProvider>();
+        int successCount = 0;
+
+        final filesToDelete = files
+            .where((f) => _selectedFileIds.contains(f.id))
+            .toList();
+
+        for (final file in filesToDelete) {
+          final success = await provider.deleteFile(file);
+          if (success) successCount++;
+        }
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$successCount file(s) deleted successfully'),
+            backgroundColor: Colors.green,
+            dismissDirection: DismissDirection.horizontal,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        _clearSelection();
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting files: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            dismissDirection: DismissDirection.horizontal,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleBulkDownload(List<HealthFile> files) async {
+    if (_selectedFileIds.isEmpty) return;
+
+    try {
+      int successCount = 0;
+
+      final filesToDownload = files
+          .where((f) => _selectedFileIds.contains(f.id))
+          .toList();
+
+      for (final file in filesToDownload) {
+        await _handleFileDownload(file, showSnackbar: false);
+        successCount++;
+      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$successCount file(s) downloaded successfully'),
+          backgroundColor: Colors.green,
+          dismissDirection: DismissDirection.horizontal,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      _clearSelection();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error downloading files: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          dismissDirection: DismissDirection.horizontal,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   Future<void> _handleFileDelete(HealthFile file) async {
@@ -90,10 +217,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         final success = await provider.deleteFile(file);
 
         if (!mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'File deleted successfully' : 'Failed to delete file'),
+            content: Text(
+              success ? 'File deleted successfully' : 'Failed to delete file',
+            ),
             backgroundColor: success ? Colors.green : Colors.red,
             dismissDirection: DismissDirection.horizontal,
             duration: const Duration(seconds: 2),
@@ -113,12 +242,15 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     }
   }
 
-  Future<void> _handleFileDownload(HealthFile file) async {
+  Future<void> _handleFileDownload(
+    HealthFile file, {
+    bool showSnackbar = true,
+  }) async {
     try {
       final sourceFile = File(file.filePath);
-      
+
       if (!await sourceFile.exists()) {
-        if (!mounted) return;
+        if (!mounted || !showSnackbar) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('File not found in storage'),
@@ -134,22 +266,22 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         try {
           final directory = Directory('/storage/emulated/0/Download');
           Directory targetDir = directory;
-          
+
           if (!await directory.exists()) {
             final externalDir = await getExternalStorageDirectory();
             if (externalDir == null) {
               throw Exception('Unable to access storage directory');
             }
-            
+
             targetDir = Directory(path.join(externalDir.path, 'Download'));
             if (!await targetDir.exists()) {
               await targetDir.create(recursive: true);
             }
           }
-          
+
           String fileName = file.fileName;
           File destFile = File(path.join(targetDir.path, fileName));
-          
+
           int counter = 1;
           while (await destFile.exists()) {
             final nameWithoutExt = path.basenameWithoutExtension(fileName);
@@ -158,24 +290,26 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             destFile = File(path.join(targetDir.path, fileName));
             counter++;
           }
-          
+
           await sourceFile.copy(destFile.path);
 
           if (!mounted) return;
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('File downloaded to: ${targetDir.path}'),
-              backgroundColor: Colors.green,
-              dismissDirection: DismissDirection.horizontal,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-          
+
+          if (showSnackbar) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('File downloaded to: ${targetDir.path}'),
+                backgroundColor: Colors.green,
+                dismissDirection: DismissDirection.horizontal,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
           return;
         } catch (e) {
-          if (!mounted) return;
+          if (!mounted || !showSnackbar) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Download failed: ${e.toString()}'),
@@ -190,7 +324,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
       await _shareFile(file);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || !showSnackbar) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to download file: ${e.toString()}'),
@@ -267,17 +401,21 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             context: context,
             child: const DeleteFileBottomSheet(),
           );
-          
+
           if (confirmed == true && mounted) {
             try {
               final provider = context.read<HealthFilesProvider>();
               final success = await provider.deleteFile(file);
-              
+
               if (!mounted) return;
-              
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(success ? 'File deleted successfully' : 'Failed to delete file'),
+                  content: Text(
+                    success
+                        ? 'File deleted successfully'
+                        : 'Failed to delete file',
+                  ),
                   backgroundColor: success ? Colors.green : Colors.red,
                   dismissDirection: DismissDirection.horizontal,
                   duration: const Duration(seconds: 2),
@@ -302,14 +440,13 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
   Widget _buildFileTypeTabs() {
     final allTabs = <HealthFileType?>[null, ...HealthFileType.values];
-    final selectedIndex = allTabs.indexOf(_selectedFileType);
 
     return Column(
       children: [
-        Container(
+        SizedBox(
           height: 50,
-          padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: SingleChildScrollView(
+            controller: _tabScrollController,
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
@@ -323,25 +460,40 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
                 return GestureDetector(
                   onTap: () => _onFileTypeSelected(fileType),
-                  child: Padding(
-                    padding: EdgeInsets.only(
+                  child: Container(
+                    margin: EdgeInsets.only(
                       right: index < allTabs.length - 1 ? 16.0 : 0,
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        displayName,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
-                          color: isSelected
-                              ? const Color(0xFF2372EC)
-                              : const Color(0xFF626060),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
+                          child: Text(
+                            displayName,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: isSelected
+                                  ? const Color(0xFF2372EC)
+                                  : const Color(0xFF626060),
+                            ),
+                          ),
                         ),
-                      ),
+                        Container(
+                          height: 3,
+                          width: displayName.length * 10.0 + 16,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFF2372EC)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -349,53 +501,99 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             ),
           ),
         ),
-        // Stack to overlay blue container on divider
-        Stack(
-          children: [
-            // Divider for the whole row
-            const Divider(height: 1, thickness: 1, color: Color(0xFFB8B8B8)),
-            // Blue container for selected tab, positioned to overlay divider
-            if (selectedIndex != -1)
-              Positioned(
-                bottom: 0,
-                left: _calculateSelectedTabLeftPosition(selectedIndex, allTabs),
-                child: Container(
-                  height: 3,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2372EC),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        const Divider(height: 1, thickness: 1, color: Color(0xFFB8B8B8)),
       ],
     );
   }
 
-  double _calculateSelectedTabLeftPosition(
-    int selectedIndex,
-    List<HealthFileType?> allTabs,
-  ) {
-    double position = 16.0;
+  Widget _buildSelectionBottomBar(List<HealthFile> files) {
+    final hasSelection = _selectedFileIds.isNotEmpty;
 
-    for (int i = 0; i < selectedIndex; i++) {
-      final tab = allTabs[i];
-      final displayName = tab == null ? 'All' : tab.displayName;
-      final textWidth = displayName.length * 10.0;
-      position += textWidth + 32.0 + 16.0;
-    }
-
-    final selectedTab = allTabs[selectedIndex];
-    final selectedDisplayName = selectedTab == null
-        ? 'All'
-        : selectedTab.displayName;
-    final selectedTextWidth = selectedDisplayName.length * 10.0;
-    final selectedTabWidth = selectedTextWidth + 32.0;
-    position += (selectedTabWidth - 120) / 2;
-
-    return position;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: hasSelection
+                    ? const Color(0xFF2372EC).withOpacity(0.2)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: hasSelection
+                      ? const Color(0xFF2372EC)
+                      : const Color(0xFFB8B8B8),
+                  width: 1.5,
+                ),
+              ),
+              child: hasSelection
+                  ? const Icon(Icons.remove, size: 16, color: Color(0xFF2372EC))
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '${_selectedFileIds.length} Files Selected',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF424242),
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              onPressed: hasSelection ? () => _handleBulkDownload(files) : null,
+              icon: Icon(
+                Icons.download_outlined,
+                color: hasSelection
+                    ? const Color(0xFF424242)
+                    : const Color(0xFFB8B8B8),
+                size: 24,
+              ),
+            ),
+            IconButton(
+              onPressed: hasSelection ? () => _handleBulkDelete(files) : null,
+              icon: Icon(
+                Icons.delete_outline,
+                color: hasSelection ? Colors.red : const Color(0xFFB8B8B8),
+                size: 24,
+              ),
+            ),
+            IconButton(
+              onPressed: _clearSelection,
+              icon: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF424242),
+                    width: 1.5,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Color(0xFF424242),
+                  size: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -436,104 +634,184 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildFileTypeTabs(),
+      body: Consumer<HealthFilesProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return Column(
+              children: [
+                _buildFileTypeTabs(),
+                const Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            );
+          }
 
-          Expanded(
-            child: Consumer<HealthFilesProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          final files = provider.getFilesByType(
+            _selectedFileType,
+            recordFor: _selectedRecordFor,
+          );
 
-                final files = provider.getFilesByType(
-                  _selectedFileType,
-                  recordFor: _selectedRecordFor,
-                );
-
-                if (files.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 12.0,
-                      ),
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: _showFilterBottomSheet,
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(
-                                  EcliniqIcons.filter.assetPath,
-                                  width: 24,
-                                  height: 24,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Filters',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Color(0xFF424242),
-                                    fontWeight: FontWeight.w400,
+          return Column(
+            children: [
+              _buildFileTypeTabs(),
+              if (files.isEmpty)
+                const Expanded(child: SizedBox.shrink())
+              else
+                Expanded(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12.0,
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: _showFilterBottomSheet,
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    EcliniqIcons.filter.assetPath,
+                                    width: 24,
+                                    height: 24,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Filters',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Color(0xFF424242),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  SvgPicture.asset(
+                                    EcliniqIcons.arrowDown.assetPath,
+                                    width: 24,
+                                    height: 24,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: _toggleSelectionMode,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: _isSelectionMode
+                                      ? const Color(0xFF2372EC).withOpacity(0.1)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: _isSelectionMode
+                                        ? const Color(0xFF2372EC)
+                                        : const Color(0xFFB8B8B8),
+                                    width: 1,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                SvgPicture.asset(
-                                  EcliniqIcons.arrowDown.assetPath,
-                                  width: 24,
-                                  height: 24,
+                                child: Icon(
+                                  _isSelectionMode
+                                      ? Icons.check_box
+                                      : Icons.check_box_outline_blank,
+                                  size: 20,
+                                  color: _isSelectionMode
+                                      ? const Color(0xFF2372EC)
+                                      : const Color(0xFF424242),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${files.length} ${files.length == 1 ? 'File' : 'Files'}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF424242),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          itemCount: files.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final file = files[index];
+                            final isSelected = _selectedFileIds.contains(
+                              file.id,
+                            );
+
+                            return Row(
+                              children: [
+                                if (_isSelectionMode) ...[
+                                  GestureDetector(
+                                    onTap: () => _toggleFileSelection(file),
+                                    child: Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? const Color(0xFF2372EC)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? const Color(0xFF2372EC)
+                                              : const Color(0xFFB8B8B8),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: isSelected
+                                          ? const Icon(
+                                              Icons.check,
+                                              size: 16,
+                                              color: Colors.white,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                ],
+                                Expanded(
+                                  child: PrescriptionCardList(
+                                    file: file,
+                                    isOlder: false,
+                                    onTap: () {
+                                      if (_isSelectionMode) {
+                                        _toggleFileSelection(file);
+                                      } else {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                _FileViewerScreen(file: file),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    onMenuTap: _isSelectionMode
+                                        ? null
+                                        : () => _showFileActions(file),
+                                  ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${files.length} ${files.length == 1 ? 'File' : 'Files'}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF424242),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        itemCount: files.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          return PrescriptionCardList(
-                            file: files[index],
-                            isOlder: false,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      _FileViewerScreen(file: files[index]),
-                                ),
-                              );
-                            },
-                            onMenuTap: () => _showFileActions(files[index]),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
+                    ],
+                  ),
+                ),
+              if (_isSelectionMode) _buildSelectionBottomBar(files),
+            ],
+          );
+        },
       ),
     );
   }

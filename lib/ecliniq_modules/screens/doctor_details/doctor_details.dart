@@ -4,6 +4,7 @@ import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/doctor_details/branches/branches.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/about_doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/address_doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/common_widget.dart';
@@ -296,20 +297,62 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   }
 
   Widget _buildHeaderImage(String? imageUrl) {
+    final String? imageUrlToUse = imageUrl != null && imageUrl.isNotEmpty
+        ? _getImageUrl(imageUrl)
+        : null;
+
     return Container(
       height: 280,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(
-            imageUrl != null
-                ? _getImageUrl(imageUrl)
-                : 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
-          ),
-          fit: BoxFit.cover,
-        ),
-      ),
+      color: Colors.grey[200], // Fallback background color
       child: Stack(
         children: [
+          // Image with error handling or default SVG
+          Positioned.fill(
+            child: imageUrlToUse != null
+                ? Image.network(
+                    imageUrlToUse,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Show default SVG placeholder on error
+                      return Container(
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: SvgPicture.asset(
+                            EcliniqIcons.doctorDefault.assetPath,
+                            width: 100,
+                            height: 100,
+                          ),
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : Container(
+                    // Show default SVG when no image URL
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: SvgPicture.asset(
+                        EcliniqIcons.doctorDefault.assetPath,
+                        width: 100,
+                        height: 100,
+                      ),
+                    ),
+                  ),
+          ),
+          // Navigation buttons
           Positioned(
             top: 50,
             left: 16,
@@ -341,15 +384,9 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withOpacity(0.5),
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          
         ),
         child: Icon(icon, size: 20),
       ),
@@ -376,7 +413,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height:4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -391,7 +428,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             ],
           ),
           if (education.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               education,
               style: TextStyle(
@@ -502,8 +539,8 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
   Widget _buildFloatingTabSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 48),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 90),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
       decoration: BoxDecoration(
         color: const Color(0x80000000),
         borderRadius: BorderRadius.circular(30),
@@ -512,8 +549,12 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildTab('Details', true),
-          _buildTab('Reviews', false),
-          _buildTab('Branches', false),
+          GestureDetector(
+            child: _buildTab('Branches', false),
+            onTap: () {
+              EcliniqRouter.push(Branches());
+            },
+          ),
         ],
       ),
     );
@@ -577,15 +618,17 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header image shimmer
-              ShimmerLoading(
-                height: 280,
-                borderRadius: BorderRadius.zero,
-              ),
+              ShimmerLoading(height: 280, borderRadius: BorderRadius.zero),
               const SizedBox(height: 16),
               // Doctor info section shimmer
               Container(
                 color: Colors.white,
-                padding: const EdgeInsets.only(top: 80, left: 16, right: 16, bottom: 24),
+                padding: const EdgeInsets.only(
+                  top: 80,
+                  left: 16,
+                  right: 16,
+                  bottom: 24,
+                ),
                 child: Column(
                   children: [
                     // Profile picture shimmer (circular)

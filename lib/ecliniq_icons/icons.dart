@@ -12,7 +12,7 @@ enum EcliniqIcons {
   home('$_base/Home.png'),
   nameLogo('$_base/namelogo.svg'),
   quick1('$_base/Sthethoscope.svg'),
- coinLarge('$_base/CoinLarge.svg'),
+  coinLarge('$_base/CoinLarge.svg'),
   upcharCoin('$_base/upcharCoinLogo.svg'),
   upcharCoinSmall('$_base/upcharCoinSmall.svg'),
   bell('$_base/Bell.png'),
@@ -158,6 +158,7 @@ enum EcliniqIcons {
   notificationBell('$_base/Bell.svg'),
   hospitalBuilding('$_base/Hospital_1.svg'),
   deleteFile('$_base/Clip path group.svg'),
+  doctorDefault('$_base/doctor_default.svg'),
   requestedIcon('$_base/Diploma Verified.svg');
 
   //speciality

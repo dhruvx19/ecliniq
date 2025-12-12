@@ -661,6 +661,7 @@ class DoctorDetails {
   final List<CertificateAndAccreditation>? certificatesAndAccreditations;
   final List<Experience>? experiences;
   final List<Publication>? publications;
+  final bool isFavourite;
 
   DoctorDetails({
     required this.userId,
@@ -681,6 +682,7 @@ class DoctorDetails {
     this.certificatesAndAccreditations,
     this.experiences,
     this.publications,
+    this.isFavourite = false,
   });
 
   factory DoctorDetails.fromJson(Map<String, dynamic> json) {
@@ -721,6 +723,7 @@ class DoctorDetails {
       publications: (json['publications'] as List<dynamic>?)
           ?.map((item) => Publication.fromJson(item))
           .toList(),
+      isFavourite: json['isFavourite'] ?? false,
     );
   }
 }

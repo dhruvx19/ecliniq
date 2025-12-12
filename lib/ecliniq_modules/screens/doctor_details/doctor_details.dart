@@ -1,4 +1,5 @@
 import 'package:ecliniq/ecliniq_api/doctor_service.dart';
+import 'package:ecliniq/ecliniq_api/patient_service.dart';
 import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
@@ -29,9 +30,12 @@ class DoctorDetailScreen extends StatefulWidget {
 
 class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   final DoctorService _doctorService = DoctorService();
+  final PatientService _patientService = PatientService();
   DoctorDetails? _doctorDetails;
   bool _isLoading = true;
   String? _errorMessage;
+  bool _isFavourite = false;
+  bool _isFavLoading = false;
 
   @override
   void initState() {
@@ -59,6 +63,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       if (response.success && response.data != null) {
         setState(() {
           _doctorDetails = response.data;
+          _isFavourite = _doctorDetails!.isFavourite;
           _isLoading = false;
         });
       } else {
@@ -73,6 +78,73 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
         _isLoading = false;
         _errorMessage = 'Failed to load doctor details: $e';
       });
+    }
+  }
+
+  Future<void> _toggleFavourite() async {
+    if (_isFavLoading || _doctorDetails == null) return;
+
+    setState(() {
+      _isFavLoading = true;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authToken = authProvider.authToken;
+
+      if (_isFavourite) {
+        // Remove
+        await _patientService.removeFavouriteDoctor(
+          authToken: authToken,
+          doctorId: widget.doctorId,
+        );
+        setState(() {
+          _isFavourite = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Favourite doctor removed successfully'),
+              dismissDirection: DismissDirection.horizontal,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } else {
+        // Add
+        await _patientService.addFavouriteDoctor(
+          authToken: authToken,
+          doctorId: widget.doctorId,
+        );
+        setState(() {
+          _isFavourite = true;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Favourite doctor added successfully'),
+              dismissDirection: DismissDirection.horizontal,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update favourite status'),
+            dismissDirection: DismissDirection.horizontal,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFavLoading = false;
+        });
+      }
     }
   }
 
@@ -370,7 +442,11 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                 _buildCircleButton(EcliniqIcons.arrowLeft, () => EcliniqRouter.pop()),
                 Row(
                   children: [
-                    _buildCircleButton(EcliniqIcons.heartUnfilled, () {}),
+                    _buildCircleButton(
+                        _isFavourite
+                            ? EcliniqIcons.heart
+                            : EcliniqIcons.heartUnfilled,
+                        _toggleFavourite),
                     const SizedBox(width: 8),
                     _buildCircleButton(EcliniqIcons.share, () {}),
                   ],

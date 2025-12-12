@@ -40,6 +40,9 @@ class Endpoints {
   static String get getFavouriteDoctors => '$localhost/api/patients/get-favourite-doctors';
   static String doctorDetailsById(String doctorId) => '$localhost/api/doctors/doctorDetailsByIdByPatient/$doctorId';
 
+  static String addFavouriteDoctor(String doctorId) => '$localhost/api/patients/add-favourite-doctor/$doctorId';
+  static String removeFavouriteDoctor(String doctorId) => '$localhost/api/patients/remove-favourite-doctor/$doctorId';
+
   static String get registerDeviceToken => '$localhost/api/device-tokens/register';
 
   // Change contact endpoints (4-step flow)

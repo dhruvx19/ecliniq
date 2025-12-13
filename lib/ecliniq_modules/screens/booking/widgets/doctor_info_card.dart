@@ -6,8 +6,23 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class DoctorInfoCard extends StatelessWidget {
   final Doctor? doctor;
+  final String? doctorName;
+  final String? specialization;
+  final String? locationName;
+  final String? locationAddress;
+  final String? locationDistance;
+  final VoidCallback? onChangeLocation;
 
-  const DoctorInfoCard({super.key, this.doctor});
+  const DoctorInfoCard({
+    super.key, 
+    this.doctor,
+    this.doctorName,
+    this.specialization,
+    this.locationName,
+    this.locationAddress,
+    this.locationDistance,
+    this.onChangeLocation,
+  });
 
   static final Color _borderColor = const Color(0xFF1565C0).withOpacity(0.2);
 
@@ -58,7 +73,7 @@ class DoctorInfoCard extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            doctor != null ? _getInitials(doctor!.name) : 'M',
+                            _getInitials(doctor?.name ?? doctorName ?? 'M'),
                             style: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.w600,
@@ -84,7 +99,7 @@ class DoctorInfoCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          doctor?.name ?? 'Dr. Milind Chauhan',
+                          doctor?.name ?? doctorName ?? 'Dr. Milind Chauhan',
                           style: EcliniqTextStyles.headlineLarge.copyWith(
                             color: Color(0xff424242),
                           ),
@@ -93,7 +108,7 @@ class DoctorInfoCard extends StatelessWidget {
                         Text(
                           doctor != null
                               ? _getSpecializations(doctor!.specializations)
-                              : 'General Physician',
+                              : specialization ?? 'General Physician',
                           style: EcliniqTextStyles.titleXLarge.copyWith(
                             color: Color(0xff424242),
                           ),
@@ -209,8 +224,8 @@ class DoctorInfoCard extends StatelessWidget {
                     height: 24,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Sunrise Family Clinic',
+                    Text(
+                    locationName ?? 'Sunrise Family Clinic',
                     style: EcliniqTextStyles.titleXLarge.copyWith(
                       color: Color(0xff626060),
                     ),
@@ -221,7 +236,7 @@ class DoctorInfoCard extends StatelessWidget {
                   Row(
                     children: [
                       GestureDetector(
-                        onTap: () {},
+                        onTap: onChangeLocation,
                         child: const Text(
                           'Change',
                           style: TextStyle(
@@ -242,43 +257,49 @@ class DoctorInfoCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    EcliniqIcons.mapPoint.assetPath,
-                    width: 24,
-                    height: 24,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Vishnu Dev Nagar, Wakad',
-                    style: EcliniqTextStyles.titleXLarge.copyWith(
-                      color: Color(0xff626060),
+              if (locationAddress != null)
+                Row(
+                  children: [
+                    SvgPicture.asset(
+                      EcliniqIcons.mapPoint.assetPath,
+                      width: 24,
+                      height: 24,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Color(0xffB8B8B8)),
-                    ),
-
-                    child: Text(
-                      '4 Km',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xff424242),
-                        fontWeight: FontWeight.w400,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        locationAddress!,
+                        style: EcliniqTextStyles.titleXLarge.copyWith(
+                          color: Color(0xff626060),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    if (locationDistance != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Color(0xffB8B8B8)),
+                        ),
+                        child: Text(
+                          '$locationDistance Km',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color(0xff424242),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
             ],
           ),
         ),

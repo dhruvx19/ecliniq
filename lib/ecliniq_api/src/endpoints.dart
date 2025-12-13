@@ -39,6 +39,7 @@ class Endpoints {
   static String get getDependents => '$localhost/api/patients/get-dependents';
   static String get getFavouriteDoctors => '$localhost/api/patients/get-favourite-doctors';
   static String doctorDetailsById(String doctorId) => '$localhost/api/doctors/doctorDetailsByIdByPatient/$doctorId';
+  static String doctorDetailsForBooking(String doctorId) => '$localhost/api/doctors/doctorDetailsForBooking/$doctorId';
 
   static String addFavouriteDoctor(String doctorId) => '$localhost/api/patients/add-favourite-doctor/$doctorId';
   static String removeFavouriteDoctor(String doctorId) => '$localhost/api/patients/remove-favourite-doctor/$doctorId';

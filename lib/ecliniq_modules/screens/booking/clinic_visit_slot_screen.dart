@@ -1,3 +1,6 @@
+import 'package:ecliniq/ecliniq_api/doctor_service.dart';
+import 'package:ecliniq/ecliniq_api/models/doctor.dart';
+import 'package:ecliniq/ecliniq_api/models/doctor_booking_response.dart';
 import 'package:ecliniq/ecliniq_api/models/slot.dart';
 import 'package:ecliniq/ecliniq_api/slot_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
@@ -5,6 +8,7 @@ import 'package:ecliniq/ecliniq_modules/screens/booking/review_details_screen.da
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/date_selector.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/time_slot_card.dart';
+import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_location_change_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart'
     hide DoctorInfoCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
@@ -45,6 +49,7 @@ class ClinicVisitSlotScreen extends StatefulWidget {
 
 class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   final SlotService _slotService = SlotService();
+  final DoctorService _doctorService = DoctorService();
 
   String? selectedSlot;
   String selectedDateLabel = 'Today';
@@ -59,12 +64,23 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   Map<String, List<Slot>> _groupedSlots = {};
   Map<DateTime, int> _weeklyTokenCounts = {}; // Map of date to token count
 
+  String? _selectedHospitalId;
+  String? _selectedClinicId;
+
+  Doctor? _doctor;
+  String? _currentLocationName;
+  String? _currentLocationAddress;
+  String? _currentDistance;
+
   @override
   void initState() {
     super.initState();
+    _selectedHospitalId = widget.hospitalId;
+    _selectedClinicId = widget.clinicId;
     _initializeDates();
     _fetchWeeklySlots();
     _fetchSlots();
+    _fetchDoctorDetails();
   }
 
   void _initializeDates() {
@@ -119,8 +135,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     try {
       final response = await _slotService.findWeeklySlots(
         doctorId: widget.doctorId,
-        hospitalId: widget.hospitalId,
-        clinicId: widget.clinicId,
+        hospitalId: _selectedHospitalId,
+        clinicId: _selectedClinicId,
       );
 
       if (mounted) {
@@ -165,8 +181,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     try {
       final response = await _slotService.findSlotsByDoctorAndDate(
         doctorId: widget.doctorId,
-        hospitalId: widget.hospitalId,
-        clinicId: widget.clinicId,
+        hospitalId: _selectedHospitalId,
+        clinicId: _selectedClinicId,
         date: _formatDateForApi(selectedDate!),
       );
 
@@ -350,10 +366,10 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           // Use hospitalId/clinicId from slot if available, otherwise fallback to widget values
           final hospitalIdFromSlot = slot.hospitalId.isNotEmpty
               ? slot.hospitalId
-              : widget.hospitalId;
+              : _selectedHospitalId;
           final clinicIdFromSlot = slot.clinicId != null && slot.clinicId!.isNotEmpty
               ? slot.clinicId
-              : widget.clinicId;
+              : _selectedClinicId;
 
           Navigator.push(
             context,
@@ -408,6 +424,115 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  Future<void> _fetchDoctorDetails() async {
+    try {
+      final response = await _doctorService.getDoctorDetailsForBooking(
+        doctorId: widget.doctorId,
+      );
+
+      if (mounted && response.success && response.data != null) {
+        setState(() {
+          _doctor = response.data;
+          _updateCurrentLocationDetails();
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch doctor details: $e');
+    }
+  }
+
+  void _updateCurrentLocationDetails() {
+    if (_doctor == null) return;
+
+    if (_selectedHospitalId != null) {
+      final hospital = _doctor!.hospitals.firstWhere(
+        (h) => h.id == _selectedHospitalId,
+        orElse: () => _doctor!.hospitals.isNotEmpty 
+            ? _doctor!.hospitals.first 
+            : DoctorHospital(id: '', name: ''),
+      );
+      if (hospital.id.isNotEmpty) {
+        _currentLocationName = hospital.name;
+        _currentLocationAddress = '${hospital.city ?? ""}, ${hospital.state ?? ""}';
+        _currentDistance = hospital.distance?.toStringAsFixed(1);
+      }
+    } else if (_selectedClinicId != null) {
+      final clinic = _doctor!.clinics.firstWhere(
+        (c) => c.id == _selectedClinicId,
+        orElse: () => _doctor!.clinics.isNotEmpty 
+            ? _doctor!.clinics.first 
+            : DoctorClinic(id: '', name: ''),
+      );
+      if (clinic.id.isNotEmpty) {
+        _currentLocationName = clinic.name;
+        _currentLocationAddress = '${clinic.city ?? ""}, ${clinic.state ?? ""}';
+        _currentDistance = clinic.distance?.toStringAsFixed(1);
+      }
+    }
+  }
+
+  void _onChangeLocation() async {
+    if (_doctor == null) return;
+
+    final List<DoctorLocationOption> options = [];
+
+    for (var clinic in _doctor!.clinics) {
+      options.add(
+        DoctorLocationOption(
+          id: clinic.id,
+          name: clinic.name,
+          address: '${clinic.city ?? ""}, ${clinic.state ?? ""}',
+          type: 'Clinic',
+          distance: clinic.distance?.toStringAsFixed(1),
+        ),
+      );
+    }
+
+    for (var hospital in _doctor!.hospitals) {
+      options.add(
+        DoctorLocationOption(
+          id: hospital.id,
+          name: hospital.name,
+          address: '${hospital.city ?? ""}, ${hospital.state ?? ""}',
+          type: 'Hospital',
+          distance: hospital.distance?.toStringAsFixed(1),
+        ),
+      );
+    }
+
+    final selected = await showModalBottomSheet<DoctorLocationOption>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DoctorLocationChangeSheet(
+        doctorName: _doctor!.name,
+        locations: options,
+        selectedLocationId: _selectedHospitalId ?? _selectedClinicId,
+      ),
+    );
+
+    if (selected != null) {
+      setState(() {
+        if (selected.type == 'Hospital') {
+          _selectedHospitalId = selected.id;
+          _selectedClinicId = null;
+        } else {
+          _selectedClinicId = selected.id;
+          _selectedHospitalId = null;
+        }
+        _updateCurrentLocationDetails();
+        
+        // Reset slots and fetch for new location
+        selectedSlot = null;
+        _isLoading = true;
+        _isLoadingWeeklySlots = true;
+      });
+      
+      _fetchSlots();
+      _fetchWeeklySlots();
+    }
   }
 
   Widget _buildShimmerSlots() {
@@ -911,7 +1036,15 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 children: [
                   if (widget.isReschedule && widget.previousAppointment != null)
                     _buildPreviousAppointmentBanner(),
-                  DoctorInfoCard(),
+                  DoctorInfoCard(
+                    doctor: _doctor,
+                    doctorName: widget.doctorName,
+                    specialization: widget.doctorSpecialization,
+                    locationName: _currentLocationName,
+                    locationAddress: _currentLocationAddress,
+                    locationDistance: _currentDistance,
+                    onChangeLocation: _onChangeLocation,
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: DateSelector(

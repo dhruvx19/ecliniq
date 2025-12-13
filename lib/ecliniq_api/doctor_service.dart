@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:ecliniq/ecliniq_api/models/doctor.dart';
+import 'package:ecliniq/ecliniq_api/models/doctor_booking_response.dart';
 import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -36,7 +37,46 @@ class DoctorService {
           meta: null,
           timestamp: DateTime.now().toIso8601String(),
         );
+        }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
       }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
     } catch (e) {
       debugPrint('Error in getTopDoctors: $e');
       return TopDoctorsResponse(
@@ -47,8 +87,86 @@ class DoctorService {
         meta: null,
         timestamp: DateTime.now().toIso8601String(),
       );
+      }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
     }
   }
+}
+    }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
 
   /// Get filtered doctors
   Future<FilterDoctorsResponse> getFilteredDoctors(
@@ -74,7 +192,46 @@ class DoctorService {
           meta: null,
           timestamp: DateTime.now().toIso8601String(),
         );
+        }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
       }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
     } catch (e) {
       debugPrint('Error in getFilteredDoctors: $e');
       return FilterDoctorsResponse(
@@ -85,8 +242,86 @@ class DoctorService {
         meta: null,
         timestamp: DateTime.now().toIso8601String(),
       );
+      }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
     }
   }
+}
+    }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
 
   /// Get doctor details by ID for patient
   Future<DoctorDetailsResponse> getDoctorDetailsById({
@@ -102,7 +337,46 @@ class DoctorService {
       if (authToken != null && authToken.isNotEmpty) {
         headers['Authorization'] = 'Bearer $authToken';
         headers['x-access-token'] = authToken;
+        }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
       }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
 
       final response = await http.get(url, headers: headers);
 
@@ -121,10 +395,166 @@ class DoctorService {
           meta: null,
           timestamp: DateTime.now().toIso8601String(),
         );
+        }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
       }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
     } catch (e) {
       debugPrint('Error in getDoctorDetailsById: $e');
       return DoctorDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+      }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
+    }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
+        success: false,
+        message: 'Network error: $e',
+        data: null,
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+}
+  }
+
+  /// Get doctor details for booking
+  Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
+    required String doctorId,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.doctorDetailsForBooking(doctorId));
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return DoctorBookingDetailsResponse.fromJson(responseData);
+      } else {
+        return DoctorBookingDetailsResponse(
+          success: false,
+          message: 'Failed to fetch doctor details: ${response.statusCode}',
+          data: null,
+          errors: response.body,
+          meta: null,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      return DoctorBookingDetailsResponse(
         success: false,
         message: 'Network error: $e',
         data: null,

@@ -11,11 +11,15 @@ import 'package:url_launcher/url_launcher.dart';
 class ClinicLocationCard extends StatefulWidget {
   final String? hospitalId;
   final String? clinicId;
+  final String? locationName; // Optional: Pass location name if available
+  final String? locationAddress; // Optional: Pass location address if available
 
   const ClinicLocationCard({
     super.key,
     this.hospitalId,
     this.clinicId,
+    this.locationName,
+    this.locationAddress,
   }) : assert(
           hospitalId != null || clinicId != null,
           'Either hospitalId or clinicId must be provided',
@@ -247,8 +251,13 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
   }
 
   String _getHospitalAddress() {
+    // If location address is provided, use it (for clinics or pre-fetched data)
+    if (widget.locationAddress != null && widget.locationAddress!.isNotEmpty) {
+      return widget.locationAddress!;
+    }
+    
     if (widget.clinicId != null) {
-      // For clinics, return a generic message
+      // For clinics without provided address, return a generic message
       return 'Clinic location details';
     }
     
@@ -278,6 +287,25 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
     return parts.isEmpty ? 'Address not available' : parts.join(', ');
   }
 
+  String _getLocationName() {
+    // If location name is provided, use it
+    if (widget.locationName != null && widget.locationName!.isNotEmpty) {
+      return widget.locationName!;
+    }
+    
+    // For hospitals, use fetched hospital name
+    if (_hospitalDetail != null) {
+      return _hospitalDetail!.name;
+    }
+    
+    // For clinics, use generic name
+    if (widget.clinicId != null) {
+      return 'Clinic';
+    }
+    
+    return 'Location';
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +325,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'In-Clinic Consultation',
+                    _getLocationName(),
                     style: EcliniqTextStyles.headlineMedium.copyWith(
                       color: Color(0xff424242),
                     ),

@@ -1,4 +1,6 @@
 
+import 'package:ecliniq/ecliniq_api/models/doctor.dart';
+
 class DoctorBookingDetailsResponse {
   final bool success;
   final String message;

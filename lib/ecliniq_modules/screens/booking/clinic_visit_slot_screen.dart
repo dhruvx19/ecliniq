@@ -12,7 +12,9 @@ import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_lo
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart'
     hide DoctorInfoCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,6 +73,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   String? _currentLocationName;
   String? _currentLocationAddress;
   String? _currentDistance;
+  bool _isLoadingDoctorDetails = false;
 
   @override
   void initState() {
@@ -78,8 +81,10 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     _selectedHospitalId = widget.hospitalId;
     _selectedClinicId = widget.clinicId;
     _initializeDates();
+    // Load slots immediately - don't wait for doctor details
     _fetchWeeklySlots();
     _fetchSlots();
+    // Load doctor details in parallel (non-blocking)
     _fetchDoctorDetails();
   }
 
@@ -367,7 +372,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           final hospitalIdFromSlot = slot.hospitalId.isNotEmpty
               ? slot.hospitalId
               : _selectedHospitalId;
-          final clinicIdFromSlot = slot.clinicId != null && slot.clinicId!.isNotEmpty
+          final clinicIdFromSlot =
+              slot.clinicId != null && slot.clinicId!.isNotEmpty
               ? slot.clinicId
               : _selectedClinicId;
 
@@ -388,6 +394,11 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 appointmentId: widget.appointmentId,
                 previousAppointment: widget.previousAppointment,
                 isReschedule: widget.isReschedule,
+                // Pass doctor data to avoid duplicate API call
+                doctor: _doctor,
+                locationName: _currentLocationName,
+                locationAddress: _currentLocationAddress,
+                locationDistance: _currentDistance,
               ),
             ),
           );
@@ -427,18 +438,40 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   }
 
   Future<void> _fetchDoctorDetails() async {
+    setState(() {
+      _isLoadingDoctorDetails = true;
+    });
+
     try {
+      // Get auth token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final authToken = prefs.getString('auth_token');
+
       final response = await _doctorService.getDoctorDetailsForBooking(
         doctorId: widget.doctorId,
+        authToken: authToken,
       );
 
-      if (mounted && response.success && response.data != null) {
-        setState(() {
-          _doctor = response.data;
-          _updateCurrentLocationDetails();
-        });
+      if (mounted) {
+        if (response.success && response.data != null) {
+          setState(() {
+            _doctor = response.data;
+            _updateCurrentLocationDetails();
+            _isLoadingDoctorDetails = false;
+          });
+        } else {
+          setState(() {
+            _isLoadingDoctorDetails = false;
+          });
+          debugPrint('Failed to fetch doctor details: ${response.message}');
+        }
       }
     } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingDoctorDetails = false;
+        });
+      }
       debugPrint('Failed to fetch doctor details: $e');
     }
   }
@@ -449,20 +482,21 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     if (_selectedHospitalId != null) {
       final hospital = _doctor!.hospitals.firstWhere(
         (h) => h.id == _selectedHospitalId,
-        orElse: () => _doctor!.hospitals.isNotEmpty 
-            ? _doctor!.hospitals.first 
+        orElse: () => _doctor!.hospitals.isNotEmpty
+            ? _doctor!.hospitals.first
             : DoctorHospital(id: '', name: ''),
       );
       if (hospital.id.isNotEmpty) {
         _currentLocationName = hospital.name;
-        _currentLocationAddress = '${hospital.city ?? ""}, ${hospital.state ?? ""}';
+        _currentLocationAddress =
+            '${hospital.city ?? ""}, ${hospital.state ?? ""}';
         _currentDistance = hospital.distance?.toStringAsFixed(1);
       }
     } else if (_selectedClinicId != null) {
       final clinic = _doctor!.clinics.firstWhere(
         (c) => c.id == _selectedClinicId,
-        orElse: () => _doctor!.clinics.isNotEmpty 
-            ? _doctor!.clinics.first 
+        orElse: () => _doctor!.clinics.isNotEmpty
+            ? _doctor!.clinics.first
             : DoctorClinic(id: '', name: ''),
       );
       if (clinic.id.isNotEmpty) {
@@ -474,10 +508,34 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   }
 
   void _onChangeLocation() async {
-    if (_doctor == null) return;
+    // If doctor details are still loading, wait for them
+    if (_doctor == null) {
+      if (_isLoadingDoctorDetails) {
+        // Show a message that we're loading doctor details
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Loading doctor details...'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+      // If not loading and doctor is null, try to fetch again
+      await _fetchDoctorDetails();
+      if (_doctor == null || !mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to load doctor details. Please try again.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+    }
 
     final List<DoctorLocationOption> options = [];
 
+    // Add clinics first
     for (var clinic in _doctor!.clinics) {
       options.add(
         DoctorLocationOption(
@@ -490,6 +548,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       );
     }
 
+    // Add hospitals
     for (var hospital in _doctor!.hospitals) {
       options.add(
         DoctorLocationOption(
@@ -502,18 +561,26 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       );
     }
 
-    final selected = await showModalBottomSheet<DoctorLocationOption>(
+    if (options.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No locations available for this doctor.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final selected = await EcliniqBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DoctorLocationChangeSheet(
+      child: DoctorLocationChangeSheet(
         doctorName: _doctor!.name,
         locations: options,
         selectedLocationId: _selectedHospitalId ?? _selectedClinicId,
       ),
     );
 
-    if (selected != null) {
+    if (selected != null && mounted) {
       setState(() {
         if (selected.type == 'Hospital') {
           _selectedHospitalId = selected.id;
@@ -523,13 +590,14 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           _selectedHospitalId = null;
         }
         _updateCurrentLocationDetails();
-        
+
         // Reset slots and fetch for new location
         selectedSlot = null;
         _isLoading = true;
         _isLoadingWeeklySlots = true;
       });
-      
+
+      // Fetch slots and weekly slots for the new location
       _fetchSlots();
       _fetchWeeklySlots();
     }
@@ -557,6 +625,126 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           );
         }),
       ),
+    );
+  }
+
+  Widget _buildDoctorInfoShimmer() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  // Avatar shimmer
+                  ShimmerLoading(
+                    width: 70,
+                    height: 70,
+                    borderRadius: BorderRadius.circular(35),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name shimmer
+                        ShimmerLoading(
+                          width: 200,
+                          height: 20,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        const SizedBox(height: 8),
+                        // Specialization shimmer
+                        ShimmerLoading(
+                          width: 150,
+                          height: 16,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        const SizedBox(height: 6),
+                        // Education shimmer
+                        ShimmerLoading(
+                          width: 180,
+                          height: 16,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Experience and rating shimmer
+              Row(
+                children: [
+                  ShimmerLoading(
+                    width: 100,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  const SizedBox(width: 8),
+                  ShimmerLoading(
+                    width: 60,
+                    height: 20,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Location shimmer
+              Row(
+                children: [
+                  ShimmerLoading(
+                    width: 150,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Address shimmer
+              Row(
+                children: [
+                  ShimmerLoading(
+                    width: 200,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        // Token banner shimmer
+        Container(
+          width: double.infinity,
+          color: const Color(0xffF8FAFF),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            children: [
+              ShimmerLoading(
+                width: 16,
+                height: 16,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              const SizedBox(width: 8),
+              ShimmerLoading(
+                width: 30,
+                height: 20,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              const SizedBox(width: 8),
+              ShimmerLoading(
+                width: 200,
+                height: 16,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 2, thickness: 0.3, color: Colors.grey),
+        const SizedBox(height: 14),
+      ],
     );
   }
 
@@ -708,17 +896,17 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
   Widget _buildPreviousAppointmentBanner() {
     final appointment = widget.previousAppointment!;
-    
+
     // Parse date from timeInfo.date (format: "dd MMM, yyyy" or similar)
     String dateLabel = 'Today';
     String dateDisplay = '';
-    
+
     try {
       // Try to parse the date string
       final dateStr = appointment.timeInfo.date;
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      
+
       // Try different date formats
       DateTime? appointmentDate;
       try {
@@ -727,8 +915,20 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         if (parts.length == 2) {
           final datePart = parts[0].trim();
           final yearPart = parts[1].trim();
-          final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          final monthNames = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+          ];
           final dateParts = datePart.split(' ');
           if (dateParts.length == 2) {
             final day = int.tryParse(dateParts[0]);
@@ -749,11 +949,15 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           appointmentDate = today;
         }
       }
-      
+
       if (appointmentDate != null) {
-        final dateOnly = DateTime(appointmentDate.year, appointmentDate.month, appointmentDate.day);
+        final dateOnly = DateTime(
+          appointmentDate.year,
+          appointmentDate.month,
+          appointmentDate.day,
+        );
         final tomorrow = today.add(const Duration(days: 1));
-        
+
         if (dateOnly == today) {
           dateLabel = 'Today';
         } else if (dateOnly == tomorrow) {
@@ -762,34 +966,70 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
           dateLabel = weekdays[dateOnly.weekday - 1];
         }
-        
+
         // Format as "DD MMM"
-        final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final monthNames = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
         dateDisplay = '${dateOnly.day} ${monthNames[dateOnly.month - 1]}';
       } else {
         dateLabel = 'Today';
-        final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final monthNames = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
         dateDisplay = '${today.day} ${monthNames[today.month - 1]}';
       }
     } catch (e) {
       // Fallback to today's date
       final now = DateTime.now();
       dateLabel = 'Today';
-      final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final monthNames = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       dateDisplay = '${now.day} ${monthNames[now.month - 1]}';
     }
-    
+
     // Format token and time
-    final tokenText = appointment.tokenNumber != null 
+    final tokenText = appointment.tokenNumber != null
         ? 'Your Token #${appointment.tokenNumber}'
         : 'Your booking';
     final timeText = appointment.timeInfo.time.isNotEmpty
         ? ' (Time: ${appointment.timeInfo.time})'
         : '';
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
@@ -1036,15 +1276,18 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 children: [
                   if (widget.isReschedule && widget.previousAppointment != null)
                     _buildPreviousAppointmentBanner(),
-                  DoctorInfoCard(
-                    doctor: _doctor,
-                    doctorName: widget.doctorName,
-                    specialization: widget.doctorSpecialization,
-                    locationName: _currentLocationName,
-                    locationAddress: _currentLocationAddress,
-                    locationDistance: _currentDistance,
-                    onChangeLocation: _onChangeLocation,
-                  ),
+                  if (_isLoadingDoctorDetails)
+                    _buildDoctorInfoShimmer()
+                  else
+                    DoctorInfoCard(
+                      doctor: _doctor,
+                      doctorName: widget.doctorName,
+                      specialization: widget.doctorSpecialization,
+                      locationName: _currentLocationName,
+                      locationAddress: _currentLocationAddress,
+                      locationDistance: _currentDistance,
+                      onChangeLocation: _onChangeLocation,
+                    ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: DateSelector(
@@ -1068,14 +1311,17 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Show slots independently - don't wait for doctor details
                   if (_isLoading)
                     _buildShimmerSlots()
                   else if (_errorMessage != null)
                     _buildErrorState()
-                  else if (_groupedSlots.isEmpty)
+                  else if (_groupedSlots.isEmpty && !_isLoadingDoctorDetails)
                     _buildEmptyState()
+                  else if (_groupedSlots.isNotEmpty)
+                    _buildSlotsList()
                   else
-                    _buildSlotsList(),
+                    _buildShimmerSlots(), // Show shimmer while waiting for slots
                   const SizedBox(height: 100),
                 ],
               ),

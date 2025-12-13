@@ -14,7 +14,7 @@ class DoctorInfoCard extends StatelessWidget {
   final VoidCallback? onChangeLocation;
 
   const DoctorInfoCard({
-    super.key, 
+    super.key,
     this.doctor,
     this.doctorName,
     this.specialization,
@@ -66,10 +66,7 @@ class DoctorInfoCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: const Color(0xFFE3F2FD),
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: _borderColor,
-                            width: 1,
-                          ),
+                          border: Border.all(color: _borderColor, width: 1),
                         ),
                         child: Center(
                           child: Text(
@@ -215,7 +212,7 @@ class DoctorInfoCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 2),
               Row(
                 children: [
                   SvgPicture.asset(
@@ -224,7 +221,7 @@ class DoctorInfoCard extends StatelessWidget {
                     height: 24,
                   ),
                   const SizedBox(width: 8),
-                    Text(
+                  Text(
                     locationName ?? 'Sunrise Family Clinic',
                     style: EcliniqTextStyles.titleXLarge.copyWith(
                       color: Color(0xff626060),
@@ -278,22 +275,25 @@ class DoctorInfoCard extends StatelessWidget {
                     ),
                     if (locationDistance != null) ...[
                       const SizedBox(width: 8),
+
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 5,
-                        ),
+                        height: 24,
+                        width: 44,
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: Color(0xffF9F9F9),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Color(0xffB8B8B8)),
+                          border: Border.all(
+                            color: Color(0xffB8B8B8),
+                            width: 0.5,
+                          ),
                         ),
-                        child: Text(
-                          '$locationDistance Km',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Color(0xff424242),
-                            fontWeight: FontWeight.w400,
+                        child: Center(
+                          child: Text(
+                            '$locationDistance Km',
+                            style: EcliniqTextStyles.bodySmall.copyWith(
+                              color: Color(0xff424242),
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ),
@@ -303,38 +303,38 @@ class DoctorInfoCard extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          width: double.infinity,
-          color: const Color(0xffF8FAFF),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Row(
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                decoration: const BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '69',
-                style: EcliniqTextStyles.headlineLarge.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Token Number Currently Running',
-                style: EcliniqTextStyles.titleXLarge.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
+        // Container(
+        //   width: double.infinity,
+        //   color: const Color(0xffF8FAFF),
+        //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        //   child: Row(
+        //     children: [
+        //       Container(
+        //         width: 16,
+        //         height: 16,
+        //         decoration: const BoxDecoration(
+        //           color: Colors.green,
+        //           shape: BoxShape.circle,
+        //         ),
+        //       ),
+        //       const SizedBox(width: 8),
+        //       Text(
+        //         '69',
+        //         style: EcliniqTextStyles.headlineLarge.copyWith(
+        //           fontWeight: FontWeight.w700,
+        //           color: Colors.green,
+        //         ),
+        //       ),
+        //       const SizedBox(width: 8),
+        //       Text(
+        //         'Token Number Currently Running',
+        //         style: EcliniqTextStyles.titleXLarge.copyWith(
+        //           color: Colors.grey[600],
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
         const Divider(height: 2, thickness: 0.3, color: Colors.grey),
         SizedBox(height: 14),
       ],

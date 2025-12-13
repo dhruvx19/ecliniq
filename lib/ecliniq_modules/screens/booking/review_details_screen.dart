@@ -1,7 +1,10 @@
 import 'package:ecliniq/ecliniq_api/appointment_service.dart';
+import 'package:ecliniq/ecliniq_api/doctor_service.dart';
 import 'package:ecliniq/ecliniq_api/hospital_service.dart';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
+import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_api/models/patient.dart';
+import 'package:ecliniq/ecliniq_api/patient_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_detail_item.dart';
@@ -12,6 +15,7 @@ import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widget
     hide DoctorInfoCard, ClinicLocationCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +32,10 @@ class ReviewDetailsScreen extends StatefulWidget {
   final String? appointmentId;
   final AppointmentDetailModel? previousAppointment;
   final bool isReschedule;
+  final Doctor? doctor; // Pass doctor data from previous screen to avoid API call
+  final String? locationName;
+  final String? locationAddress;
+  final String? locationDistance;
 
   const ReviewDetailsScreen({
     super.key,
@@ -42,6 +50,10 @@ class ReviewDetailsScreen extends StatefulWidget {
     this.appointmentId,
     this.previousAppointment,
     this.isReschedule = false,
+    this.doctor,
+    this.locationName,
+    this.locationAddress,
+    this.locationDistance,
   }) : assert(
          hospitalId != null || clinicId != null,
          'Either hospitalId or clinicId must be provided',
@@ -54,6 +66,8 @@ class ReviewDetailsScreen extends StatefulWidget {
 class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   final AppointmentService _appointmentService = AppointmentService();
   final HospitalService _hospitalService = HospitalService();
+  final DoctorService _doctorService = DoctorService();
+  final PatientService _patientService = PatientService();
   final TextEditingController _reasonController = TextEditingController();
   final TextEditingController _referByController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -64,6 +78,15 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   String? _authToken;
   String? _hospitalAddress;
   DependentData? _selectedDependent;
+  
+  Doctor? _doctor;
+  String? _currentLocationName;
+  String? _currentLocationAddress;
+  String? _currentDistance;
+  bool _isLoadingDoctorDetails = false;
+  
+  PatientDetailsData? _currentUserDetails;
+  bool _isLoadingUserDetails = false;
 
   // Reason bottom sheet removed; using free-text field instead.
 
@@ -72,6 +95,19 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     super.initState();
     _loadPatientId();
     _fetchHospitalAddress();
+    _fetchCurrentUserDetails();
+    
+    // Use passed doctor data if available, otherwise fetch
+    if (widget.doctor != null) {
+      _doctor = widget.doctor;
+      _currentLocationName = widget.locationName;
+      _currentLocationAddress = widget.locationAddress;
+      _currentDistance = widget.locationDistance;
+      _updateCurrentLocationDetails();
+    } else {
+      _fetchDoctorDetails();
+    }
+    
     _reasonController.addListener(() {
       setState(() {});
     });
@@ -134,16 +170,288 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
   Future<void> _loadPatientId() async {
     final prefs = await SharedPreferences.getInstance();
-    final patientId =
-        prefs.getString('patient_id') ??
-        prefs.getString('patientId') ??
-        prefs.getString('user_id');
     final authToken = prefs.getString('auth_token');
 
     setState(() {
-      _patientId = patientId ?? '2ccb2364-9e21-40ad-a1f2-274b73553e44';
       _authToken = authToken;
+      // Patient ID will be set from _currentUserDetails after API fetch
+      // Try to get from SharedPreferences as fallback
+      _patientId = prefs.getString('patient_id') ??
+        prefs.getString('patientId') ??
+        prefs.getString('user_id');
     });
+  }
+
+  Future<void> _fetchCurrentUserDetails() async {
+    setState(() {
+      _isLoadingUserDetails = true;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+    final authToken = prefs.getString('auth_token');
+
+      if (authToken == null || authToken.isEmpty) {
+    setState(() {
+          _isLoadingUserDetails = false;
+        });
+        return;
+      }
+
+      final response = await _patientService.getPatientDetails(
+        authToken: authToken,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (response.success && response.data != null) {
+            _currentUserDetails = response.data;
+            // Set patient ID from API response
+            _patientId = response.data!.userId;
+          }
+          _isLoadingUserDetails = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUserDetails = false;
+        });
+      }
+      debugPrint('Failed to fetch current user details: $e');
+    }
+  }
+
+  String _formatUserSubtitle() {
+    if (_currentUserDetails == null) {
+      return ''; // Return empty if no data available
+    }
+
+    final user = _currentUserDetails!;
+    final parts = <String>[];
+
+    // Gender - not available in API, skip for now
+    // TODO: Add gender to API response
+
+    // Date of birth
+    if (user.dob != null) {
+      final dob = user.dob!;
+      final day = dob.day.toString().padLeft(2, '0');
+      final month = dob.month.toString().padLeft(2, '0');
+      parts.add('$day/$month/${dob.year}');
+    }
+
+    // Age
+    final age = user.age;
+    if (age != null) {
+      parts.add('($age)');
+    }
+
+    return parts.join(', ');
+  }
+
+  String _getCurrentUserName() {
+    if (_selectedDependent != null) {
+      return _selectedDependent!.fullName;
+    }
+    return _currentUserDetails?.fullName ?? 'User';
+  }
+
+  String _getCurrentUserSubtitle() {
+    if (_selectedDependent != null) {
+      return _formatDependentSubtitle(_selectedDependent!);
+    }
+    return _formatUserSubtitle();
+  }
+
+  Future<void> _fetchDoctorDetails() async {
+    setState(() {
+      _isLoadingDoctorDetails = true;
+    });
+
+    try {
+      // Get auth token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final authToken = prefs.getString('auth_token');
+
+      final response = await _doctorService.getDoctorDetailsForBooking(
+        doctorId: widget.doctorId,
+        authToken: authToken,
+      );
+
+      if (mounted) {
+        if (response.success && response.data != null) {
+          setState(() {
+            _doctor = response.data;
+            _updateCurrentLocationDetails();
+            _isLoadingDoctorDetails = false;
+          });
+        } else {
+          setState(() {
+            _isLoadingDoctorDetails = false;
+          });
+          debugPrint('Failed to fetch doctor details: ${response.message}');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingDoctorDetails = false;
+        });
+      }
+      debugPrint('Failed to fetch doctor details: $e');
+    }
+  }
+
+  void _updateCurrentLocationDetails() {
+    if (_doctor == null) return;
+
+    if (widget.hospitalId != null) {
+      final hospital = _doctor!.hospitals.firstWhere(
+        (h) => h.id == widget.hospitalId,
+        orElse: () => _doctor!.hospitals.isNotEmpty
+            ? _doctor!.hospitals.first
+            : DoctorHospital(id: '', name: ''),
+      );
+      if (hospital.id.isNotEmpty) {
+        _currentLocationName = hospital.name;
+        _currentLocationAddress =
+            '${hospital.city ?? ""}, ${hospital.state ?? ""}';
+        _currentDistance = hospital.distance?.toStringAsFixed(1);
+      }
+    } else if (widget.clinicId != null) {
+      final clinic = _doctor!.clinics.firstWhere(
+        (c) => c.id == widget.clinicId,
+        orElse: () => _doctor!.clinics.isNotEmpty
+            ? _doctor!.clinics.first
+            : DoctorClinic(id: '', name: ''),
+      );
+      if (clinic.id.isNotEmpty) {
+        _currentLocationName = clinic.name;
+        _currentLocationAddress = '${clinic.city ?? ""}, ${clinic.state ?? ""}';
+        _currentDistance = clinic.distance?.toStringAsFixed(1);
+      }
+    }
+  }
+
+  Widget _buildDoctorInfoShimmer() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  // Avatar shimmer
+                  ShimmerLoading(
+                    width: 70,
+                    height: 70,
+                    borderRadius: BorderRadius.circular(35),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name shimmer
+                        ShimmerLoading(
+                          width: 200,
+                          height: 20,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        const SizedBox(height: 8),
+                        // Specialization shimmer
+                        ShimmerLoading(
+                          width: 150,
+                          height: 16,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        const SizedBox(height: 6),
+                        // Education shimmer
+                        ShimmerLoading(
+                          width: 180,
+                          height: 16,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Experience and rating shimmer
+              Row(
+                children: [
+                  ShimmerLoading(
+                    width: 100,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  const SizedBox(width: 8),
+                  ShimmerLoading(
+                    width: 60,
+                    height: 20,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Location shimmer
+              Row(
+                children: [
+                  ShimmerLoading(
+                    width: 150,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Address shimmer
+              Row(
+                children: [
+                  ShimmerLoading(
+                    width: 200,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        // Token banner shimmer
+        Container(
+          width: double.infinity,
+          color: const Color(0xffF8FAFF),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            children: [
+              ShimmerLoading(
+                width: 16,
+                height: 16,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              const SizedBox(width: 8),
+              ShimmerLoading(
+                width: 30,
+                height: 20,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              const SizedBox(width: 8),
+              ShimmerLoading(
+                width: 200,
+                height: 16,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 2, thickness: 0.3, color: Colors.grey),
+        const SizedBox(height: 14),
+      ],
+    );
   }
 
   // Bottom sheet for selecting reason has been removed.
@@ -217,7 +525,18 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RepaintBoundary(child: const DoctorInfoCard()),
+                  RepaintBoundary(
+                    child: _isLoadingDoctorDetails
+                        ? _buildDoctorInfoShimmer()
+                        : DoctorInfoCard(
+                            doctor: _doctor,
+                            doctorName: widget.doctorName,
+                            specialization: widget.doctorSpecialization,
+                            locationName: _currentLocationName,
+                            locationAddress: _currentLocationAddress,
+                            locationDistance: _currentDistance,
+                          ),
+                  ),
 
                   const Padding(
                     padding: EdgeInsets.all(20),
@@ -233,10 +552,11 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   RepaintBoundary(
                     child: AppointmentDetailItem(
                       iconAssetPath: EcliniqIcons.user.assetPath,
-                      title: _selectedDependent?.fullName ?? 'Ketan Patni',
+                      title: _selectedDependent?.fullName ?? 
+                          (_currentUserDetails?.fullName ?? 'User'),
                       subtitle: _selectedDependent != null
                           ? _formatDependentSubtitle(_selectedDependent!)
-                          : 'Male, 02/02/1996 (29Y)',
+                          : _formatUserSubtitle(),
                       badge: _selectedDependent?.relation ?? 'You',
                       showEdit: true,
                       onDependentSelected: (dep) {
@@ -272,6 +592,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                       child: ClinicLocationCard(
                         hospitalId: widget.hospitalId ?? '',
                         clinicId: widget.clinicId,
+                        locationName: _currentLocationName ?? widget.locationName,
+                        locationAddress: _currentLocationAddress ?? widget.locationAddress,
                       ),
                     ),
                   ),
@@ -507,7 +829,21 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     }
 
     await _loadPatientId();
-    final finalPatientId = _patientId ?? '2ccb2364-9e21-40ad-a1f2-274b73553e44';
+    
+    // Get patient ID from current user details (API) or fallback to stored value
+    final finalPatientId = _currentUserDetails?.userId ?? _patientId;
+    
+    if (finalPatientId == null || finalPatientId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        CustomErrorSnackBar(
+          context: context,
+          title: 'Patient ID Required',
+          subtitle: 'Unable to get patient information. Please try again.',
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isBooking = true;
@@ -515,7 +851,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
     try {
       if (widget.isReschedule && widget.appointmentId != null) {
-        // Reschedule appointment
+
         final rescheduleRequest = RescheduleAppointmentRequest(
           appointmentId: widget.appointmentId!,
           newSlotId: widget.slotId,
@@ -540,10 +876,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   selectedDate: widget.selectedDate,
                   hospitalAddress: _hospitalAddress,
                   tokenNumber: tokenNumber,
-                  patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
-                  patientSubtitle: _selectedDependent != null
-                      ? _formatDependentSubtitle(_selectedDependent!)
-                      : 'Male, 02/02/1996 (29Y)',
+                  patientName: _getCurrentUserName(),
+                  patientSubtitle: _getCurrentUserSubtitle(),
                   patientBadge: _selectedDependent?.relation ?? 'You',
                 ),
               ),
@@ -618,10 +952,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   selectedDate: widget.selectedDate,
                   hospitalAddress: _hospitalAddress,
                   tokenNumber: tokenNumber,
-                  patientName: _selectedDependent?.fullName ?? 'Ketan Patni',
-                  patientSubtitle: _selectedDependent != null
-                      ? _formatDependentSubtitle(_selectedDependent!)
-                      : 'Male, 02/02/1996 (29Y)',
+                  patientName: _getCurrentUserName(),
+                  patientSubtitle: _getCurrentUserSubtitle(),
                   patientBadge: _selectedDependent?.relation ?? 'You',
                 ),
               ),

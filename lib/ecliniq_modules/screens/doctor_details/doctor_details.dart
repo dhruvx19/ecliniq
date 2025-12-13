@@ -94,6 +94,9 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       _isFavLoading = true;
     });
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authToken = authProvider.authToken;
+
     if (authToken == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -205,25 +208,29 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     // Add Clinic
     if (_doctorDetails?.clinicDetails != null) {
       final clinic = _doctorDetails!.clinicDetails!;
-      options.add(DoctorLocationOption(
-        id: clinic.id,
-        name: clinic.name,
-        address: '${clinic.city}, ${clinic.state}',
-        type: 'Clinic',
-      ));
+      options.add(
+        DoctorLocationOption(
+          id: clinic.id,
+          name: clinic.name,
+          address: '${clinic.city}, ${clinic.state}',
+          type: 'Clinic',
+        ),
+      );
     }
 
     // Add Hospitals
     if (_doctorDetails?.doctorHospitals != null) {
       for (var hospital in _doctorDetails!.doctorHospitals!) {
         if (hospital is Map) {
-          options.add(DoctorLocationOption(
-            id: hospital['id'] ?? '',
-            name: hospital['name'] ?? '',
-            address: '${hospital['city'] ?? ''}, ${hospital['state'] ?? ''}',
-            type: 'Hospital',
-            distance: hospital['distance']?.toString(),
-          ));
+          options.add(
+            DoctorLocationOption(
+              id: hospital['id'] ?? '',
+              name: hospital['name'] ?? '',
+              address: '${hospital['city'] ?? ''}, ${hospital['state'] ?? ''}',
+              type: 'Hospital',
+              distance: hospital['distance']?.toString(),
+            ),
+          );
         }
       }
     }
@@ -235,11 +242,9 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     // Only show if there are locations
     if (locations.isEmpty) return;
 
-    final selected = await showModalBottomSheet<DoctorLocationOption>(
+    final selected = await EcliniqBottomSheet.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => DoctorLocationChangeSheet(
+      child: DoctorLocationChangeSheet(
         doctorName: _doctorDetails?.name ?? 'Doctor',
         locations: locations,
         selectedLocationId: _selectedLocation?.id,
@@ -316,8 +321,8 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     final location = _selectedLocation != null
         ? _selectedLocation!.address
         : (clinic != null
-            ? '${clinic.city}, ${clinic.state}'
-            : 'Location not available');
+              ? '${clinic.city}, ${clinic.state}'
+              : 'Location not available');
     final initial = doctor.name.isNotEmpty ? doctor.name[0].toUpperCase() : 'D';
 
     return Scaffold(
@@ -358,7 +363,8 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                       AboutHospital(about: doctor.about!),
                     const SizedBox(height: 16),
 
-                    if (doctor.professionalInformation != null)
+                    if (doctor.professionalInformation != null &&
+                        doctor.clinicDetails != null)
                       ClinicalDetailsWidget(
                         clinicDetails: doctor.clinicDetails!,
                       ),
@@ -814,17 +820,24 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             child: ElevatedButton(
               onPressed: () {
                 if (_doctorDetails == null || _selectedLocation == null) return;
-                
-                final clinicId = _selectedLocation!.type == 'Clinic' ? _selectedLocation!.id : null;
-                final hospitalId = _selectedLocation!.type == 'Hospital' ? _selectedLocation!.id : null;
-                
-                EcliniqRouter.push(ClinicVisitSlotScreen(
-                  doctorId: _doctorDetails!.userId,
-                  clinicId: clinicId,
-                  hospitalId: hospitalId,
-                  doctorName: _doctorDetails!.name,
-                  doctorSpecialization: _doctorDetails!.specializations?.firstOrNull,
-                ));
+
+                final clinicId = _selectedLocation!.type == 'Clinic'
+                    ? _selectedLocation!.id
+                    : null;
+                final hospitalId = _selectedLocation!.type == 'Hospital'
+                    ? _selectedLocation!.id
+                    : null;
+
+                EcliniqRouter.push(
+                  ClinicVisitSlotScreen(
+                    doctorId: _doctorDetails!.userId,
+                    clinicId: clinicId,
+                    hospitalId: hospitalId,
+                    doctorName: _doctorDetails!.name,
+                    doctorSpecialization:
+                        _doctorDetails!.specializations?.firstOrNull,
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xff2372EC),

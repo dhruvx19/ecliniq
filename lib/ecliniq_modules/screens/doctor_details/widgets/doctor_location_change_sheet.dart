@@ -1,4 +1,5 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -51,9 +52,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
       _selectedLocationId = locationId;
     });
     // Find the selected option and return it
-    final selected = widget.locations.firstWhere(
-      (loc) => loc.id == locationId,
-    );
+    final selected = widget.locations.firstWhere((loc) => loc.id == locationId);
     Navigator.pop(context, selected);
   }
 
@@ -81,31 +80,26 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Select Location',
+                      'Switch Profile',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF424242),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey),
-                      onPressed: () => Navigator.pop(context),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
 
                 // Description
                 Text(
                   _buildDescription(),
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w400,
                     color: Color(0xFF626060),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // Location options
                 if (widget.locations.isEmpty)
@@ -135,7 +129,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
     } else if (widget.locations.length == 1) {
       return '${widget.doctorName} is available at this location.';
     } else {
-      return '${widget.doctorName} is available at multiple locations. Select where you want to book an appointment.';
+      return '${widget.doctorName} is available at multiple location select for which location you want see profile';
     }
   }
 }
@@ -219,10 +213,7 @@ class _LocationIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF7F0),
         borderRadius: BorderRadius.circular(54),
-        border: Border.all(
-          color: const Color(0xFFEC7600),
-          width: 0.5,
-        ),
+        border: Border.all(color: const Color(0xFFEC7600), width: 0.5),
       ),
       child: Center(
         child: SvgPicture.asset(
@@ -254,62 +245,43 @@ class _LocationDetails extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        // If hours are available, we could show them, but for now we'll stick to basic details
-        // as per the API data availability.
-        
         Row(
           children: [
-            Expanded(
-              child: _IconTextRow(
-                icon: EcliniqIcons.map.assetPath,
-                text: location.address,
+            SvgPicture.asset(EcliniqIcons.map.assetPath, width: 20, height: 20),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                location.address,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF626060),
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            SizedBox(width: 6),
             if (location.distance != null) ...[
-              const SizedBox(width: 4),
-              const Text(
-                '•',
-                style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${location.distance} km',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF6B7280),
+              Container(
+                height: 24,
+                width: 44,
+                decoration: BoxDecoration(
+                  color: Color(0xffF9F9F9),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
+                ),
+                child: Center(
+                  child: Text(
+                    '${location.distance} KM',
+                    style: EcliniqTextStyles.bodySmall.copyWith(
+                      color: Color(0xff424242),
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
               ),
             ],
           ],
-        ),
-      ],
-    );
-  }
-}
-
-class _IconTextRow extends StatelessWidget {
-  final String icon;
-  final String text;
-
-  const _IconTextRow({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SvgPicture.asset(icon, width: 20, height: 20),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF626060),
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
         ),
       ],
     );

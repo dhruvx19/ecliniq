@@ -1,6 +1,6 @@
 import 'package:ecliniq/ecliniq_api/doctor_service.dart';
-import 'package:ecliniq/ecliniq_api/patient_service.dart';
 import 'package:ecliniq/ecliniq_api/models/doctor.dart';
+import 'package:ecliniq/ecliniq_api/patient_service.dart';
 import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
@@ -55,7 +55,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
       final response = await _doctorService.getDoctorDetailsById(
         doctorId: widget.doctorId,
-        authToken: authToken,
+        authToken: authToken!,
       );
 
       if (!mounted) return;
@@ -95,7 +95,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       if (_isFavourite) {
         // Remove
         await _patientService.removeFavouriteDoctor(
-          authToken: authToken,
+          authToken: authToken!,
           doctorId: widget.doctorId,
         );
         setState(() {
@@ -113,7 +113,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       } else {
         // Add
         await _patientService.addFavouriteDoctor(
-          authToken: authToken,
+          authToken: authToken!,
           doctorId: widget.doctorId,
         );
         setState(() {
@@ -439,14 +439,18 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildCircleButton(EcliniqIcons.arrowLeft, () => EcliniqRouter.pop()),
+                _buildCircleButton(
+                  EcliniqIcons.arrowLeft,
+                  () => EcliniqRouter.pop(),
+                ),
                 Row(
                   children: [
                     _buildCircleButton(
-                        _isFavourite
-                            ? EcliniqIcons.heart
-                            : EcliniqIcons.heartUnfilled,
-                        _toggleFavourite),
+                      _isFavourite
+                          ? EcliniqIcons.heart
+                          : EcliniqIcons.heartUnfilled,
+                      _toggleFavourite,
+                    ),
                     const SizedBox(width: 8),
                     _buildCircleButton(EcliniqIcons.share, () {}),
                   ],
@@ -471,11 +475,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           shape: BoxShape.circle,
         ),
         child: Center(
-          child: SvgPicture.asset(
-            icon.assetPath,
-            width: 32,
-            height: 32,
-          ),
+          child: SvgPicture.asset(icon.assetPath, width: 32, height: 32),
         ),
       ),
     );
@@ -744,7 +744,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             children: [
               // Header image shimmer
               ShimmerLoading(height: 280, borderRadius: BorderRadius.zero),
-              
+
               // Doctor info section shimmer
               Container(
                 color: Colors.white,

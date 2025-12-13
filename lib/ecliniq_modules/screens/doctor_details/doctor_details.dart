@@ -60,7 +60,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
       final response = await _doctorService.getDoctorDetailsById(
         doctorId: widget.doctorId,
-        authToken: authToken!,
+        authToken: authToken,
       );
 
       if (!mounted) return;
@@ -94,14 +94,27 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       _isFavLoading = true;
     });
 
-    try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final authToken = authProvider.authToken;
+    if (authToken == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please login to update favourites'),
+            dismissDirection: DismissDirection.horizontal,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      setState(() {
+        _isFavLoading = false;
+      });
+      return;
+    }
 
+    try {
       if (_isFavourite) {
         // Remove
         await _patientService.removeFavouriteDoctor(
-          authToken: authToken!,
+          authToken: authToken,
           doctorId: widget.doctorId,
         );
         setState(() {
@@ -119,7 +132,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       } else {
         // Add
         await _patientService.addFavouriteDoctor(
-          authToken: authToken!,
+          authToken: authToken,
           doctorId: widget.doctorId,
         );
         setState(() {

@@ -7,6 +7,7 @@ class BookAppointmentRequest {
   final String bookedFor;
   final String bookingType;
   final String? dependentId;
+  final bool useWallet;
 
   BookAppointmentRequest({
     required this.patientId,
@@ -17,6 +18,7 @@ class BookAppointmentRequest {
     required this.bookedFor,
     this.bookingType = 'NEW',
     this.dependentId,
+    this.useWallet = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -28,7 +30,9 @@ class BookAppointmentRequest {
       if (referBy != null && referBy!.isNotEmpty) 'referBy': referBy,
       'bookingType': bookingType,
       'bookedFor': bookedFor,
-      if (dependentId != null && dependentId!.isNotEmpty) 'dependentId': dependentId,
+      if (dependentId != null && dependentId!.isNotEmpty)
+        'dependentId': dependentId,
+      'useWallet': useWallet,
     };
   }
 }
@@ -93,7 +97,7 @@ class AppointmentData {
     final defaultDate = DateTime.utc(1970, 1, 1);
 
     return AppointmentData(
-      id: toString(json['id'], ''),
+      id: toString(json['appointmentId'] ?? json['id'], ''),
       patientId: toString(json['patientId'], ''),
       dependentId: json['dependentId'] != null
           ? toString(json['dependentId'], '')
@@ -131,7 +135,8 @@ class AppointmentData {
 class BookAppointmentResponse {
   final bool success;
   final String message;
-  final AppointmentData? data;
+  final dynamic
+  data; // Changed from AppointmentData? to dynamic to support both AppointmentData and payment data
   final dynamic errors;
   final dynamic meta;
   final String timestamp;
@@ -146,12 +151,51 @@ class BookAppointmentResponse {
   });
 
   factory BookAppointmentResponse.fromJson(Map<String, dynamic> json) {
+    // Keep data as raw Map if it contains payment fields, otherwise parse as AppointmentData
+    dynamic parsedData;
+    if (json['data'] != null) {
+      final dataMap = json['data'] as Map<String, dynamic>;
+
+      // Debug: Log the data structure
+      print(
+        'BookAppointmentResponse.fromJson - Data keys: ${dataMap.keys.toList()}',
+      );
+      print(
+        'BookAppointmentResponse.fromJson - Has paymentRequired: ${dataMap.containsKey('paymentRequired')}',
+      );
+      print(
+        'BookAppointmentResponse.fromJson - Has payment: ${dataMap.containsKey('payment')}',
+      );
+
+      // Check if response contains payment-related fields
+      // Backend returns: { appointmentId, status, paymentRequired, payment: {...} }
+      if (dataMap.containsKey('paymentRequired') ||
+          dataMap.containsKey('payment') ||
+          dataMap.containsKey('merchantTransactionId')) {
+        // Keep as Map for payment data - this structure has paymentRequired and payment object
+        print(
+          'BookAppointmentResponse.fromJson - Keeping as Map (payment data detected)',
+        );
+        parsedData = dataMap;
+      } else {
+        // Parse as AppointmentData for regular booking response (free appointments or wallet-only)
+        print('BookAppointmentResponse.fromJson - Parsing as AppointmentData');
+        try {
+          parsedData = AppointmentData.fromJson(dataMap);
+        } catch (e) {
+          // If parsing fails, keep as Map
+          print(
+            'BookAppointmentResponse.fromJson - Failed to parse as AppointmentData: $e',
+          );
+          parsedData = dataMap;
+        }
+      }
+    }
+
     return BookAppointmentResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      data: json['data'] != null
-          ? AppointmentData.fromJson(json['data'])
-          : null,
+      data: parsedData,
       errors: json['errors'],
       meta: json['meta'],
       timestamp: json['timestamp'] ?? '',
@@ -162,7 +206,9 @@ class BookAppointmentResponse {
     return {
       'success': success,
       'message': message,
-      if (data != null) 'data': data!.toJson(),
+      'data': data is AppointmentData
+          ? (data as AppointmentData).toJson()
+          : data,
       'errors': errors,
       'meta': meta,
       'timestamp': timestamp,
@@ -907,10 +953,7 @@ class RescheduleAppointmentRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'appointmentId': appointmentId,
-      'newSlotId': newSlotId,
-    };
+    return {'appointmentId': appointmentId, 'newSlotId': newSlotId};
   }
 }
 
@@ -958,17 +1001,17 @@ class RescheduleAppointmentResponse {
 
 class VerifyAppointmentRequest {
   final String appointmentId;
-  final String paymentStatus;
+  final String merchantTransactionId;
 
   VerifyAppointmentRequest({
     required this.appointmentId,
-    required this.paymentStatus,
+    required this.merchantTransactionId,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'appointmentId': appointmentId,
-      'paymentStatus': paymentStatus,
+      'merchantTransactionId': merchantTransactionId,
     };
   }
 }

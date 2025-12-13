@@ -1,8 +1,7 @@
 class Endpoints {
-  static const String localhost = 'http://192.168.1.3:3000';
+  static const String localhost = 'http://192.168.1.4:3000';
   static const String prod = '';
 
-  /// Get WebSocket base URL (without /api path)
   static String get websocketBaseUrl => localhost.replaceAll('/api', '');
 
   static String get loginOrRegisterUser =>
@@ -73,6 +72,11 @@ class Endpoints {
       '$localhost/api/auth/change-contact/send-new-otp';
   static String get verifyNewContactOtp =>
       '$localhost/api/auth/change-contact/verify-new-otp';
+
+  static String paymentStatus(String merchantTxnId) =>
+      '$localhost/api/payments/status/$merchantTxnId';
+  static String paymentDetails(String appointmentId) =>
+      '$localhost/api/payments/appointment/$appointmentId';
 
   // Forget MPIN endpoints (3-step flow)
   static String get forgetMpinSendOtp =>

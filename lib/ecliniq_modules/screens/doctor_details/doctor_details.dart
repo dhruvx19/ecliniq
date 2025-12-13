@@ -8,8 +8,10 @@ import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/branches/branches.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/about_doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/address_doctor.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/common_widget.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_hospital_select_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_location_change_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/easy_to_book.dart';
 import 'package:ecliniq/ecliniq_modules/screens/hospital/widgets/appointment_timing.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/basic_info.dart';
@@ -38,6 +40,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   String? _errorMessage;
   bool _isFavourite = false;
   bool _isFavLoading = false;
+  DoctorLocationOption? _selectedLocation;
 
   @override
   void initState() {
@@ -66,6 +69,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
         setState(() {
           _doctorDetails = response.data;
           _isFavourite = _doctorDetails!.isFavourite;
+          _initializeSelectedLocation();
           _isLoading = false;
         });
       } else {
@@ -158,6 +162,84 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     return '${Endpoints.localhost}/$imageKey';
   }
 
+  void _initializeSelectedLocation() {
+    if (_doctorDetails?.clinicDetails != null) {
+      final clinic = _doctorDetails!.clinicDetails!;
+      _selectedLocation = DoctorLocationOption(
+        id: clinic.id,
+        name: clinic.name,
+        address: '${clinic.city}, ${clinic.state}',
+        type: 'Clinic',
+      );
+    } else if (_doctorDetails?.doctorHospitals != null &&
+        _doctorDetails!.doctorHospitals!.isNotEmpty) {
+      final hospital = _doctorDetails!.doctorHospitals!.first;
+      if (hospital is Map) {
+        _selectedLocation = DoctorLocationOption(
+          id: hospital['id'] ?? '',
+          name: hospital['name'] ?? '',
+          address: '${hospital['city'] ?? ''}, ${hospital['state'] ?? ''}',
+          type: 'Hospital',
+          distance: hospital['distance']?.toString(),
+        );
+      }
+    }
+  }
+
+  List<DoctorLocationOption> _getDoctorLocations() {
+    final List<DoctorLocationOption> options = [];
+
+    // Add Clinic
+    if (_doctorDetails?.clinicDetails != null) {
+      final clinic = _doctorDetails!.clinicDetails!;
+      options.add(DoctorLocationOption(
+        id: clinic.id,
+        name: clinic.name,
+        address: '${clinic.city}, ${clinic.state}',
+        type: 'Clinic',
+      ));
+    }
+
+    // Add Hospitals
+    if (_doctorDetails?.doctorHospitals != null) {
+      for (var hospital in _doctorDetails!.doctorHospitals!) {
+        if (hospital is Map) {
+          options.add(DoctorLocationOption(
+            id: hospital['id'] ?? '',
+            name: hospital['name'] ?? '',
+            address: '${hospital['city'] ?? ''}, ${hospital['state'] ?? ''}',
+            type: 'Hospital',
+            distance: hospital['distance']?.toString(),
+          ));
+        }
+      }
+    }
+    return options;
+  }
+
+  void _openLocationChangeBottomSheet() async {
+    final locations = _getDoctorLocations();
+    // Only show if there are locations
+    if (locations.isEmpty) return;
+
+    final selected = await showModalBottomSheet<DoctorLocationOption>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => DoctorLocationChangeSheet(
+        doctorName: _doctorDetails?.name ?? 'Doctor',
+        locations: locations,
+        selectedLocationId: _selectedLocation?.id,
+      ),
+    );
+
+    if (selected != null) {
+      setState(() {
+        _selectedLocation = selected;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _doctorDetails == null) {
@@ -218,9 +300,11 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     final education = doctor.educationalInformation?.isNotEmpty == true
         ? doctor.educationalInformation!.map((e) => e.degree).join(', ')
         : '';
-    final location = clinic != null
-        ? '${clinic.city}, ${clinic.state}'
-        : 'Location not available';
+    final location = _selectedLocation != null
+        ? _selectedLocation!.address
+        : (clinic != null
+            ? '${clinic.city}, ${clinic.state}'
+            : 'Location not available');
     final initial = doctor.name.isNotEmpty ? doctor.name[0].toUpperCase() : 'D';
 
     return Scaffold(
@@ -539,7 +623,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Sunrise Family Clinic',
+                _selectedLocation?.name ?? 'Sunrise Family Clinic',
                 style: EcliniqTextStyles.titleXLarge.copyWith(
                   color: Color(0xff626060),
                 ),
@@ -548,12 +632,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               Container(width: 1, height: 20, color: Colors.grey),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () {
-                  // EcliniqBottomSheet.show(
-                  //   context: context,
-                  //   child: ,
-                  // );
-                },
+                onTap: _openLocationChangeBottomSheet,
                 child: const Text(
                   'Change',
                   style: TextStyle(
@@ -720,7 +799,20 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                if (_doctorDetails == null || _selectedLocation == null) return;
+                
+                final clinicId = _selectedLocation!.type == 'Clinic' ? _selectedLocation!.id : null;
+                final hospitalId = _selectedLocation!.type == 'Hospital' ? _selectedLocation!.id : null;
+                
+                EcliniqRouter.push(ClinicVisitSlotScreen(
+                  doctorId: _doctorDetails!.userId,
+                  clinicId: clinicId,
+                  hospitalId: hospitalId,
+                  doctorName: _doctorDetails!.name,
+                  doctorSpecialization: _doctorDetails!.specializations?.firstOrNull,
+                ));
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xff2372EC),
                 foregroundColor: Colors.white,

@@ -40,7 +40,10 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget> {
     try {
       final selectedLocation = await EcliniqBottomSheet.show<LocationData>(
         context: context,
-        child: LocationBottomSheet(doctor: doctor),
+        child: LocationBottomSheet(
+          locations: doctor.locations,
+          doctorName: doctor.name,
+        ),
       );
 
       if (selectedLocation != null && mounted) {

@@ -13,7 +13,10 @@ import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
+import 'package:ecliniq/ecliniq_modules/screens/doctor_details/top_doctor/model/top_doctor_model.dart';
+import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_hospital_select_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 class DoctorDetailScreen extends StatefulWidget {
   final String doctorId;
 
@@ -28,6 +31,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   DoctorDetails? _doctorDetails;
   bool _isLoading = true;
   String? _errorMessage;
+  LocationData? _selectedLocation;
 
   @override
   void initState() {
@@ -56,6 +60,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
         setState(() {
           _doctorDetails = response.data;
           _isLoading = false;
+          _initSelectedLocation();
         });
       } else {
         setState(() {
@@ -78,6 +83,114 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     }
     // Construct full URL from image key
     return '${Endpoints.localhost}/$imageKey';
+  }
+
+  void _initSelectedLocation() {
+    if (_doctorDetails == null) return;
+    
+    final locations = _getLocations();
+    if (locations.isNotEmpty) {
+      _selectedLocation = locations.first;
+    }
+  }
+
+  List<LocationData> _getLocations() {
+    if (_doctorDetails == null) return [];
+    
+    final List<LocationData> locations = [];
+    final doctor = _doctorDetails!;
+
+    // Add primary clinic
+    if (doctor.clinicDetails != null) {
+      final clinic = doctor.clinicDetails!;
+      locations.add(LocationData(
+        id: clinic.id,
+        name: clinic.name,
+        hours: '10:30 AM - 4:00 PM', // Default/Placeholder
+        area: clinic.address,
+        distance: '', 
+        type: LocationType.clinic,
+        latitude: clinic.latitude ?? 0.0,
+        longitude: clinic.longitude ?? 0.0,
+      ));
+    }
+
+    // Add other hospitals
+    if (doctor.doctorHospitals != null) {
+       for (var item in doctor.doctorHospitals!) {
+         try {
+           if (item is Map<String, dynamic>) {
+              locations.add(LocationData(
+                id: item['id'] ?? '',
+                name: item['name'] ?? '',
+                hours: 'Contact for timings',
+                area: item['address'] ?? '${item['city'] ?? ''}, ${item['state'] ?? ''}',
+                distance: '',
+                type: (item['type'] == 'hospital' || item['isHospital'] == true) 
+                    ? LocationType.hospital 
+                    : LocationType.clinic,
+                latitude: (item['latitude'] as num?)?.toDouble() ?? 0.0,
+                longitude: (item['longitude'] as num?)?.toDouble() ?? 0.0,
+              ));
+           }
+         } catch (e) {
+           debugPrint('Error parsing hospital: $e');
+         }
+       }
+    }
+    return locations;
+  }
+
+  Future<void> _onChangeLocation() async {
+    if (_doctorDetails == null) return;
+    
+    final locations = _getLocations();
+    if (locations.isEmpty) return;
+
+    final result = await EcliniqBottomSheet.show<LocationData>(
+      context: context,
+      child: LocationBottomSheet(
+        locations: locations, 
+        doctorName: _doctorDetails!.name,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedLocation = result;
+      });
+    }
+  }
+
+  void _bookAppointment() {
+    if (_doctorDetails == null) return;
+    
+    if (_selectedLocation == null) {
+       // Try to set default
+       _initSelectedLocation();
+       if (_selectedLocation == null) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('No location available for booking')),
+         );
+         return;
+       }
+    }
+
+    final doctor = _doctorDetails!;
+    final location = _selectedLocation!;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ClinicVisitSlotScreen(
+          doctorId: doctor.userId,
+          hospitalId: location.type == LocationType.hospital ? location.id : null,
+          clinicId: location.type == LocationType.clinic ? location.id : null,
+          doctorName: doctor.name,
+          doctorSpecialization: doctor.specializations?.first ?? 'Doctor',
+        ),
+      ),
+    );
   }
 
   @override
@@ -136,9 +249,11 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     final education = doctor.educationalInformation?.isNotEmpty == true
         ? doctor.educationalInformation!.map((e) => e.degree).join(', ')
         : '';
-    final location = clinic != null
-        ? '${clinic.city}, ${clinic.state}'
-        : 'Location not available';
+    final location = _selectedLocation != null 
+        ? _selectedLocation!.area 
+        : (clinic != null
+          ? '${clinic.city}, ${clinic.state}'
+          : 'Location not available');
     final initial = doctor.name.isNotEmpty ? doctor.name[0].toUpperCase() : 'D';
 
     return Scaffold(
@@ -172,7 +287,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                     AppointmentTimingWidget(),
                     const SizedBox(height: 16),
 
-                    if (clinic != null) AddressWidget(clinic: clinic),
+                    if (_selectedLocation != null) _buildSelectedLocationWidget(),
                     const SizedBox(height: 16),
 
                     if (doctor.about != null)
@@ -547,7 +662,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: _bookAppointment,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xff2372EC),
                 foregroundColor: Colors.white,
@@ -742,6 +857,142 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             width: 60,
             height: 20,
             borderRadius: BorderRadius.circular(4),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildSelectedLocationWidget() {
+    if (_selectedLocation == null) return const SizedBox.shrink();
+    
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 24,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF96BFFF),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(4),
+                    bottomRight: Radius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Clinic Address',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: InkWell(
+                        onTap: _onChangeLocation,
+                        child: Row(
+                          children: [
+                            Text(
+                              'Change',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xff2372EC),
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                             Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Color(0xff2372EC),
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_selectedLocation!.name.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                     _selectedLocation!.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff424242),
+                    ),
+                  ),
+                ),
+                Text(
+                  _selectedLocation!.area,
+                  maxLines: 8,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xff626060),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            height: 70,
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: Icon(
+                                Icons.map_outlined,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          'Tap to get the clinic direction',
+                          style: TextStyle(
+                            fontSize: 12, // BodySmall
+                             color: Color(0xff2372EC),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

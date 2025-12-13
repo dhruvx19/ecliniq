@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class LocationBottomSheet extends StatefulWidget {
-  final Doctor doctor;
+  final List<LocationData> locations;
+  final String doctorName;
 
-  const LocationBottomSheet({super.key, required this.doctor});
+  const LocationBottomSheet({
+    super.key,
+    required this.locations,
+    required this.doctorName,
+  });
 
   @override
   State<LocationBottomSheet> createState() => _LocationBottomSheetState();
@@ -19,7 +24,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _locations = widget.doctor.locations;
+    _locations = widget.locations;
     // Keep default state unselected
     _selectedLocationId = null;
   }
@@ -97,11 +102,11 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
 
   String _buildDescription() {
     if (_locations.isEmpty) {
-      return 'No locations available for ${widget.doctor.name}.';
+      return 'No locations available for ${widget.doctorName}.';
     } else if (_locations.length == 1) {
-      return '${widget.doctor.name} is available at this location.';
+      return '${widget.doctorName} is available at this location.';
     } else {
-      return '${widget.doctor.name} is available at multiple locations. Select where you want to book an appointment.';
+      return '${widget.doctorName} is available at multiple locations. Select where you want to book an appointment.';
     }
   }
 }

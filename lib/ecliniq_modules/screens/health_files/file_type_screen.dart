@@ -120,12 +120,26 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             .where((f) => _selectedFileIds.contains(f.id))
             .toList();
 
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
         for (final file in filesToDelete) {
           final success = await provider.deleteFile(file);
           if (success) successCount++;
         }
 
         if (!mounted) return;
+
+        // Close loading indicator
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -139,6 +153,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         _clearSelection();
       } catch (e) {
         if (!mounted) return;
+        
+        // Close loading indicator if still open
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting files: ${e.toString()}'),
@@ -155,6 +175,15 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     if (_selectedFileIds.isEmpty) return;
 
     try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
       int successCount = 0;
 
       final filesToDownload = files
@@ -162,11 +191,21 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           .toList();
 
       for (final file in filesToDownload) {
-        await _handleFileDownload(file, showSnackbar: false);
-        successCount++;
+        try {
+          await _handleFileDownload(file, showSnackbar: false);
+          successCount++;
+        } catch (e) {
+          // Continue with next file if one fails
+          print('Error downloading file ${file.fileName}: $e');
+        }
       }
 
       if (!mounted) return;
+
+      // Close loading indicator
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -180,6 +219,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       _clearSelection();
     } catch (e) {
       if (!mounted) return;
+      
+      // Close loading indicator if still open
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error downloading files: ${e.toString()}'),
@@ -214,9 +259,21 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     if (confirmed == true && mounted) {
       try {
         final provider = context.read<HealthFilesProvider>();
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+        
         final success = await provider.deleteFile(file);
-
+        
         if (!mounted) return;
+        
+        // Close loading indicator
+        Navigator.pop(context);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -230,6 +287,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         );
       } catch (e) {
         if (!mounted) return;
+        
+        // Close loading indicator if still open
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting file: ${e.toString()}'),
@@ -247,18 +310,37 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     bool showSnackbar = true,
   }) async {
     try {
+      // Show loading indicator
+      if (showSnackbar && mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
       final sourceFile = File(file.filePath);
 
       if (!await sourceFile.exists()) {
-        if (!mounted || !showSnackbar) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('File not found in storage'),
-            backgroundColor: Colors.red,
-            dismissDirection: DismissDirection.horizontal,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        if (!mounted) return;
+        
+        // Close loading indicator
+        if (showSnackbar && Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        
+        if (showSnackbar) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('File not found in storage'),
+              backgroundColor: Colors.red,
+              dismissDirection: DismissDirection.horizontal,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
         return;
       }
 
@@ -295,6 +377,11 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
           if (!mounted) return;
 
+          // Close loading indicator
+          if (showSnackbar && Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+
           if (showSnackbar) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -309,30 +396,51 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
           return;
         } catch (e) {
-          if (!mounted || !showSnackbar) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Download failed: ${e.toString()}'),
-              backgroundColor: Colors.red,
-              dismissDirection: DismissDirection.horizontal,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          if (!mounted) return;
+          
+          // Close loading indicator
+          if (showSnackbar && Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          
+          if (showSnackbar) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Download failed: ${e.toString()}'),
+                backgroundColor: Colors.red,
+                dismissDirection: DismissDirection.horizontal,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
           return;
         }
       }
 
+      // Close loading indicator before sharing
+      if (showSnackbar && mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
       await _shareFile(file);
     } catch (e) {
-      if (!mounted || !showSnackbar) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to download file: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          dismissDirection: DismissDirection.horizontal,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      if (!mounted) return;
+      
+      // Close loading indicator if still open
+      if (showSnackbar && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
+      if (showSnackbar) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to download file: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            dismissDirection: DismissDirection.horizontal,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -393,10 +501,26 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       child: ActionBottomSheet(
         healthFile: file,
         onEditDocument: () {
-          EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
+          Navigator.pop(context); // Close action bottom sheet first
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
+            }
+          });
         },
-        onDownloadDocument: () => _handleFileDownload(file),
+        onDownloadDocument: () async {
+          Navigator.pop(context); // Close action bottom sheet first
+          await Future.delayed(const Duration(milliseconds: 200));
+          if (mounted) {
+            await _handleFileDownload(file);
+          }
+        },
         onDeleteDocument: () async {
+          Navigator.pop(context); // Close action bottom sheet first
+          await Future.delayed(const Duration(milliseconds: 200));
+          
+          if (!mounted) return;
+          
           final confirmed = await EcliniqBottomSheet.show<bool>(
             context: context,
             child: const DeleteFileBottomSheet(),
@@ -404,10 +528,24 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
           if (confirmed == true && mounted) {
             try {
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+              
               final provider = context.read<HealthFilesProvider>();
               final success = await provider.deleteFile(file);
 
               if (!mounted) return;
+
+              // Close loading indicator
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -423,6 +561,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               );
             } catch (e) {
               if (!mounted) return;
+              
+              // Close loading indicator if still open
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
+              
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Error deleting file: ${e.toString()}'),

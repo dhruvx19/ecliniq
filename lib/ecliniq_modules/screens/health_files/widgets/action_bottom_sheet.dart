@@ -51,9 +51,10 @@ class _ActionBottomSheetState extends State<ActionBottomSheet> {
             icon: EcliniqIcons.penEdit,
             backgroundColor: const Color(0xFFE3F2FD),
             title: 'Edit Document Details',
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              if (widget.healthFile != null) {
+              await Future.delayed(const Duration(milliseconds: 200));
+              if (widget.healthFile != null && context.mounted) {
                 EcliniqRouter.push(
                   EditDocumentDetailsPage(healthFile: widget.healthFile!),
                 );
@@ -69,8 +70,9 @@ class _ActionBottomSheetState extends State<ActionBottomSheet> {
             icon: EcliniqIcons.download,
             backgroundColor: const Color(0xFFE3F2FD),
             title: 'Download Document',
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
+              await Future.delayed(const Duration(milliseconds: 200));
               widget.onDownloadDocument?.call();
             },
           ),
@@ -82,8 +84,9 @@ class _ActionBottomSheetState extends State<ActionBottomSheet> {
             backgroundColor: const Color(0xFFFFEBEE),
             title: 'Delete Document',
             isDestructive: true,
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
+              await Future.delayed(const Duration(milliseconds: 200));
               widget.onDeleteDocument?.call();
             },
           ),

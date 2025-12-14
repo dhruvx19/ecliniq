@@ -13,7 +13,6 @@ import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/common_wi
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_hospital_select_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_location_change_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/home/widgets/easy_to_book.dart';
-import 'package:ecliniq/ecliniq_modules/screens/hospital/widgets/appointment_timing.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/basic_info.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
@@ -1029,6 +1028,137 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             width: 60,
             height: 20,
             borderRadius: BorderRadius.circular(4),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+class AppointmentTimingWidget extends StatefulWidget {
+  const AppointmentTimingWidget({super.key});
+
+  @override
+  State<AppointmentTimingWidget> createState() =>
+      _AppointmentTimingWidgetState();
+}
+
+class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Color(0xFF96BFFF),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(4),
+                    bottomRight: Radius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Appointment & OPD timing',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xff424242),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 2),
+                    Text(
+                      'Monday to Saturday',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xff626060),
+                      ),
+                    ),
+
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          EcliniqIcons.calendar.assetPath,
+                          width: 26,
+                          height: 26,
+                        ),
+                        const SizedBox(width: 2),
+                        const Text(
+                          '10:30 AM - 4:00 PM',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xff424242),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () {},
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[50],
+                    foregroundColor: Colors.blue[700],
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      side: BorderSide(color: Color(0xff96BFFF), width: 0.5),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      
+                      FittedBox(
+                        child: const Text(
+                          'Inquire Now',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xff2372EC),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

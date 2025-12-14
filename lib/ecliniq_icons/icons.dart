@@ -169,6 +169,13 @@ enum EcliniqIcons {
   hospitalBuilding('$_base/Hospital_1.svg'),
   deleteFile('$_base/Clip path group.svg'),
   doctorDefault('$_base/doctor_default.svg'),
+  callEmergency('$_base/Call Emergency.svg'),
+  drop('$_base/Drop.svg'),
+  mapPointBlue('$_base/Map Point Blue.svg'),
+  certificate('$_base/Medal Ribbon Star.svg'),
+  sirenRounded('$_base/Siren Rounded.svg'),
+  stethoscopeBlue('$_base/StethoscopeBlue.svg'),
+  scissors('$_base/Scissors.svg'),
   requestedIcon('$_base/Diploma Verified.svg');
 
   //speciality

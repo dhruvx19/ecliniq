@@ -58,20 +58,10 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 2),
-                    Text(
-                      'Monday to Saturday',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xff626060),
-                      ),
-                    ),
-
                     Row(
                       children: [
                         SvgPicture.asset(
-                          EcliniqIcons.calendar.assetPath,
+                          EcliniqIcons.calendar1.assetPath,
                           width: 26,
                           height: 26,
                         ),
@@ -85,6 +75,15 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Monday to Saturday',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xff626060),
+                      ),
                     ),
                   ],
                 ),
@@ -107,12 +106,6 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                   ),
                   child: Row(
                     children: [
-                      SvgPicture.asset(
-                        EcliniqIcons.phone.assetPath,
-                        width: 22,
-                        height: 22,
-                      ),
-                      const SizedBox(width: 2),
                       FittedBox(
                         child: const Text(
                           'Inquire Now',

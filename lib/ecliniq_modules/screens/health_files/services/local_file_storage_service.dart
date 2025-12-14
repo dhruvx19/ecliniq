@@ -172,7 +172,7 @@ class LocalFileStorageService {
     try {
       bool physicalFileDeleted = false;
       
-      // Try to delete physical file
+      // Try to delete physical file first
       final file = File(healthFile.filePath);
       if (await file.exists()) {
         try {
@@ -181,6 +181,7 @@ class LocalFileStorageService {
         } catch (e) {
           // Log error but continue to remove metadata
           print('Error deleting physical file: $e');
+          // Try to delete anyway - file might be locked but we should still remove metadata
         }
       } else {
         // File doesn't exist, consider it deleted
@@ -188,14 +189,10 @@ class LocalFileStorageService {
       }
       
       // Always remove from metadata, even if physical file deletion failed
-      try {
-        await _removeFileMetadata(healthFile.id);
-      } catch (e) {
-        print('Error removing file metadata: $e');
-        return false;
-      }
+      // This ensures the file is removed from the UI
+      await _removeFileMetadata(healthFile.id);
       
-      return physicalFileDeleted;
+      return true; // Return true if metadata was removed successfully
     } catch (e) {
       print('Error in deleteFile: $e');
       return false;
@@ -239,9 +236,28 @@ class LocalFileStorageService {
 
   /// Remove file metadata
   Future<void> _removeFileMetadata(String fileId) async {
-    final allFiles = await getAllFiles();
-    allFiles.removeWhere((f) => f.id == fileId);
-    await _saveAllFilesMetadata(allFiles);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final filesJson = prefs.getString(_filesKey);
+      
+      if (filesJson == null || filesJson.isEmpty) {
+        return;
+      }
+      
+      final List<dynamic> filesList = jsonDecode(filesJson);
+      final files = filesList
+          .map((json) => HealthFile.fromJson(json as Map<String, dynamic>))
+          .toList();
+      
+      // Remove the file with matching ID
+      files.removeWhere((f) => f.id == fileId);
+      
+      // Save updated list
+      await _saveAllFilesMetadata(files);
+    } catch (e) {
+      print('Error removing file metadata: $e');
+      rethrow;
+    }
   }
 
   /// Get MIME type from file extension

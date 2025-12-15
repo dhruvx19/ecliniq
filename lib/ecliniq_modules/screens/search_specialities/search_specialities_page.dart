@@ -231,7 +231,9 @@ class _SearchSpecialitiesState extends State<SearchSpecialities> {
         Material(
           child: InkWell(
             onTap: () {
-              EcliniqRouter.push(SpecialityDoctorsList());
+              EcliniqRouter.push(SpecialityDoctorsList(
+                initialSpeciality: speciality.title,
+              ));
             },
             child: Container(
               decoration: BoxDecoration(

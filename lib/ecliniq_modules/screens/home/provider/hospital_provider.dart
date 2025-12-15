@@ -60,9 +60,13 @@ class HospitalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Hardcoded coordinates as per request
+      const double hardcodedLat = 28.6139;
+      const double hardcodedLong = 77.209;
+
       final response = await _hospitalService.getTopHospitals(
-        latitude: latitude,
-        longitude: longitude,
+        latitude: hardcodedLat,
+        longitude: hardcodedLong,
       );
 
       if (response.success) {

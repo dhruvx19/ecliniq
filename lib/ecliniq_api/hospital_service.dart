@@ -29,15 +29,11 @@ class HospitalService {
     required double longitude,
   }) async {
     try {
-      // Using default coordinates - update with actual user location
-      const double defaultLatitude = 28.6139;
-      const double defaultLongitude = 77.209;
-
       final url = Uri.parse(Endpoints.topHospitals);
 
       final requestBody = TopHospitalsRequest(
-        latitude: defaultLatitude,
-        longitude: defaultLongitude,
+        latitude: latitude,
+        longitude: longitude,
       );
 
       final response = await http.post(
@@ -97,6 +93,51 @@ class HospitalService {
         meta: null,
         timestamp: DateTime.now().toIso8601String(),
       );
+    } catch (e) {
+      return TopHospitalsResponse(
+        success: false,
+        message: 'Unexpected error: $e',
+        data: [],
+        errors: e.toString(),
+        meta: null,
+        timestamp: DateTime.now().toIso8601String(),
+      );
+    }
+  }
+
+  Future<TopHospitalsResponse> getAllHospitals({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final url = Uri.parse(Endpoints.getAllHospitals);
+
+      final requestBody = {
+        "latitude": latitude,
+        "longitude": longitude,
+      };
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return TopHospitalsResponse.fromJson(responseData);
+      } else {
+        return TopHospitalsResponse(
+          success: false,
+          message: 'Failed to fetch hospitals: ${response.statusCode}',
+          data: [],
+          errors: response.body,
+          meta: {'statusCode': response.statusCode},
+          timestamp: DateTime.now().toIso8601String(),
+        );
+      }
     } catch (e) {
       return TopHospitalsResponse(
         success: false,

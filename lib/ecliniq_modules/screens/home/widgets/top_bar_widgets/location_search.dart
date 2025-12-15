@@ -267,46 +267,61 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
   }
 
   Future<void> _handleLocationReceived(Position position) async {
-    final locationName = await _locationService.getLocationName(
-      position.latitude,
-      position.longitude,
+    // 1. Get location name first
+    String? locationName;
+    try {
+      locationName = await _locationService.getLocationName(
+        position.latitude,
+        position.longitude,
+      );
+    } catch (e) {
+      debugPrint('Error getting location name: $e');
+      locationName = 'Unknown Location';
+    }
+
+    if (!mounted) return;
+
+    // 2. Close bottom sheet immediately to update UI and prevent "black screen" feeling
+    Navigator.of(context).pop();
+
+    // 3. Update providers
+    final hospitalProvider = Provider.of<HospitalProvider>(
+      context,
+      listen: false,
+    );
+    final doctorProvider = Provider.of<DoctorProvider>(
+      context,
+      listen: false,
     );
 
-    if (mounted) {
-      final hospitalProvider = Provider.of<HospitalProvider>(
-        context,
-        listen: false,
-      );
-      final doctorProvider = Provider.of<DoctorProvider>(
-        context,
-        listen: false,
-      );
+    hospitalProvider.setLocation(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      locationName: locationName,
+    );
 
-      hospitalProvider.setLocation(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        locationName: locationName,
-      );
+    doctorProvider.setLocation(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      locationName: locationName,
+    );
 
-      doctorProvider.setLocation(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        locationName: locationName,
-      );
-
-      await hospitalProvider.fetchTopHospitals(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        isRefresh: true,
-      );
-
-      await doctorProvider.fetchTopDoctors(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        isRefresh: true,
-      );
-
-      Navigator.of(context).pop();
+    // 4. Fetch data in background (UI will show loading state via providers)
+    try {
+      await Future.wait([
+        hospitalProvider.fetchTopHospitals(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          isRefresh: true,
+        ),
+        doctorProvider.fetchTopDoctors(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          isRefresh: true,
+        ),
+      ]);
+    } catch (e) {
+      debugPrint('Error fetching data: $e');
     }
   }
 

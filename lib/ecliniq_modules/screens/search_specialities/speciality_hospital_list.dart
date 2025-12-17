@@ -9,8 +9,10 @@ import 'package:ecliniq/ecliniq_modules/screens/hospital/pages/hospital_details.
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/widgets/horizontal_divider.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/sort_by_filter_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shimmer/shimmer.dart';
 
 class SpecialityHospitalList extends StatefulWidget {
   final String? initialSpeciality;
@@ -32,6 +34,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
   String _searchQuery = '';
   String _selectedCategory = 'All';
   final String _currentLocation = 'Vishnu Dev Nagar, Wakad';
+  String? _selectedSortOption;
 
   final double _latitude = 28.6139;
   final double _longitude = 77.209;
@@ -127,6 +130,69 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
     _scrollToCategory(category);
   }
 
+  void _openSort() {
+    EcliniqBottomSheet.show(
+      context: context,
+      child: SortByBottomSheet(
+        onChanged: (option) {
+          setState(() {
+            _selectedSortOption = option;
+            _applySort();
+          });
+        },
+      ),
+    );
+  }
+
+  void _openFilter() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Hospital filters coming soon!')),
+    );
+  }
+
+  void _applySort() {
+    if (_hospitals.isEmpty || _selectedSortOption == null) return;
+    
+    final option = _selectedSortOption!;
+    
+    int safeCompare<T extends Comparable>(T? a, T? b) {
+      if (a == null && b == null) return 0;
+      if (a == null) return 1;
+      if (b == null) return -1;
+      return a.compareTo(b);
+    }
+    
+    // Helper to get consultation fee if available, else 0
+    double _getFee(Hospital h) {
+      // Assuming 'consultationFee' is not directly on Hospital model based on previous view,
+      // but if it were, we'd use it. If not, we skip fee sorting or use 0.
+      // Based on model inspection, Hospital has 'consultationFee' as String? in DoctorHospital, 
+      // but this is 'Hospital' model.
+      // Let's assume standard fields for now. 
+      return 0.0; 
+    }
+
+    setState(() {
+      switch (option) {
+         // Hospitals might not have fee/experience/rating in same way.
+         // We'll support what we can: Relevance, Distance, Name.
+        case 'Distance - Nearest First':
+          _hospitals.sort((a, b) => safeCompare(a.distance, b.distance));
+          break;
+        case 'Order A-Z':
+          _hospitals.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          break;
+        case 'Order Z-A':
+          _hospitals.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          break;
+        case 'Relevance':
+        default:
+          // Default order
+          break;
+      }
+    });
+  }
+
   Future<void> _fetchHospitals() async {
     setState(() {
       _isLoading = true;
@@ -144,6 +210,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
           _hospitals = response.data;
           _isLoading = false;
         });
+        _applySort();
       } else {
         if (mounted) {
           setState(() {
@@ -211,10 +278,13 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
           ),
         ),
         actions: [
-          SvgPicture.asset(
-            EcliniqIcons.sortAlt.assetPath,
-            width: 32,
-            height: 32,
+          IconButton(
+            onPressed: _openSort,
+            icon: SvgPicture.asset(
+              EcliniqIcons.sortAlt.assetPath,
+              width: 32,
+              height: 32,
+            ),
           ),
           VerticalDivider(
             color: Color(0xffD6D6D6),
@@ -223,12 +293,15 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
             indent: 18,
             endIndent: 18,
           ),
-          SvgPicture.asset(
-            EcliniqIcons.filter.assetPath,
-            width: 32,
-            height: 32,
+          IconButton(
+            onPressed: _openFilter,
+            icon: SvgPicture.asset(
+              EcliniqIcons.filter.assetPath,
+              width: 32,
+              height: 32,
+            ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
@@ -449,7 +522,53 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
   }
 
   Widget _buildShimmerLoading() {
-    return const Center(child: CircularProgressIndicator());
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: 5,
+      itemBuilder: (context, index) {
+        return _buildShimmerCard();
+      },
+    );
+  }
+
+  Widget _buildShimmerCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(color: Colors.white),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[200]!,
+        highlightColor: Colors.grey[100]!,
+        child: Column(
+          children: [
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+                color: Colors.white,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                right: 12.0,
+                bottom: 12.0,
+                top: 28.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(height: 20, width: 200, color: Colors.white),
+                  const SizedBox(height: 4),
+                  Container(height: 16, width: 150, color: Colors.white),
+                  const SizedBox(height: 4),
+                  Container(height: 16, width: 100, color: Colors.white),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildHospitalCard(Hospital hospital) {

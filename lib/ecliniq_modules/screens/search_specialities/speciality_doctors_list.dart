@@ -9,8 +9,12 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/widgets.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/filter_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/sort_by_filter_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shimmer/shimmer.dart';
 
 class SpecialityDoctorsList extends StatefulWidget {
   final String? initialSpeciality;
@@ -33,6 +37,8 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
   String _selectedCategory = 'All';
   final String _currentLocation = 'Vishnu Dev Nagar, Wakad';
   Timer? _debounceTimer;
+  String? _selectedSortOption;
+  Map<String, dynamic> _filterParams = {};
 
   final double _latitude = 28.6139;
   final double _longitude = 77.209;
@@ -132,6 +138,102 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
     _fetchDoctors();
   }
 
+  void _openSort() {
+    EcliniqBottomSheet.show(
+      context: context,
+      child: SortByBottomSheet(
+        onChanged: (option) {
+          setState(() {
+            _selectedSortOption = option;
+            _applySort();
+          });
+        },
+      ),
+    );
+  }
+
+  void _openFilter() {
+    EcliniqBottomSheet.show(
+      context: context,
+      child: DoctorFilterBottomSheet(
+        onFilterChanged: (params) {
+          setState(() {
+            _filterParams = params;
+            // Update selected category if specialities changed in filter
+            if (params['specialities'] != null &&
+                (params['specialities'] as List).isNotEmpty) {
+              // If single speciality, select it in tabs, else 'All' or keep as is?
+              // For now, let filter override or coexist.
+              // The API request prioritizes explicit speciality list.
+            }
+          });
+          _fetchDoctors();
+        },
+      ),
+    );
+  }
+
+  void _applySort() {
+    if (_doctors.isEmpty || _selectedSortOption == null) return;
+    
+    final option = _selectedSortOption!;
+    
+    int safeCompare<T extends Comparable>(T? a, T? b) {
+      if (a == null && b == null) return 0;
+      if (a == null) return 1;
+      if (b == null) return -1;
+      return a.compareTo(b);
+    }
+
+    double? _computeFee(Doctor d) {
+       return d.fee;
+    }
+
+    double? _computeDistance(Doctor d) {
+      double? minDist;
+      for (final h in d.hospitals) {
+        final val = h.distanceKm;
+        if (val != null) {
+          if (minDist == null || val < minDist) minDist = val;
+        }
+      }
+      return minDist;
+    }
+
+    setState(() {
+      switch (option) {
+        case 'Price: Low - High':
+          _doctors.sort((a, b) => safeCompare(_computeFee(a), _computeFee(b)));
+          break;
+        case 'Price: High - Low':
+          _doctors.sort((a, b) => safeCompare(_computeFee(b), _computeFee(a)));
+          break;
+        case 'Experience - Most Experience first':
+          _doctors.sort((a, b) => safeCompare(b.experience, a.experience));
+          break;
+        case 'Distance - Nearest First':
+          _doctors.sort((a, b) => safeCompare(_computeDistance(a), _computeDistance(b)));
+          break;
+        case 'Order A-Z':
+          _doctors.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          break;
+        case 'Order Z-A':
+          _doctors.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          break;
+        case 'Rating High - low':
+          _doctors.sort((a, b) => safeCompare(b.rating, a.rating));
+          break;
+        case 'Rating Low - High':
+          _doctors.sort((a, b) => safeCompare(a.rating, b.rating));
+          break;
+        case 'Relevance':
+        default:
+          // Default order from API
+          break;
+      }
+    });
+  }
+
   Future<void> _fetchDoctors() async {
     setState(() {
       _isLoading = true;
@@ -140,7 +242,11 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
 
     try {
       List<String>? specialityFilter;
-      if (_selectedCategory != 'All') {
+      
+      // Merge tab selection with bottom sheet filter
+      if (_filterParams['specialities'] != null && (_filterParams['specialities'] as List).isNotEmpty) {
+         specialityFilter = (_filterParams['specialities'] as List).cast<String>();
+      } else if (_selectedCategory != 'All') {
         specialityFilter = [_selectedCategory];
       }
 
@@ -148,6 +254,12 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
         latitude: _latitude,
         longitude: _longitude,
         speciality: specialityFilter,
+        gender: _filterParams['gender']?.toString().toUpperCase(),
+        distance: (_filterParams['distance'] is num)
+            ? (_filterParams['distance'] as num).toDouble()
+            : null,
+        workExperience: _mapExperienceFilter(_filterParams['experience']),
+        availability: _mapAvailabilityFilter(_filterParams['availability']),
       );
 
       final response = await _doctorService.getFilteredDoctors(request);
@@ -199,6 +311,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
           _doctors = convertedDoctors;
           _isLoading = false;
         });
+        _applySort();
       } else {
         if (mounted) {
           setState(() {
@@ -215,6 +328,23 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
         });
       }
     }
+  }
+
+  String? _mapExperienceFilter(String? experience) {
+    if (experience == null) return null;
+    if (experience.contains('0 - 5')) return '0-5';
+    if (experience.contains('6 - 10')) return '6-10';
+    if (experience.contains('10+')) return '10+';
+    if (experience.toLowerCase() == 'any') return 'any';
+    return null;
+  }
+
+  String? _mapAvailabilityFilter(String? availability) {
+    if (availability == null) return null;
+    if (availability.toLowerCase().contains('today')) return 'TODAY';
+    if (availability.toLowerCase().contains('tomorrow')) return 'TOMORROW';
+    if (availability.toLowerCase().contains('now')) return 'TODAY';
+    return null;
   }
 
   List<Doctor> get _filteredDoctors {
@@ -256,10 +386,13 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
           ),
         ),
         actions: [
-          SvgPicture.asset(
-            EcliniqIcons.sortAlt.assetPath,
-            width: 32,
-            height: 32,
+          IconButton(
+            onPressed: _openSort,
+            icon: SvgPicture.asset(
+              EcliniqIcons.sortAlt.assetPath,
+              width: 32,
+              height: 32,
+            ),
           ),
           VerticalDivider(
             color: Color(0xffD6D6D6),
@@ -268,12 +401,15 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
             indent: 18,
             endIndent: 18,
           ),
-          SvgPicture.asset(
-            EcliniqIcons.filter.assetPath,
-            width: 32,
-            height: 32,
+          IconButton(
+            onPressed: _openFilter,
+            icon: SvgPicture.asset(
+              EcliniqIcons.filter.assetPath,
+              width: 32,
+              height: 32,
+            ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
@@ -495,7 +631,99 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
   }
 
   Widget _buildShimmerLoading() {
-    return Center(child: CircularProgressIndicator());
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: 5,
+      itemBuilder: (context, index) {
+        return _buildShimmerCard();
+      },
+    );
+  }
+
+  Widget _buildShimmerCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[200]!,
+        highlightColor: Colors.grey[100]!,
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        height: 20,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 150,
+                        height: 16,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 100,
+                        height: 16,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Container(width: 100, height: 16, color: Colors.white),
+                const SizedBox(width: 16),
+                Container(width: 60, height: 16, color: Colors.white),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildDoctorCard(Doctor doctor) {

@@ -9,6 +9,7 @@ import 'package:ecliniq/ecliniq_modules/screens/login/login.dart';
 import 'package:ecliniq/ecliniq_modules/screens/notifications/notification_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/add_dependent/provider/dependent_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/provider/eta_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/notifications/provider/notification_provider.dart';
 import 'package:ecliniq/ecliniq_core/notifications/push_notification.dart';
 import 'package:ecliniq/ecliniq_modules/screens/search_specialities/search_specialities_page.dart';
 import 'package:ecliniq/ecliniq_modules/screens/search_specialities/speciality_doctors_list.dart';
@@ -51,6 +52,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => HealthFilesProvider()),
         ChangeNotifierProvider(create: (_) => AddDependentProvider()),
         ChangeNotifierProvider(create: (_) => ETAProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),

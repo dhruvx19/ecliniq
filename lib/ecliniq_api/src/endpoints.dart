@@ -89,4 +89,6 @@ class Endpoints {
   // Patient notification preferences
   static String get updateNotificationPreferences =>
       '$localhost/api/patients/update-notification-preferences';
+  static String get getUnreadNotificationCount => 
+      '$localhost/api/notifications/patients/get-unread-count';
 }

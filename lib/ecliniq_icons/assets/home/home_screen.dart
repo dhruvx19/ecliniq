@@ -13,6 +13,7 @@ import 'package:ecliniq/ecliniq_icons/assets/home/widgets/top_bar_widgets/locati
 import 'package:ecliniq/ecliniq_icons/assets/home/widgets/top_bar_widgets/search_bar.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/widgets/top_hospitals.dart';
 import 'package:ecliniq/ecliniq_modules/screens/notifications/notification_screen.dart';
+import 'package:ecliniq/ecliniq_modules/screens/notifications/provider/notification_provider.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigation.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
@@ -39,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowLocationSheet();
       _initializeDoctors();
+      Provider.of<NotificationProvider>(context, listen: false).fetchUnreadCount();
     });
   }
 
@@ -187,11 +189,28 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () => EcliniqRouter.push(NotificationScreen()),
-            child: SvgPicture.asset(
-              EcliniqIcons.notificationBell.assetPath,
-              height: 32,
-              width: 32,
+            onTap: () async {
+              await EcliniqRouter.push(NotificationScreen());
+              if (mounted) {
+                Provider.of<NotificationProvider>(context, listen: false).fetchUnreadCount();
+              }
+            },
+            child: Consumer<NotificationProvider>(
+              builder: (context, provider, child) {
+                return Badge(
+                  label: Text(
+                    '${provider.unreadCount}',
+                    style: const TextStyle(color: Colors.white, fontSize: 10),
+                  ),
+                  isLabelVisible: provider.unreadCount > 0,
+                  backgroundColor: Colors.red,
+                  child: SvgPicture.asset(
+                    EcliniqIcons.notificationBell.assetPath,
+                    height: 32,
+                    width: 32,
+                  ),
+                );
+              },
             ),
           ),
         ],

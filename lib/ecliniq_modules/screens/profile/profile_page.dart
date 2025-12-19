@@ -234,7 +234,9 @@ class _ProfilePageState extends State<ProfilePage>
   void _navigateToSecuritySettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const SecuritySettingsOptions()),
+      MaterialPageRoute(
+        builder: (context) => SecuritySettingsOptions(patientData: _patientData),
+      ),
     );
   }
 

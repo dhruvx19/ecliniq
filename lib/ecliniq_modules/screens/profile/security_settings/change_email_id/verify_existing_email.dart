@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_api/auth_service.dart';
 import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 
 class VerifyExistingEmail extends StatefulWidget {
@@ -35,13 +36,14 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
   final AuthService _authService = AuthService();
 
   bool _isSendingOTP = false;
+  bool _isLoading = false;
   bool _isButtonPressed = false;
   bool _isVerifying = false;
   String? _errorMessage;
   String? _maskedContact;
   String? _challengeId;
   Timer? _timer;
-  int _resendTimer = 150;
+  int _resendTimer = 30;
   bool _canResend = false;
   bool _isDisposed = false;
 
@@ -59,15 +61,12 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       _challengeId = widget.challengeId;
       _maskedContact = widget.maskedContact;
     } else if (widget.existingEmail != null) {
-      // Mask the email for display (e.g., te***@example.com)
       _maskedContact = _maskEmail(widget.existingEmail!);
       _sendOTPToExistingContact();
     } else {
-      // Fallback: fetch OTP (this should rarely happen now)
+      // Fallback: fetch OTP 
       _sendOTPToExistingContact();
     }
-
-    _startTimer();
   }
 
   String _maskEmail(String email) {
@@ -91,10 +90,10 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
   }
 
   void _startTimer() {
-    _resendTimer = 150;
+    _resendTimer = 30;
     _canResend = false;
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_isDisposed) {
         timer.cancel();
         return;
@@ -126,8 +125,16 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
 
     try {
       final authToken = await SessionService.getAuthToken();
+      
+      // Check if email exists, if not use mobile for verification
+      String otpType = 'email';
+      if (widget.existingEmail == null || widget.existingEmail!.isEmpty) {
+        // Fallback to mobile if provided or logic dictates
+        otpType = 'mobile';
+      }
+
       final result = await _authService.sendExistingContactOTP(
-        type: 'email',
+        type: otpType,
         authToken: authToken,
       );
 
@@ -136,13 +143,27 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       if (result['success'] == true) {
         setState(() {
           _challengeId = result['challengeId'];
-          // Only update masked contact if we don't have preloaded one
+          // Only update masked contact if we don't have preloaded one and API returns it
           if (widget.preloadedMaskedEmail == null) {
-            _maskedContact =
-                result['contact']; // Use 'contact' field from new API
+             _maskedContact = result['contact'];
+             if (otpType == 'mobile') {
+                // If it was mobile, mask it appropriately if needed, or backend returns masked
+                // Assuming backend returns masked or we handle it. 
+                // For consistnecy with MPIN screen:
+                String contact = result['contact'] ?? '';
+                 if (contact.startsWith('+91')) {
+                  contact = contact.substring(3).trim();
+                } else if (contact.startsWith('91')) {
+                  contact = contact.substring(2).trim();
+                }
+                if (contact.length >= 4) {
+                   _maskedContact = '******${contact.substring(contact.length - 4)}';
+                }
+             }
           }
           _isSendingOTP = false;
         });
+        _startTimer();
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Failed to send OTP';
@@ -160,12 +181,6 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
 
   Future<void> _resendOTP() async {
     if (!_canResend || !mounted) return;
-
-    setState(() {
-      _canResend = false;
-      _resendTimer = 150;
-    });
-    _startTimer();
     await _sendOTPToExistingContact();
   }
 
@@ -353,6 +368,26 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                 color: const Color(0xff424242),
               ),
             ),
+             if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.only(top: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerLoading(
+                      width: 200,
+                      height: 20,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 8),
+                    ShimmerLoading(
+                      width: 150,
+                      height: 20,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ],
+                ),
+              ),
             if (_maskedContact != null) ...[
               Row(
                 children: [
@@ -365,7 +400,9 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                     ),
                   ),
                   Text(
-                    _maskedContact!,
+                    (widget.existingEmail == null || widget.existingEmail!.isEmpty) 
+                       ? '+91 $_maskedContact' // Assume mobile format if email is missing
+                       : _maskedContact!,
                     style: EcliniqTextStyles.headlineMedium.copyWith(
                       fontWeight: FontWeight.w500,
                       fontSize: 18,
@@ -421,10 +458,6 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                     });
                   }
                 },
-                onCompleted: (value) {
-                  // Auto-verify when 6 digits are entered
-                  // _verifyAndProceed(); // Uncomment if you want auto-submit
-                },
               ),
               const SizedBox(height: 12),
               Row(
@@ -466,6 +499,57 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
               ),
               const Spacer(),
               _buildVerifyButton(),
+            ] else if (_errorMessage != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: EcliniqTextStyles.bodyMedium.copyWith(
+                            color: Colors.red.shade600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: _sendOTPToExistingContact,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff0D47A1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Retry',
+                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ],
         ),

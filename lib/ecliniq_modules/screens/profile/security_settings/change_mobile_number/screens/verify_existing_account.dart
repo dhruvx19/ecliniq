@@ -4,6 +4,7 @@ import 'package:ecliniq/ecliniq_api/auth_service.dart';
 import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -36,13 +37,14 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   final AuthService _authService = AuthService();
 
   bool _isSendingOTP = false;
+  bool _isLoading = false;
   bool _isButtonPressed = false;
   bool _isVerifying = false;
   String? _errorMessage;
   String? _maskedContact;
   String? _challengeId;
   Timer? _timer;
-  int _resendTimer = 150; // 2 minutes 30 seconds
+  int _resendTimer = 30; // Consistent with other screens
   bool _canResend = false;
   bool _isDisposed = false;
 
@@ -63,8 +65,6 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       // Fallback: fetch OTP (this should rarely happen now)
       _sendOTPToExistingContact();
     }
-    
-    _startTimer();
   }
 
   @override
@@ -76,10 +76,10 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   }
 
   void _startTimer() {
-    _resendTimer = 150;
+    _resendTimer = 30;
     _canResend = false;
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_isDisposed) {
         timer.cancel();
         return;
@@ -132,10 +132,18 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
           _challengeId = result['challengeId'];
           // Only update masked contact if we don't have preloaded one
           if (widget.preloadedMaskedPhone == null) {
-            _maskedContact = contact;
+             // Mask it manually if needed, or use full if backend sends full digits? 
+             // Typically backend returns masked or we mask it.
+             // If backend returns full number, mask it. 
+             if (contact.length >= 4) {
+               _maskedContact = '******${contact.substring(contact.length - 4)}';
+             } else {
+               _maskedContact = contact;
+             }
           }
           _isSendingOTP = false;
         });
+        _startTimer();
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Failed to send OTP';
@@ -153,12 +161,6 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
 
   Future<void> _resendOTP() async {
     if (!_canResend || !mounted) return;
-
-    setState(() {
-      _canResend = false;
-      _resendTimer = 150;
-    });
-    _startTimer();
     await _sendOTPToExistingContact();
   }
 
@@ -346,6 +348,26 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                 color: const Color(0xff424242),
               ),
             ),
+            if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.only(top: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerLoading(
+                      width: 200,
+                      height: 20,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    const SizedBox(height: 8),
+                    ShimmerLoading(
+                      width: 150,
+                      height: 20,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ],
+                ),
+              ),
             if (_maskedContact != null) ...[
               Row(
                 children: [
@@ -414,10 +436,6 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                     });
                   }
                 },
-                onCompleted: (value) {
-                  // Auto-verify when 6 digits are entered
-                  // _verifyAndProceed(); // Uncomment if you want auto-submit
-                },
               ),
               const SizedBox(height: 12),
               Row(
@@ -459,6 +477,57 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
               ),
               const Spacer(),
               _buildVerifyButton(),
+            ] else if (_errorMessage != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: EcliniqTextStyles.bodyMedium.copyWith(
+                            color: Colors.red.shade600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: _sendOTPToExistingContact,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff0D47A1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Retry',
+                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ],
         ),

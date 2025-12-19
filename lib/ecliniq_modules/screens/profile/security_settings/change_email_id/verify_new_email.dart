@@ -99,11 +99,8 @@ class _VerifyNewEmailAddressState extends State<VerifyNewEmailAddress> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => SecuritySettingsOptions()),
-            (route) => false,
-          );
+          // Return to the main screen (likely Profile or Home) instead of pushing SecuritySettings as root
+          Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } else {
         setState(() {

@@ -12,10 +12,17 @@ import '../../../../ecliniq_api/auth_service.dart';
 import '../../../../ecliniq_core/auth/session_service.dart';
 import '../../../../ecliniq_core/auth/secure_storage.dart';
 import '../../../../ecliniq_core/auth/jwt_decoder.dart';
+import '../../../../ecliniq_core/auth/jwt_decoder.dart';
+import '../../../../ecliniq_api/models/patient.dart';
 import 'change_mobile_number/screens/verify_existing_account.dart';
 
 class SecuritySettingsOptions extends StatefulWidget {
-  const SecuritySettingsOptions({super.key});
+  final PatientDetailsData? patientData;
+  
+  const SecuritySettingsOptions({
+    super.key, 
+    this.patientData,
+  });
 
   @override
   State<SecuritySettingsOptions> createState() =>
@@ -38,23 +45,36 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
 
   Future<void> _loadUserInfo() async {
     try {
-      // Get phone from secure storage
-      final phone = await SecureStorageService.getPhoneNumber();
-      if (phone != null && mounted) {
-        setState(() {
-          _existingPhone = phone;
-        });
+      // Priority 1: Use passed patient data
+      if (widget.patientData != null) {
+        if (widget.patientData!.user?.phone != null) {
+          _existingPhone = widget.patientData!.user!.phone;
+        }
+        if (widget.patientData!.user?.email != null) {
+          _existingEmail = widget.patientData!.user!.email;
+        }
       }
 
-      // Try to get email from JWT token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken != null) {
-        final payload = JwtDecoder.decodePayload(authToken);
-        if (payload != null && payload['email'] != null && mounted) {
-          setState(() {
-            _existingEmail = payload['email'].toString();
-          });
+      // Priority 2: If values are still null, try storage/token
+      if (_existingPhone == null) {
+        final phone = await SecureStorageService.getPhoneNumber();
+        if (phone != null) {
+          _existingPhone = phone;
         }
+      }
+
+      if (_existingEmail == null) {
+        final authToken = await SessionService.getAuthToken();
+        if (authToken != null) {
+          final payload = JwtDecoder.decodePayload(authToken);
+          if (payload != null && payload['email'] != null) {
+            _existingEmail = payload['email'].toString();
+          }
+        }
+      }
+      
+      if (mounted) {
+        setState(() {});
       }
     } catch (e) {
       print('Error loading user info: $e');
@@ -67,7 +87,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
     }
   }
 
-  Future<void> onPressedChangeMobileNumber() async {
+    Future<void> onPressedChangeMobileNumber() async {
     // Show loader while navigating
     showDialog(
       context: context,
@@ -85,6 +105,10 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
             challengeId: null, // Will trigger API call on next page
             maskedContact: null,
             existingPhone: _existingPhone,
+            preloadedPhone: _existingPhone,
+            preloadedMaskedPhone: _existingPhone != null && _existingPhone!.length >= 10 
+                ? '******${_existingPhone!.substring(_existingPhone!.length - 4)}'
+                : null,
           ),
         ),
       );
@@ -114,6 +138,10 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
             challengeId: null, // Will trigger API call on next page
             maskedContact: null,
             existingEmail: _existingEmail,
+            preloadedEmail: _existingEmail,
+            preloadedMaskedEmail: _existingEmail != null && _existingEmail!.contains('@')
+                ? _maskEmail(_existingEmail!)
+                : null,
           ),
         ),
       );
@@ -140,34 +168,16 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
     }
 
     Future<void> onPressedChangeMPin() async {
-      // Preload phone number before navigating
-      String? phoneNumber;
-      String? maskedPhone;
-
-      try {
-        final phone = await SecureStorageService.getPhoneNumber();
-        if (phone != null && phone.isNotEmpty) {
-          String processedPhone = phone
-              .replaceAll(RegExp(r'^\+?91'), '')
-              .trim();
-          if (processedPhone.length == 10) {
-            phoneNumber = processedPhone;
-            maskedPhone =
-                '******${processedPhone.substring(processedPhone.length - 4)}';
-          }
-        }
-      } catch (e) {
-        print('Error loading phone number: $e');
-      }
-
       // Navigate to change MPIN screen with preloaded phone number
       if (mounted) {
         await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ChangeMPINScreen(
-              preloadedPhoneNumber: phoneNumber,
-              preloadedMaskedPhone: maskedPhone,
+              preloadedPhoneNumber: _existingPhone,
+              preloadedMaskedPhone: _existingPhone != null && _existingPhone!.length >= 10 
+                  ? '******${_existingPhone!.substring(_existingPhone!.length - 4)}'
+                  : null,
             ),
           ),
         );
@@ -295,6 +305,17 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
               ),
             ),
     );
+  }
+  String _maskEmail(String email) {
+    if (email.isEmpty) return email;
+    final parts = email.split('@');
+    if (parts.length != 2) return email;
+    final username = parts[0];
+    final domain = parts[1];
+    if (username.length <= 2) {
+      return '${username[0]}***@$domain';
+    }
+    return '${username.substring(0, 2)}***@$domain';
   }
 }
 

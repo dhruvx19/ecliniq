@@ -12,11 +12,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_hospital_select_bottom_sheet.dart';
-import 'package:ecliniq/ecliniq_modules/screens/doctor_details/top_doctor/model/top_doctor_model.dart' show LocationData, LocationType;
-import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart' as ecliniq_sheet;
+import 'package:ecliniq/ecliniq_modules/screens/doctor_details/top_doctor/model/top_doctor_model.dart'
+    show LocationData, LocationType;
+import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart'
+    as ecliniq_sheet;
 import 'package:ecliniq/ecliniq_utils/bottom_sheets/sort_by_filter_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
-
 
 class DoctorsListScreen extends StatefulWidget {
   final FilterDoctorsRequest? initialFilter;
@@ -40,11 +41,9 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   @override
   void initState() {
     super.initState();
-    _currentFilter = widget.initialFilter ??
-        FilterDoctorsRequest(
-          latitude: 28.6139,
-          longitude: 77.209,
-        );
+    _currentFilter =
+        widget.initialFilter ??
+        FilterDoctorsRequest(latitude: 28.6139, longitude: 77.209);
     _fetchDoctors();
   }
 
@@ -119,13 +118,19 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           _doctors.sort((a, b) => safeCompare(b.experience, a.experience));
           break;
         case 'Distance - Nearest First':
-          _doctors.sort((a, b) => safeCompare(_computeDistance(a), _computeDistance(b)));
+          _doctors.sort(
+            (a, b) => safeCompare(_computeDistance(a), _computeDistance(b)),
+          );
           break;
         case 'Order A-Z':
-          _doctors.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          _doctors.sort(
+            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+          );
           break;
         case 'Order Z-A':
-          _doctors.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          _doctors.sort(
+            (a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()),
+          );
           break;
         case 'Rating High - low':
           _doctors.sort((a, b) => safeCompare(b.rating, a.rating));
@@ -196,10 +201,11 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     setState(() => _pressedButtons.add(doctor.id));
 
     try {
-      final selectedLocation = await ecliniq_sheet.EcliniqBottomSheet.show<LocationData>(
-        context: context,
-        child: _DoctorLocationBottomSheet(doctor: doctor),
-      );
+      final selectedLocation =
+          await ecliniq_sheet.EcliniqBottomSheet.show<LocationData>(
+            context: context,
+            child: _DoctorLocationBottomSheet(doctor: doctor),
+          );
 
       if (selectedLocation != null && mounted) {
         Navigator.push(
@@ -207,10 +213,12 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           MaterialPageRoute(
             builder: (context) => ClinicVisitSlotScreen(
               doctorId: doctor.id,
-              hospitalId:
-                  selectedLocation.type == LocationType.hospital ? selectedLocation.id : null,
-              clinicId:
-                  selectedLocation.type == LocationType.clinic ? selectedLocation.id : null,
+              hospitalId: selectedLocation.type == LocationType.hospital
+                  ? selectedLocation.id
+                  : null,
+              clinicId: selectedLocation.type == LocationType.clinic
+                  ? selectedLocation.id
+                  : null,
               doctorName: doctor.name,
               doctorSpecialization: doctor.primarySpecialization,
             ),
@@ -224,17 +232,13 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Doctors'),
         actions: [
-          IconButton(
-            onPressed: _openSort,
-            icon: const Icon(Icons.sort),
-          ),
+          IconButton(onPressed: _openSort, icon: const Icon(Icons.sort)),
           IconButton(
             onPressed: _openFilter,
             icon: const Icon(Icons.filter_list),
@@ -244,28 +248,43 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
       body: _isLoading
           ? const Center(child: EcliniqLoader())
           : _errorMessage != null
-              ? Center(child: Text('Error: $_errorMessage'))
-              : _doctors.isEmpty
-                  ? const Center(child: Text('No doctors found'))
-                  : RefreshIndicator(
-                      onRefresh: _fetchDoctors,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _doctors.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 16),
-                        itemBuilder: (context, index) {
-                          final doctor = _doctors[index];
-                          return _DoctorListItem(
-                            doctor: doctor,
-                            isPressed: _pressedButtons.contains(doctor.id),
-                            onTap: () => EcliniqRouter.push(
-                              DoctorDetailScreen(doctorId: doctor.id),
-                            ),
-                            onBookVisit: () => _bookClinicVisit(doctor),
-                          );
-                        },
-                      ),
+          ? Center(child: Text('Error: $_errorMessage'))
+          : _doctors.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(EcliniqIcons.noDoctor.assetPath),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No Doctor Match Found',
+                    style: EcliniqTextStyles.bodyMedium.copyWith(
+                      color: Color(0xff424242),
                     ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchDoctors,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: _doctors.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  final doctor = _doctors[index];
+                  return _DoctorListItem(
+                    doctor: doctor,
+                    isPressed: _pressedButtons.contains(doctor.id),
+                    onTap: () => EcliniqRouter.push(
+                      DoctorDetailScreen(doctorId: doctor.id),
+                    ),
+                    onBookVisit: () => _bookClinicVisit(doctor),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
@@ -313,10 +332,7 @@ class _DoctorListItem extends StatelessWidget {
               const SizedBox(height: 12),
               _DoctorStats(doctor: doctor),
               const SizedBox(height: 20),
-              _BookButton(
-                isPressed: isPressed,
-                onPressed: onBookVisit,
-              ),
+              _BookButton(isPressed: isPressed, onPressed: onBookVisit),
             ],
           ),
         ),
@@ -438,10 +454,7 @@ class _DoctorStats extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          '●',
-          style: TextStyle(color: Colors.grey.shade400, fontSize: 10),
-        ),
+        Text('●', style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -461,10 +474,7 @@ class _BookButton extends StatelessWidget {
   final bool isPressed;
   final VoidCallback onPressed;
 
-  const _BookButton({
-    required this.isPressed,
-    required this.onPressed,
-  });
+  const _BookButton({required this.isPressed, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -477,16 +487,12 @@ class _BookButton extends StatelessWidget {
           backgroundColor: isPressed
               ? const Color(0xFF0E4395)
               : const Color(0xFF2372EC),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           elevation: 0,
         ),
         child: Text(
           'Book Clinic Visit',
-          style: EcliniqTextStyles.headlineMedium.copyWith(
-            color: Colors.white,
-          ),
+          style: EcliniqTextStyles.headlineMedium.copyWith(color: Colors.white),
         ),
       ),
     );
@@ -499,10 +505,12 @@ class _DoctorLocationBottomSheet extends StatefulWidget {
   const _DoctorLocationBottomSheet({required this.doctor});
 
   @override
-  State<_DoctorLocationBottomSheet> createState() => _DoctorLocationBottomSheetState();
+  State<_DoctorLocationBottomSheet> createState() =>
+      _DoctorLocationBottomSheetState();
 }
 
-class _DoctorLocationBottomSheetState extends State<_DoctorLocationBottomSheet> {
+class _DoctorLocationBottomSheetState
+    extends State<_DoctorLocationBottomSheet> {
   String? _selectedLocationId;
   late final List<LocationData> _locations;
 
@@ -515,41 +523,42 @@ class _DoctorLocationBottomSheetState extends State<_DoctorLocationBottomSheet> 
 
   List<LocationData> _getLocations(Doctor doctor) {
     final List<LocationData> locs = [];
-    
+
     for (var hospital in doctor.hospitals) {
-      locs.add(LocationData(
-        id: hospital.id,
-        name: hospital.name,
-        hours: 'Contact for timings',
-        area: '${hospital.city ?? ''}, ${hospital.state ?? ''}',
-        distance: '${hospital.distance?.toStringAsFixed(1) ?? '0.0'} Km',
-        type: LocationType.hospital,
-        latitude: hospital.latitude ?? 0.0,
-        longitude: hospital.longitude ?? 0.0,
-      ));
+      locs.add(
+        LocationData(
+          id: hospital.id,
+          name: hospital.name,
+          hours: 'Contact for timings',
+          area: '${hospital.city ?? ''}, ${hospital.state ?? ''}',
+          distance: '${hospital.distance?.toStringAsFixed(1) ?? '0.0'} Km',
+          type: LocationType.hospital,
+          latitude: hospital.latitude ?? 0.0,
+          longitude: hospital.longitude ?? 0.0,
+        ),
+      );
     }
 
     for (var clinic in doctor.clinics) {
-      locs.add(LocationData(
-        id: clinic.id,
-        name: clinic.name,
-        hours: 'Contact for timings',
-        area: '${clinic.city ?? ''}, ${clinic.state ?? ''}',
-        distance: '${clinic.distance?.toStringAsFixed(1) ?? '0.0'} Km',
-        type: LocationType.clinic,
-        latitude: clinic.latitude ?? 0.0,
-        longitude: clinic.longitude ?? 0.0,
-      ));
+      locs.add(
+        LocationData(
+          id: clinic.id,
+          name: clinic.name,
+          hours: 'Contact for timings',
+          area: '${clinic.city ?? ''}, ${clinic.state ?? ''}',
+          distance: '${clinic.distance?.toStringAsFixed(1) ?? '0.0'} Km',
+          type: LocationType.clinic,
+          latitude: clinic.latitude ?? 0.0,
+          longitude: clinic.longitude ?? 0.0,
+        ),
+      );
     }
-    
+
     return locs;
   }
 
-
   void _onLocationTap(String locationId) {
-    final selected = _locations.firstWhere(
-      (loc) => loc.id == locationId,
-    );
+    final selected = _locations.firstWhere((loc) => loc.id == locationId);
     Navigator.pop(context, selected);
   }
 
@@ -704,10 +713,7 @@ class _LocationIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF7F0),
         borderRadius: BorderRadius.circular(54),
-        border: Border.all(
-          color: const Color(0xFFEC7600),
-          width: 0.5,
-        ),
+        border: Border.all(color: const Color(0xFFEC7600), width: 0.5),
       ),
       child: Center(
         child: SvgPicture.asset(

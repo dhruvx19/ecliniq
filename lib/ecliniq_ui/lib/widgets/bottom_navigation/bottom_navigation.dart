@@ -1,5 +1,4 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -16,16 +15,7 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: EcliniqScaffold.primaryBlue,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(color: Color(0xff0D47A1)),
       child: SafeArea(
         top: false,
         child: Container(
@@ -40,9 +30,9 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
                     iconPath: EcliniqIcons.explore.assetPath,
+                    selectedIconPath: EcliniqIcons.homeFilled.assetPath,
                     isSelected: currentIndex == 0,
                     label: 'Explore',
-                    isSvg: true,
                   ),
                 ),
               ),
@@ -52,9 +42,9 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
                     iconPath: EcliniqIcons.myVisits.assetPath,
+                    selectedIconPath: EcliniqIcons.myVisitsFilled.assetPath,
                     isSelected: currentIndex == 1,
                     label: 'My Visits',
-                    isSvg: true,
                   ),
                 ),
               ),
@@ -64,9 +54,9 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
                     iconPath: EcliniqIcons.healthfile.assetPath,
+                    selectedIconPath: EcliniqIcons.filesFilled.assetPath,
                     isSelected: currentIndex == 2,
                     label: 'Health Files',
-                    isSvg: true,
                   ),
                 ),
               ),
@@ -76,9 +66,9 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
                     iconPath: EcliniqIcons.profile.assetPath,
+                    selectedIconPath: EcliniqIcons.userSelected.assetPath,
                     isSelected: currentIndex == 3,
                     label: 'Profile',
-                    isSvg: true,
                   ),
                 ),
               ),
@@ -91,15 +81,15 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
 
   Widget _buildNavItem({
     required String iconPath,
+    required String selectedIconPath,
     required bool isSelected,
     required String label,
-    required bool isSvg,
   }) {
     // Selected colors
-    const selectedIconColor = Color(0xFF96BFFF);
+
     const selectedTextColor = Color(0xFFF2F7FF);
     // Unselected colors
-    const unselectedIconColor = Colors.white;
+
     const unselectedTextColor = Colors.white;
 
     return Container(
@@ -114,35 +104,25 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            height: 4,
+            height: 3,
             width: 90,
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF96BFFF) : Colors.transparent,
+              color: isSelected ? const Color(0xFf96BFFF) : Colors.transparent,
             ),
           ),
           const SizedBox(height: 8),
-
           SvgPicture.asset(
-            iconPath,
+            isSelected ? selectedIconPath : iconPath,
             width: 32,
             height: 32,
-            colorFilter: isSelected
-                ? ColorFilter.mode(
-                    selectedIconColor,
-                    BlendMode.srcIn,
-                  )
-                : ColorFilter.mode(
-                    unselectedIconColor,
-                    BlendMode.srcIn,
-                  ),
           ),
-          const SizedBox(height: 4),
+
           Text(
             label,
             style: TextStyle(
               color: isSelected ? selectedTextColor : unselectedTextColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
             ),
           ),
         ],

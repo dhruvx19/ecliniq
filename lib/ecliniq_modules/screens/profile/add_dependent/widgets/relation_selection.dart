@@ -32,7 +32,10 @@ class RelationSelectionSheet extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.6,
       decoration: BoxDecoration(
         color: EcliniqColors.light.bgBaseOverlay,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(16),
+          bottom: Radius.circular(16),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,5 @@
 import 'package:ecliniq/ecliniq_api/doctor_service.dart';
 import 'package:ecliniq/ecliniq_api/models/doctor.dart';
-import 'package:ecliniq/ecliniq_api/models/doctor_booking_response.dart';
 import 'package:ecliniq/ecliniq_api/models/slot.dart';
 import 'package:ecliniq/ecliniq_api/slot_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
@@ -15,11 +14,11 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
+import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 
 class ClinicVisitSlotScreen extends StatefulWidget {
   final String doctorId;
@@ -65,7 +64,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
   List<Slot> _slots = [];
   Map<String, List<Slot>> _groupedSlots = {};
-  Map<DateTime, int> _weeklyTokenCounts = {}; // Map of date to token count
+  final Map<DateTime, int> _weeklyTokenCounts =
+      {}; // Map of date to token count
 
   String? _selectedHospitalId;
   String? _selectedClinicId;
@@ -318,6 +318,114 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       default:
         return EcliniqIcons.morning.assetPath;
     }
+  }
+
+  String _getDefaultTimeRange(String period) {
+    if (selectedDate == null) return '';
+
+    DateTime startTime;
+    DateTime endTime;
+
+    switch (period) {
+      case 'Morning':
+        startTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          5,
+          0,
+        );
+        endTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          12,
+          0,
+        );
+        break;
+      case 'Afternoon':
+        startTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          12,
+          0,
+        );
+        endTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          17,
+          0,
+        );
+        break;
+      case 'Evening':
+        startTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          17,
+          0,
+        );
+        endTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          21,
+          0,
+        );
+        break;
+      case 'Night':
+        startTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          21,
+          0,
+        );
+        endTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          23,
+          59,
+        );
+        break;
+      default:
+        startTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          5,
+          0,
+        );
+        endTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          12,
+          0,
+        );
+    }
+
+    final startFormatted = _formatTime(startTime);
+    final endFormatted = _formatTime(endTime);
+    return '$startFormatted - $endFormatted';
+  }
+
+  bool _isSlotDisabled(List<Slot> slots) {
+    if (slots.isEmpty) return true;
+
+    // Check if there's at least one slot with available tokens and valid status
+    final hasAvailableSlot = slots.any(
+      (slot) =>
+          slot.availableTokens > 0 &&
+          slot.slotStatus != 'COMPLETED' &&
+          slot.slotStatus != 'CANCELLED',
+    );
+
+    // Disabled if no slots have available tokens or all are completed/cancelled
+    return !hasAvailableSlot;
   }
 
   void _onSlotSelected(String slotId) {
@@ -743,7 +851,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             ],
           ),
         ),
-        const Divider(height: 2, thickness: 0.3, color: Colors.grey),
+        const Divider(height: 0.5, thickness: 0.5, color: Color(0xffD6D6D6)),
         const SizedBox(height: 14),
       ],
     );
@@ -851,42 +959,56 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       child: ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: _groupedSlots.length,
+        itemCount: periods.length, // Always show all 4 periods
         itemBuilder: (context, index) {
-          final periodWithSlots = periods
-              .where((p) => _groupedSlots.containsKey(p))
-              .toList();
-          if (index >= periodWithSlots.length) return const SizedBox.shrink();
+          final period = periods[index];
+          final slots = _groupedSlots[period] ?? [];
 
-          final period = periodWithSlots[index];
-          final slots = _groupedSlots[period]!;
+          String timeRange;
+          int totalAvailable = 0;
+          bool isDisabled = false;
 
-          slots.sort((a, b) => a.startTime.compareTo(b.startTime));
+          if (slots.isEmpty) {
+            // No slots for this period - show default time range and mark as disabled
+            timeRange = _getDefaultTimeRange(period);
+            totalAvailable = 0;
+            isDisabled = true;
+          } else {
+            // Slots exist for this period
+            slots.sort((a, b) => a.startTime.compareTo(b.startTime));
 
-          final earliestStartUTC = slots
-              .map((s) => s.startTime)
-              .reduce((a, b) => a.isBefore(b) ? a : b);
-          final latestEndUTC = slots
-              .map((s) => s.endTime)
-              .reduce((a, b) => a.isAfter(b) ? a : b);
+            final earliestStartUTC = slots
+                .map((s) => s.startTime)
+                .reduce((a, b) => a.isBefore(b) ? a : b);
+            final latestEndUTC = slots
+                .map((s) => s.endTime)
+                .reduce((a, b) => a.isAfter(b) ? a : b);
 
-          final totalAvailable = slots.fold<int>(
-            0,
-            (sum, slot) => sum + slot.availableTokens,
-          );
+            timeRange = _formatTimeRange(earliestStartUTC, latestEndUTC);
+            totalAvailable = slots.fold<int>(
+              0,
+              (sum, slot) => sum + slot.availableTokens,
+            );
+            // Disable only if total available tokens is 0
+            isDisabled = totalAvailable == 0;
+          }
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: TimeSlotCard(
               title: period,
-              time: _formatTimeRange(earliestStartUTC, latestEndUTC),
+              time: timeRange,
               available: totalAvailable,
               iconPath: _getIconPath(period),
               isSelected:
+                  !isDisabled &&
                   selectedSlot != null &&
                   slots.any((s) => s.id == selectedSlot),
+              isDisabled: isDisabled,
               onTap: () {
-                _onSlotSelected(slots.first.id);
+                if (!isDisabled && slots.isNotEmpty) {
+                  _onSlotSelected(slots.first.id);
+                }
               },
             ),
           );
@@ -1033,7 +1155,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       decoration: BoxDecoration(color: Color(0xffF8FAFF)),
       child: Row(
         children: [
@@ -1065,31 +1187,35 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             ),
           ),
 
-          SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FittedBox(
-                child: Text(
-                  'You already have a confirmed booking',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xff424242),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FittedBox(
+                  child: Text(
+                    'You already have a confirmed booking',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xff424242),
+                    ),
+
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-              FittedBox(
-                child: Text(
+                Text(
                   '$tokenText$timeText',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Color(0xff424242),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1217,10 +1343,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 const SizedBox(
                   width: 20,
                   height: 20,
-                  child: EcliniqLoader(
-                    size: 20,
-                    color: Colors.white,
-                  ),
+                  child: EcliniqLoader(size: 20, color: Colors.white),
                 )
               else
                 Text(
@@ -1245,6 +1368,10 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+
+        leadingWidth: 58,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: SvgPicture.asset(
@@ -1257,7 +1384,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            widget.isReschedule ? 'Reschedule' : 'Clinic Visit Slot',
+            widget.isReschedule ? 'Reschedule Visit Slot' : 'Clinic Visit Slot',
             style: EcliniqTextStyles.headlineMedium.copyWith(
               color: Color(0xff424242),
             ),
@@ -1299,15 +1426,19 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                       isLoading: _isLoadingWeeklySlots,
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  const Divider(height: 1, thickness: 0.3, color: Colors.grey),
+                  const SizedBox(height: 12),
+                  const Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Color(0xffD6D6D6),
+                  ),
                   const SizedBox(height: 24),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Select Below Slots',
                       style: EcliniqTextStyles.headlineLarge.copyWith(
-                        color: Colors.black,
+                        color: Color(0xff424242),
                       ),
                     ),
                   ),

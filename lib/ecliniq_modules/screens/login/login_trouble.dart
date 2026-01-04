@@ -13,19 +13,23 @@ class LoginTroublePage extends StatelessWidget {
       body: SizedBox.expand(
         child: Column(
           children: [
-            const SizedBox(height: 45),
+            const SizedBox(height: 52),
             Row(
               children: [
                 IconButton(
                   onPressed: () => Navigator.of(context).maybePop(),
-                  icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                  icon: SvgPicture.asset(
+                    EcliniqIcons.close.assetPath,
+                    width: 32,
+                    height: 32,
+                  ),
                 ),
 
-                const SizedBox(width: 48),
+         
               ],
             ),
 
-            const SizedBox(height: 10),
+           
 
             Expanded(
               child: Container(

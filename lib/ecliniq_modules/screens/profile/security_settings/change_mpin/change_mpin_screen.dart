@@ -6,6 +6,7 @@ import 'package:ecliniq/ecliniq_modules/screens/auth/mpin/set_mpin.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,7 +16,7 @@ import 'package:provider/provider.dart';
 class ChangeMPINScreen extends StatefulWidget {
   final String? preloadedPhoneNumber;
   final String? preloadedMaskedPhone;
-  
+
   const ChangeMPINScreen({
     super.key,
     this.preloadedPhoneNumber,
@@ -44,16 +45,22 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
   @override
   void initState() {
     super.initState();
-    // If phone number is preloaded, use it and skip loading step
-    if (widget.preloadedPhoneNumber != null && widget.preloadedMaskedPhone != null) {
-      _phoneNumber = widget.preloadedPhoneNumber;
-      _maskedPhone = widget.preloadedMaskedPhone;
-      // Send OTP immediately without loading phone number
-      _sendOTP();
-    } else {
-      // Load phone number first, then send OTP
-      _loadPhoneNumberAndSendOTP();
-    }
+    // Defer OTP sending until after the first frame is built
+    // This prevents setState() being called during build phase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // If phone number is preloaded, use it and skip loading step
+      if (widget.preloadedPhoneNumber != null &&
+          widget.preloadedMaskedPhone != null) {
+        _phoneNumber = widget.preloadedPhoneNumber;
+        _maskedPhone = widget.preloadedMaskedPhone;
+        // Send OTP immediately without loading phone number
+        _sendOTP();
+      } else {
+        // Load phone number first, then send OTP
+        _loadPhoneNumberAndSendOTP();
+      }
+    });
   }
 
   @override
@@ -159,16 +166,36 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
         _startTimer();
       } else {
         setState(() {
-          _errorMessage = authProvider.errorMessage ?? 'Failed to send OTP';
           _isSendingOTP = false;
         });
+
+        // Show error snackbar instead of inline error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            CustomErrorSnackBar(
+              title: 'Failed to send OTP',
+              subtitle: authProvider.errorMessage ?? 'Failed to send OTP',
+              context: context,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'An error occurred: ${e.toString()}';
         _isSendingOTP = false;
       });
+
+      // Show error snackbar for exceptions
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          CustomErrorSnackBar(
+            title: 'Error',
+            subtitle: 'An error occurred: ${e.toString()}',
+            context: context,
+          ),
+        );
+      }
     }
   }
 
@@ -211,26 +238,62 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
         // Navigate to MPIN set screen
         // Use push to maintain navigation stack (SecuritySettings -> ChangeMPIN -> MPINSet)
         if (!mounted) return;
-        Navigator.push(
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => const MPINSet(isResetMode: true),
           ),
         );
+
+        // If MPIN was successfully reset, return success result to security settings
+        // Security settings will show the success snackbar
+        if (!mounted) return;
+        if (result == true) {
+          // Small delay to ensure MPINSet screen is fully closed
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (!mounted || !context.mounted) return;
+          // Pop back to SecuritySettings with success result
+          Navigator.pop(context, true);
+        } else {
+          // If result is not true, just pop back without result
+          if (mounted && context.mounted) {
+            Navigator.pop(context);
+          }
+        }
       } else {
         setState(() {
-          _errorMessage = authProvider.errorMessage ?? 'Failed to verify OTP';
           _isVerifying = false;
-          _otpController.clear(); // Clear OTP on error
         });
+        _otpController.clear(); // Clear OTP on error
+
+        // Show error snackbar instead of inline error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            CustomErrorSnackBar(
+              title: 'Failed to verify OTP',
+              subtitle: authProvider.errorMessage ?? 'Failed to verify OTP',
+              context: context,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'An error occurred: $e';
         _isVerifying = false;
-        _otpController.clear(); // Clear OTP on error
       });
+      _otpController.clear(); // Clear OTP on error
+
+      // Show error snackbar for exceptions
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          CustomErrorSnackBar(
+            title: 'Error',
+            subtitle: 'An error occurred: $e',
+            context: context,
+          ),
+        );
+      }
     }
   }
 
@@ -383,7 +446,7 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
                     ),
                   ),
                   Text(
-                    '+91 $_maskedPhone',
+                    '+91 $_phoneNumber',
                     style: EcliniqTextStyles.headlineMedium.copyWith(
                       fontWeight: FontWeight.w500,
                       fontSize: 18,
@@ -407,6 +470,9 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
                 appContext: context,
                 length: 6,
                 controller: _otpController,
+                textStyle: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: const Color(0xff424242),
+                ),
                 autoFocus: true,
                 keyboardType: TextInputType.number,
                 animationType: AnimationType.fade,
@@ -418,17 +484,17 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
                   activeFillColor: Colors.white,
                   selectedFillColor: Colors.white,
                   inactiveFillColor: Colors.white,
-                  activeColor: const Color(0xff2372EC),
+                  activeColor: const Color(0xff626060),
                   selectedColor: const Color(0xff2372EC),
                   inactiveColor: const Color(0xff626060),
                   borderWidth: 1,
                   activeBorderWidth: 0.5,
                   selectedBorderWidth: 1,
-                  inactiveBorderWidth: 1,
+                  inactiveBorderWidth: 0.5,
                   fieldOuterPadding: const EdgeInsets.symmetric(horizontal: 2),
                 ),
                 enableActiveFill: true,
-                errorTextSpace: 16,
+                errorTextSpace: 12,
                 onChanged: (value) {
                   if (mounted) {
                     setState(() {
@@ -472,7 +538,7 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+
               GestureDetector(
                 onTap: _canResend ? _resendOTP : null,
                 child: Text(

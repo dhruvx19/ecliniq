@@ -1,3 +1,4 @@
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
 
@@ -79,7 +80,8 @@ class TermsAndConditionsPage extends StatelessWidget {
                             height: 80,
 
                             child: Image.asset(
-                              "lib/ecliniq_icons/assets/Clip_path_group.png",
+                             EcliniqIcons.termsConditions.assetPath,
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ],

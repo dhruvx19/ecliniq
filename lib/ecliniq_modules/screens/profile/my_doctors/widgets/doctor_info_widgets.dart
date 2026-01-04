@@ -20,304 +20,338 @@ class DoctorInfoWidget extends StatefulWidget {
 class _DoctorInfoWidgetState extends State<DoctorInfoWidget> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blue.shade800),
-                        color: Colors.blue.shade50,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: EcliniqText(
-                          widget.doctor.profileInitial,
-                          style: EcliniqTextStyles.bodyMedium.copyWith(
-                            color: Colors.blue,
-                            fontSize: 30,
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      child: SizedBox(
+        height: 300,
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Color(0xff96BFFF),
+                            width: 0.5,
                           ),
+                          color: Color(0xffF8FAFF),
+                          shape: BoxShape.circle,
                         ),
-                      ),
-                    ),
-                    if (widget.doctor.isVerified)
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: SvgPicture.asset(
-                          'lib/ecliniq_icons/assets/Verified Check.svg',
-                          height: 24,
-                          width: 24,
-                        ),
-                      ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    EcliniqText(
-                      widget.doctor.name,
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    EcliniqText(
-                      widget.doctor.specialization,
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    EcliniqText(
-                      widget.doctor.qualification,
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: widget.doctor.isFavorite
-                        ? Colors.red.shade50
-                        : Colors.grey.shade200,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.favorite,
-                      color: widget.doctor.isFavorite
-                          ? Colors.red
-                          : Colors.grey,
-                      size: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Column(
-              spacing: 5,
-              children: [
-                Row(
-                  spacing: 10,
-                  children: [
-                    SvgPicture.asset(
-                      EcliniqIcons.medicalKit.assetPath,
-                      height: 24,
-                      width: 24,
-                    ),
-                    EcliniqText(
-                      '${widget.doctor.experienceYears} years of exp',
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    Icon(Icons.circle, size: 7, color: Colors.grey),
-                    Container(
-                      height: 24,
-                      width: 58,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color: Color(0xffFEF9E6),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 5,
-                        children: [
-                          SvgPicture.asset('lib/ecliniq_icons/assets/Star.svg'),
-                          EcliniqText(
-                            '${widget.doctor.rating}',
+                        child: Center(
+                          child: EcliniqText(
+                            widget.doctor.profileInitial,
                             style: EcliniqTextStyles.bodyMedium.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xffBE8B00),
+                              color: Colors.blue,
+                              fontSize: 30,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.circle, size: 7, color: Colors.grey),
-                    EcliniqText(
-                      '₹${widget.doctor.fee}',
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  spacing: 10,
-                  children: [
-                    SvgPicture.asset(
-                      'lib/ecliniq_icons/assets/Appointment Remindar.svg',
-                      height: 24,
-                      width: 24,
-                    ),
-                    EcliniqText(
-                      widget.doctor.availableTime,
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    EcliniqText(
-                      '(${widget.doctor.availableDays})',
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  spacing: 10,
-                  children: [
-                    SvgPicture.asset(
-                      EcliniqIcons.mapPoint.assetPath,
-                      height: 24,
-                      width: 24,
-                    ),
-                    EcliniqText(
-                      widget.doctor.location,
-                      style: EcliniqTextStyles.bodyMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    Container(
-                      height: 24,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color: Colors.grey.shade200,
-                        border: Border.all(
-                          color: Colors.grey.shade400,
-                          width: 0.5,
                         ),
                       ),
-                      child: Center(
-                        child: EcliniqText(
-                          '  ${widget.doctor.distanceKm} km  ',
+                      Positioned(
+                        top: -2,
+                        right: 0,
+                        child: SvgPicture.asset(
+                          EcliniqIcons.verified.assetPath,
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          child: EcliniqText(
+                            widget.doctor.name,
+                            style: EcliniqTextStyles.bodyMedium.copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xff424242),
+                            ),
+                          ),
+                        ),
+                        EcliniqText(
+                          widget.doctor.specialization,
                           style: EcliniqTextStyles.bodyMedium.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
-                            color: Colors.grey.shade700,
+                            color: Color(0xff424242),
                           ),
                         ),
+                        EcliniqText(
+                          widget.doctor.qualification,
+                          style: EcliniqTextStyles.bodyMedium.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xff424242),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: Color(0xfffff8f8),
+                    ),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        EcliniqIcons.heart.assetPath,
+                        height: 20,
+                        width: 20,
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-            Container(
-              height: 24,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: Colors.green.shade50,
+                  ),
+                ],
               ),
-              child: EcliniqText(
-                '  ${widget.doctor.availableTokens} Token Available   ',
-                style: EcliniqTextStyles.bodyMedium.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.green.shade700,
-                ),
-              ),
-            ),
-            Padding(
-                  padding: const EdgeInsets.only(left: 4.0, right: 4.0),
-                  child: Row(
+              Column(
+                spacing: 8,
+                children: [
+                  Row(
+                    spacing: 8,
                     children: [
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 15,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green[50],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Queue Not Started',
-                                style: EcliniqTextStyles.titleXLarge.copyWith(
-                                  color: Color(0xff626060),
-                                ),
-                              ),
-                              
-                              
-                            ],
-                          ),
+                      SvgPicture.asset(
+                        EcliniqIcons.medicalKit.assetPath,
+                        height: 24,
+                        width: 24,
+                      ),
+                      EcliniqText(
+                        '${widget.doctor.experienceYears} years of exp',
+                        style: EcliniqTextStyles.bodyMedium.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff626060),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 1,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            EcliniqRouter.push(ClinicVisitSlotScreen(
-                              doctorId: 'doctor.id',
-                              hospitalId: 'widget.hospitalId',
-                              doctorName: 'doctor.name',
-                              doctorSpecialization: 'doctor.specializations.isNotEmpty',
-                                
-                           
-                            ));
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2372EC),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
+                      Icon(Icons.circle, size: 6, color: Color(0xff8E8E8E)),
+                      Container(
+                        height: 24,
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Color(0xffFEF9E6),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 4,
+                          children: [
+                            SvgPicture.asset(
+                              EcliniqIcons.star.assetPath,
+                              width: 18,
+                              height: 18,
                             ),
-                            elevation: 0,
-                          ),
-                          child: FittedBox(
-                            child: Text(
-                              'Book Appointment',
-                              style: EcliniqTextStyles.headlineMedium.copyWith(
-                                color: Colors.white,
+                            EcliniqText(
+                              '${widget.doctor.rating}',
+                              style: EcliniqTextStyles.bodyMedium.copyWith(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xffBE8B00),
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.circle, size: 6, color: Color(0xff8E8E8E)),
+                      EcliniqText(
+                        '₹${widget.doctor.fee}',
+                        style: EcliniqTextStyles.bodyMedium.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff626060),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      SvgPicture.asset(
+                        'lib/ecliniq_icons/assets/Appointment Remindar.svg',
+                        height: 24,
+                        width: 24,
+                        colorFilter: ColorFilter.mode(
+                          Colors.grey.shade600,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      EcliniqText(
+                        widget.doctor.availableTime,
+                        style: EcliniqTextStyles.bodyMedium.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff626060),
+                        ),
+                      ),
+                      EcliniqText(
+                        '(${widget.doctor.availableDays})',
+                        style: EcliniqTextStyles.bodyMedium.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff626060),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      SvgPicture.asset(
+                        EcliniqIcons.mapPoint.assetPath,
+                        height: 24,
+                        width: 24,
+                        colorFilter: ColorFilter.mode(
+                          Colors.grey.shade600,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      Flexible(
+                        child: EcliniqText(
+                          widget.doctor.location,
+                          style: EcliniqTextStyles.bodyMedium.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xff626060),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        height: 24,
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Color(0xffF9F9F9),
+                          border: Border.all(
+                            color: Color(0xffB8B8B8),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: EcliniqText(
+                            '${widget.doctor.distanceKm} km',
+                            style: EcliniqTextStyles.bodyMedium.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xff424242),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
+                ],
+              ),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Color(0xffF2FFF3),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-          ],
+
+                child: Text(
+                  '${widget.doctor.availableTokens} Token Available',
+                  style: EcliniqTextStyles.titleXLarge.copyWith(
+                    color: Color(0xff3EAF3F),
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      height: 52,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Queue Not Started',
+                          style: EcliniqTextStyles.titleXLarge.copyWith(
+                            color: Color(0xff626060),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x4D2372EC),
+                            offset: Offset(2, 2),
+                            blurRadius: 10,
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          EcliniqRouter.push(
+                            ClinicVisitSlotScreen(
+                              doctorId: 'doctor.id',
+                              hospitalId: 'widget.hospitalId',
+                              doctorName: 'doctor.name',
+                              doctorSpecialization:
+                                  'doctor.specializations.isNotEmpty',
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2372EC),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Book Appointment',
+                          style: EcliniqTextStyles.headlineMedium.copyWith(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Container(height: 0.5, color: Color(0xffD6D6D6)),
+            ],
+          ),
         ),
       ),
     );

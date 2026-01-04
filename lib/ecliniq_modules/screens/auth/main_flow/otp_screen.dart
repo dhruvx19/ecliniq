@@ -1,21 +1,27 @@
-import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'dart:async';
+
 import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
 import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/mpin/set_mpin.dart';
+import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/details/user_details.dart';
 import 'package:ecliniq/ecliniq_modules/screens/login/login.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/login_trouble.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/profile_help.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 
 class OtpInputScreen extends StatefulWidget {
   final bool isForgotPinFlow;
-  
+
   const OtpInputScreen({super.key, this.isForgotPinFlow = false});
 
   @override
@@ -26,20 +32,44 @@ class _OtpInputScreenState extends State<OtpInputScreen>
     with WidgetsBindingObserver {
   final TextEditingController _otpController = TextEditingController();
   bool _isButtonPressed = false;
+  int _resendTimer = 150; // 2:30 minutes in seconds
+  bool _canResend = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _otpController.addListener(_onOtpChanged);
     WidgetsBinding.instance.addObserver(this);
+    _startTimer();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _otpController.removeListener(_onOtpChanged);
-    super.dispose();
+    _timer?.cancel();
     _otpController.dispose();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _canResend = false;
+    _resendTimer = 150; // Reset to 2:30 minutes
+
+    _timer?.cancel(); // Cancel any existing timer
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          if (_resendTimer > 0) {
+            _resendTimer--;
+          } else {
+            _canResend = true;
+            _timer?.cancel();
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -118,7 +148,7 @@ class _OtpInputScreenState extends State<OtpInputScreen>
               context: context,
             ),
           );
-          
+
           // Route based on flow type
           if (widget.isForgotPinFlow) {
             // Forgot PIN flow: OTP verified → Reset MPIN
@@ -127,35 +157,58 @@ class _OtpInputScreenState extends State<OtpInputScreen>
             if (hasValidSession) {
               // User is authenticated - this is change MPIN from security settings
               // Use push instead of pushAndRemoveUntil to preserve navigation stack
-              EcliniqRouter.push(
-                const MPINSet(isResetMode: true),
-              );
+              await SessionService.saveFlowState('mpin_reset');
+              EcliniqRouter.push(const MPINSet(isResetMode: true));
             } else {
               // User is not authenticated - this is forget PIN from login
               // Use pushAndRemoveUntil to clear navigation stack
+              await SessionService.saveFlowState('mpin_reset');
               EcliniqRouter.pushAndRemoveUntil(
                 const MPINSet(isResetMode: true),
                 (route) => route.isFirst,
               );
             }
           } else {
-            // Normal flow: Check if user needs to set MPIN
-            final hasMPIN = await SecureStorageService.hasMPIN();
-            
-            if (!hasMPIN) {
-              // New user: No MPIN set → Set MPIN → Biometric Setup → Onboarding
+            // Normal flow: Check API response to determine if user is new
+            final redirectTo = authProvider.redirectTo;
+            final userStatus = authProvider.userStatus;
+
+            // Determine if this is a new user based on API response
+            // New user if: userStatus is "new" OR redirectTo is "profile_setup"
+            final isNewUser =
+                userStatus == 'new' || redirectTo == 'profile_setup';
+
+            if (isNewUser) {
+              // New user: Always go through MPIN setup, even if old MPIN exists in storage
+              // Clear any old MPIN from storage for new users
+              await SecureStorageService.deleteMPIN();
+
+              // Flow: OTP → MPIN → User Details → Home
+              await SessionService.saveFlowState('mpin_setup');
               EcliniqRouter.pushAndRemoveUntil(
                 const MPINSet(),
                 (route) => route.isFirst,
               );
             } else {
-              // Returning user: MPIN exists → Navigate to Login Page (not VerifyMPINPage)
-              // User can enter MPIN or use biometric on login page
-              // This handles token expiration case - user already has MPIN, just needs to re-authenticate
-              EcliniqRouter.pushAndRemoveUntil(
-                const LoginPage(),
-                (route) => route.isFirst,
-              );
+              // Existing user: Check if MPIN exists locally
+              final hasMPIN = await SecureStorageService.hasMPIN();
+
+              if (!hasMPIN) {
+                // Existing user without MPIN: Set MPIN first
+                await SessionService.saveFlowState('mpin_setup');
+                EcliniqRouter.pushAndRemoveUntil(
+                  const MPINSet(),
+                  (route) => route.isFirst,
+                );
+              } else {
+                // Existing user with MPIN: Navigate to Login Page
+                // User can enter MPIN or use biometric on login page
+                await SessionService.clearFlowState(); // Clear flow state as user is authenticated
+                EcliniqRouter.pushAndRemoveUntil(
+                  const LoginPage(),
+                  (route) => route.isFirst,
+                );
+              }
             }
           }
         } else {
@@ -189,12 +242,14 @@ class _OtpInputScreenState extends State<OtpInputScreen>
   }
 
   void _resendOTP() async {
+    if (!_canResend) return; // Don't allow resend if timer hasn't finished
+
     setState(() {
       _isButtonPressed = true;
     });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
+
     // Use forget MPIN resend if it's forget PIN flow, otherwise use normal resend
     if (widget.isForgotPinFlow) {
       final phoneNumber = authProvider.phoneNumber;
@@ -209,6 +264,15 @@ class _OtpInputScreenState extends State<OtpInputScreen>
       setState(() {
         _isButtonPressed = false;
       });
+      _startTimer(); // Restart the timer after resending OTP
+      _otpController.clear(); // Clear the OTP field
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('OTP has been resent'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
@@ -220,7 +284,7 @@ class _OtpInputScreenState extends State<OtpInputScreen>
 
         return SizedBox(
           width: double.infinity,
-          height: 46,
+          height: 52,
           child: GestureDetector(
             onTap: isButtonEnabled ? _verifyOTP : null,
             child: Container(
@@ -232,29 +296,31 @@ class _OtpInputScreenState extends State<OtpInputScreen>
                     : EcliniqButtonType.brandPrimary.disabledBackgroundColor(
                         context,
                       ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Verify & Next',
-                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                    style: EcliniqTextStyles.headlineMedium.copyWith(
                       color: _isButtonPressed
                           ? Colors.white
                           : isButtonEnabled
                           ? Colors.white
-                          : Colors.grey,
+                          : Color(0xffD6D6D6),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(
-                    Icons.arrow_forward,
+                  SvgPicture.asset(
+                    EcliniqIcons.arrowRightWhite.assetPath,
+                    width: 24,
+                    height: 24,
                     color: _isButtonPressed
                         ? Colors.white
                         : isButtonEnabled
                         ? Colors.white
-                        : Colors.grey,
+                        : Color(0xff8E8E8E),
                   ),
                 ],
               ),
@@ -265,42 +331,62 @@ class _OtpInputScreenState extends State<OtpInputScreen>
     );
   }
 
+  String _formatTimer(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         return EcliniqScaffold(
           backgroundColor: EcliniqScaffold.primaryBlue,
+          resizeToAvoidBottomInset: true,
           body: SizedBox.expand(
             child: Column(
               children: [
-                SizedBox(height: 40),
+                SizedBox(height: 52),
                 Row(
                   children: [
                     IconButton(
-                      onPressed: () {
-                        authProvider.clearSession();
-                        EcliniqRouter.pop();
-                      },
-                      icon: Image.asset(
-                        EcliniqIcons.arrowBack.assetPath,
-                        width: 24,
-                        height: 24,
-                        color: Colors.white,
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: SvgPicture.asset(
+                        EcliniqIcons.reply.assetPath,
+                        width: 32,
+                        height: 32,
                       ),
                     ),
                     const Spacer(),
-                    TextButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.help_outline, color: Colors.white),
-                      label: const Text(
-                        'Help',
-                        style: TextStyle(color: Colors.white),
+                    GestureDetector(
+                      onTap: () => EcliniqRouter.push(LoginTroublePage()),
+                      child: FadeTransition(
+                        opacity: AlwaysStoppedAnimation(1.0),
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              EcliniqIcons.questionCircleWhite.assetPath,
+                              width: 24,
+                              height: 24,
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Help',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 10),
+
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(color: Colors.white),
@@ -308,19 +394,46 @@ class _OtpInputScreenState extends State<OtpInputScreen>
                       children: [
                         Expanded(
                           child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(24),
+                            padding: const EdgeInsets.only(
+                              top: 24,
+                              left: 18,
+                              right: 18,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Enter the 6-digit OTP sent to',
-                                  style: EcliniqTextStyles.headlineMedium,
-                                ),
                                 Text(
-                                  '+91 ${authProvider.phoneNumber ?? 'your phone'}',
-                                  style: EcliniqTextStyles.headlineMedium,
+                                  'Enter the 6-digit OTP sent to',
+                                  style: EcliniqTextStyles.headlineMedium
+                                      .copyWith(
+                                        color: Color(0xff424242),
+                                        fontWeight: FontWeight.w400,
+                                      ),
                                 ),
-                                const SizedBox(height: 20),
+                                SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '+91 ${authProvider.phoneNumber ?? 'your phone'}',
+                                      style: EcliniqTextStyles.headlineMedium
+                                          .copyWith(color: Color(0xff424242)),
+                                    ),
+                                    SizedBox(width: 4),
+                                    GestureDetector(
+                                      onTap: () => Navigator.of(context).pop(),
+                                      child: Text(
+                                        'Change Number',
+                                        style: EcliniqTextStyles.headlineMedium
+                                            .copyWith(
+                                              color: Color(0xff2372EC),
+                                              fontSize: 14,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 24),
                                 PinCodeTextField(
                                   appContext: context,
                                   length: 6,
@@ -328,48 +441,82 @@ class _OtpInputScreenState extends State<OtpInputScreen>
                                   autoFocus: true,
                                   keyboardType: TextInputType.number,
                                   animationType: AnimationType.fade,
+                                  textStyle: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w400,
+                                    color: Color(0xff424242),
+                                  ),
+
                                   pinTheme: PinTheme(
                                     shape: PinCodeFieldShape.box,
                                     borderRadius: BorderRadius.circular(8),
-                                    fieldHeight: 48,
-                                    fieldWidth: 40,
+                                    fieldHeight: 52,
+                                    fieldWidth: 45,
                                     activeFillColor: Colors.white,
                                     selectedFillColor: Colors.white,
                                     inactiveFillColor: Colors.white,
-                                    activeColor: Colors.blue,
-                                    selectedColor: Colors.blue,
-                                    inactiveColor: Colors.grey.shade300,
+                                    activeColor: const Color(0xff626060),
+                                    selectedColor: const Color(0xff2372EC),
+                                    inactiveColor: const Color(0xff626060),
                                     borderWidth: 1,
-                                    fieldOuterPadding: EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
+                                    activeBorderWidth: 0.5,
+                                    selectedBorderWidth: 0.5,
+                                    inactiveBorderWidth: 0.5,
+                                    fieldOuterPadding:
+                                        const EdgeInsets.symmetric(
+                                          horizontal: 2,
+                                        ),
+                                  ),
+
+                                  animationDuration: const Duration(
+                                    milliseconds: 300,
                                   ),
                                   enableActiveFill: true,
-                                  errorTextSpace: 16,
+                                  errorTextSpace: 0,
                                   onChanged: (value) {},
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 24),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Didn\'t receive the OTP?',
+                                      style: EcliniqTextStyles.bodySmall
+                                          .copyWith(
+                                            color: const Color(0xff8E8E8E),
+                                          ),
+                                    ),
+                                    const Spacer(),
+                                    if (!_canResend)
+                                      Row(
+                                        children: [
+                                          SvgPicture.asset(
+                                            EcliniqIcons.clockCircle.assetPath,
+                                            width: 16,
+                                            height: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _formatTimer(_resendTimer),
+                                            style: EcliniqTextStyles.bodySmall
+                                                .copyWith(
+                                                  color: const Color(
+                                                    0xff424242,
+                                                  ),
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                  ],
+                                ),
+
                                 GestureDetector(
-                                  onTap: authProvider.isLoading
-                                      ? null
-                                      : _resendOTP,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Didn\'t receive the OTP?',
-                                        style: EcliniqTextStyles.bodySmall
-                                            .copyWith(color: Colors.grey),
-                                      ),
-                                      Text(
-                                        _isButtonPressed
-                                            ? 'Resending...'
-                                            : 'Resend',
-                                        style: EcliniqTextStyles.bodyMedium
-                                            .copyWith(color: Colors.blue),
-                                      ),
-                                    ],
+                                  onTap: _canResend ? _resendOTP : null,
+                                  child: Text(
+                                    'Resend',
+                                    style: EcliniqTextStyles.headlineXMedium
+                                        .copyWith(
+                                          color: const Color(0xff2372EC),
+                                        ),
                                   ),
                                 ),
                               ],
@@ -377,7 +524,11 @@ class _OtpInputScreenState extends State<OtpInputScreen>
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.only(
+                            right: 18,
+                            left: 18,
+                            bottom: 24,
+                          ),
                           child: _buildVerifyButton(),
                         ),
                       ],

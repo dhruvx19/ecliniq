@@ -55,11 +55,11 @@ class MonthlyTransactionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Color(0xFFE2E8F0), width: 1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Color(0xFFD6D6D6), width: 0.5),
       ),
       child: Column(
         children: [
@@ -76,7 +76,7 @@ class MonthlyTransactionCard extends StatelessWidget {
                   Text(
                     monthlyTransaction.month,
                     style: EcliniqTextStyles.bodyMedium.copyWith(
-                      color: const Color(0xFF2D3748),
+                      color: const Color(0xFF424242),
                       fontWeight: FontWeight.w500,
                       fontSize: 18,
                     ),
@@ -85,7 +85,10 @@ class MonthlyTransactionCard extends StatelessWidget {
                     monthlyTransaction.isExpanded
                         ? EcliniqIcons.angleDown.assetPath
                         : EcliniqIcons.angleRight.assetPath,
-                    color: const Color(0xFF718096),
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF424242), BlendMode.srcIn),
                   ),
                 ],
               ),
@@ -148,11 +151,9 @@ class TransactionItem extends StatelessWidget {
     final isCredit = transaction.type == 'credit';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: const Color(0xFFE2E8F0), width: 1),
-        ),
+        
       ),
       child: Row(
         children: [
@@ -169,7 +170,7 @@ class TransactionItem extends StatelessWidget {
                 EcliniqText(
                   isCredit ? 'Coin Credited' : 'Coin Used',
                   style: EcliniqTextStyles.bodyMedium.copyWith(
-                    color: const Color(0xFF2D3748),
+                    color: const Color(0xFF424242),
                     fontWeight: FontWeight.w400,
                     fontSize: 18,
                   ),
@@ -178,7 +179,7 @@ class TransactionItem extends StatelessWidget {
                 Text(
                   _formatDate(transaction.date),
                   style: EcliniqTextStyles.labelMedium.copyWith(
-                    color: Color(0xFF718096),
+                    color: Color(0xFF8E8E8E),
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -189,18 +190,18 @@ class TransactionItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: isCredit
-                  ? const Color(0xFFE6FCF5)
-                  : const Color(0xFFFFF3F3),
+                  ? const Color(0xFFF2FFF3)
+                  : const Color(0xFFFFF8F8),
               borderRadius: BorderRadius.circular(6),
             ),
             child: EcliniqText(
               '${isCredit ? '+' : '-'}${transaction.amount}',
               style: EcliniqTextStyles.bodyMedium.copyWith(
                 color: isCredit
-                    ? const Color(0xFF10B981)
-                    : const Color(0xFFEF4444),
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
+                    ? const Color(0xFF3EAF3F)
+                    : const Color(0xFFF04248),
+                fontWeight: FontWeight.w500,
+                fontSize: 20,
               ),
             ),
           ),

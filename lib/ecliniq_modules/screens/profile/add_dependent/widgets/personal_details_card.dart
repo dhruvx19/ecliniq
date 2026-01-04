@@ -154,8 +154,8 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
                   : const SizedBox.shrink(),
             ),
             Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
+              color: Color(0xffD6D6D6),
+              thickness: 0.5,
               height: 0,
             ),
 
@@ -187,12 +187,11 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
                   : const SizedBox.shrink(),
             ),
 
-            Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
+          Divider(
+              color: Color(0xffD6D6D6),
+              thickness: 0.5,
               height: 0,
             ),
-
             // Gender
             Container(
               margin: EdgeInsets.symmetric(
@@ -242,11 +241,10 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
             ),
 
             Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
+              color: Color(0xffD6D6D6),
+              thickness: 0.5,
               height: 0,
             ),
-
             // Date of Birth
             Container(
               margin: EdgeInsets.symmetric(
@@ -273,10 +271,9 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
                 onTap: () => _selectDate(context),
               ),
             ),
-
-            Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
+ Divider(
+              color: Color(0xffD6D6D6),
+              thickness: 0.5,
               height: 0,
             ),
 
@@ -323,11 +320,10 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
             ),
 
             Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
+              color: Color(0xffD6D6D6),
+              thickness: 0.5,
               height: 0,
             ),
-
             Container(
               margin: EdgeInsets.symmetric(
                 vertical: screenSize.getResponsiveValue(
@@ -362,11 +358,10 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
             ),
 
             Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
+              color: Color(0xffD6D6D6),
+              thickness: 0.5,
               height: 0,
             ),
-
             Container(
               margin: EdgeInsets.symmetric(
                 vertical: screenSize.getResponsiveValue(
@@ -397,11 +392,10 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
             ),
 
             Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
+              color: Color(0xffD6D6D6),
+              thickness: 0.5,
               height: 0,
             ),
-
             Container(
               margin: EdgeInsets.symmetric(
                 vertical: screenSize.getResponsiveValue(
@@ -423,11 +417,9 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
                 hint: 'Select Blood Group',
                 value: provider.bloodGroup,
                 onTap: () async {
-                  final selected = await showModalBottomSheet<String>(
+                  final selected = await EcliniqBottomSheet.show(
                     context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const BloodGroupSelectionSheet(),
+                    child: BloodGroupSelectionSheet(),
                   );
                   if (selected != null) {
                     provider.setBloodGroup(selected);
@@ -530,7 +522,7 @@ Widget _buildSelectField({
               textAlign: TextAlign.right,
               style: EcliniqTextStyles.headlineXMedium.copyWith(
                 color: value != null
-                    ? Color(0xff626060)
+                    ? Color(0xff424242)
                     : Color(0xffB8B8B8),
                 fontWeight: value != null ? FontWeight.w400 : FontWeight.w500,
               ),

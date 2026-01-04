@@ -11,7 +11,7 @@ class AboutHospital extends StatelessWidget {
     final aboutText = hospital != null
         ? '${hospital!.name} is a ${hospital!.type} located in ${hospital!.city}, ${hospital!.state}. Established in ${hospital!.establishmentYear}, it has ${hospital!.noOfBeds} beds and ${hospital!.numberOfDoctors} doctors serving the community.'
         : 'Hospital information not available.';
-    
+
     return Container(
       color: Colors.white,
       child: Column(
@@ -49,7 +49,7 @@ class AboutHospital extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -62,7 +62,7 @@ class AboutHospital extends StatelessWidget {
                     color: Color(0xff626060),
                   ),
                 ),
-                const SizedBox(height: 16),
+                
               ],
             ),
           ),

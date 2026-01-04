@@ -25,9 +25,7 @@ class _AddressWidgetState extends State<AddressWidget> {
     );
 
     // Try Apple Maps (will fall back to web on Android)
-    final appleMapsUrl = Uri.parse(
-      'https://maps.apple.com/?daddr=$lat,$lng',
-    );
+    final appleMapsUrl = Uri.parse('https://maps.apple.com/?daddr=$lat,$lng');
 
     try {
       bool canLaunchGoogle = false;
@@ -51,10 +49,7 @@ class _AddressWidgetState extends State<AddressWidget> {
       // Try to launch Google Maps
       if (canLaunchGoogle) {
         try {
-          await launchUrl(
-            googleMapsUrl,
-            mode: LaunchMode.externalApplication,
-          );
+          await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
           return; // Successfully launched, exit
         } catch (e) {
           // Continue to next option if Google Maps fails
@@ -64,10 +59,7 @@ class _AddressWidgetState extends State<AddressWidget> {
       // Try to launch Apple Maps
       if (canLaunchApple) {
         try {
-          await launchUrl(
-            appleMapsUrl,
-            mode: LaunchMode.externalApplication,
-          );
+          await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
           return; // Successfully launched, exit
         } catch (e) {
           // Continue to web fallback if Apple Maps fails
@@ -79,23 +71,19 @@ class _AddressWidgetState extends State<AddressWidget> {
         'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
       );
       try {
-        await launchUrl(
-          webMapsUrl,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(webMapsUrl, mode: LaunchMode.externalApplication);
       } catch (e) {
         // If all methods fail, try launching without checking first
         // This works around iOS platform channel issues
         try {
-          await launchUrl(
-            googleMapsUrl,
-            mode: LaunchMode.externalApplication,
-          );
+          await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
         } catch (finalLaunchError) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Unable to open maps app. Please try again or search for the location manually.'),
+                content: Text(
+                  'Unable to open maps app. Please try again or search for the location manually.',
+                ),
                 backgroundColor: Colors.orange,
                 duration: Duration(seconds: 3),
               ),
@@ -111,8 +99,9 @@ class _AddressWidgetState extends State<AddressWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final address = widget.hospital?.address.fullAddress ?? 'Address not available';
-    
+    final address =
+        widget.hospital?.address.fullAddress ?? 'Address not available';
+
     return Container(
       color: Colors.white,
       child: Column(
@@ -150,7 +139,7 @@ class _AddressWidgetState extends State<AddressWidget> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -160,7 +149,7 @@ class _AddressWidgetState extends State<AddressWidget> {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xff8E8E8E),
+                    color: Color(0xff626060),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -170,17 +159,17 @@ class _AddressWidgetState extends State<AddressWidget> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Color(0xffF9F9F9),
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: Color(0xffF9F9F9)),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.only(top: 12,left: 12,right: 12),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                             child: Container(
-                              height: 150,
+                              height: 70,
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
@@ -202,12 +191,6 @@ class _AddressWidgetState extends State<AddressWidget> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
                                             children: [
-                                              Icon(
-                                                Icons.location_on,
-                                                size: 48,
-                                                color: Colors.red,
-                                              ),
-                                              const SizedBox(height: 8),
                                               Text(
                                                 widget.hospital!.name,
                                                 style: TextStyle(
@@ -222,23 +205,8 @@ class _AddressWidgetState extends State<AddressWidget> {
                                             ],
                                           ),
                                         ),
+
                                         // Optional: Add a small map icon overlay
-                                        Positioned(
-                                          top: 8,
-                                          right: 8,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.9),
-                                              borderRadius: BorderRadius.circular(6),
-                                            ),
-                                            child: Icon(
-                                              Icons.map,
-                                              size: 16,
-                                              color: Color(0xff2372EC),
-                                            ),
-                                          ),
-                                        ),
                                       ],
                                     )
                                   : Center(
@@ -252,27 +220,21 @@ class _AddressWidgetState extends State<AddressWidget> {
                           ),
                         ),
                         InkWell(
-                          onTap: widget.hospital != null ? _openMapsDirections : null,
+                          onTap: widget.hospital != null
+                              ? _openMapsDirections
+                              : null,
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
-                                  Icons.directions,
-                                  size: 18,
-                                  color: widget.hospital != null
-                                      ? Color(0xff2372EC)
-                                      : Colors.grey,
-                                ),
-                                const SizedBox(width: 6),
+                              
                                 Text(
-                                  'Tap to get directions',
+                                  'Tap to get the clinic directions',
                                   style: EcliniqTextStyles.bodySmall.copyWith(
                                     color: widget.hospital != null
                                         ? Color(0xff2372EC)
                                         : Colors.grey,
-                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],

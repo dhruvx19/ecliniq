@@ -14,6 +14,11 @@ class PrescriptionCardList extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onMenuTap;
 
+  // Selection mode properties
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onSelectionToggle;
+
   const PrescriptionCardList({
     super.key,
     required this.file,
@@ -22,6 +27,9 @@ class PrescriptionCardList extends StatelessWidget {
     this.subheadingFontSize = 14,
     this.onTap,
     this.onMenuTap,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onSelectionToggle,
   });
 
   String _formatDay(DateTime date) {
@@ -36,20 +44,34 @@ class PrescriptionCardList extends StatelessWidget {
     return file.fileType.displayName;
   }
 
+  String _getRecordForDisplay() {
+    // Show "Uploaded for: [Name]" if recordFor exists, otherwise show file type
+    if (file.recordFor != null && file.recordFor!.isNotEmpty) {
+      return '${file.recordFor}';
+    }
+    return file.fileType.displayName;
+  }
+
   Widget _buildThumbnail() {
     final fileExists = File(file.filePath).existsSync();
 
     if (fileExists && file.isImage) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Image.file(
-          File(file.filePath),
-          width: 50,
-          height: 60,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildPlaceholderThumbnail();
-          },
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Color(0xffF69800), width: 1),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: Image.file(
+            File(file.filePath),
+            width: 50,
+            height: 60,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildPlaceholderThumbnail();
+            },
+          ),
         ),
       );
     }
@@ -62,9 +84,9 @@ class PrescriptionCardList extends StatelessWidget {
       width: 50,
       height: 60,
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: Colors.white,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Color(0xffD6D6D6), width: 0.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -100,6 +122,52 @@ class PrescriptionCardList extends StatelessWidget {
     );
   }
 
+  Widget _buildDateColumn(String day, String month) {
+    return SizedBox(
+      width: 40,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            day,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Color(0xff424242),
+            ),
+          ),
+          Text(
+            month,
+            style: TextStyle(
+              fontSize: 14,
+              color: isOlder ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectionCheckbox() {
+    return Container(
+      width: 40,
+      height: 60,
+      alignment: Alignment.center,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF2372EC) : Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Color(0xffD6D6D6), width: 0.5),
+        ),
+        child: isSelected
+            ? const Icon(Icons.check, size: 18, color: Colors.white)
+            : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final displayDate = file.fileDate ?? file.createdAt;
@@ -109,79 +177,89 @@ class PrescriptionCardList extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xffD6D6D6), width: 0.5),
-          // No shadow for list items
+          border: Border.all(color: Color(0xffD6D6D6), width: 0.5),
         ),
         child: Row(
           children: [
-            SizedBox(
-              width: 40,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    day,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xff424242),
+            // Show checkbox in selection mode, otherwise show date
+            if (isSelectionMode)
+              GestureDetector(
+                onTap: onSelectionToggle,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF2372EC) : Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF2372EC)
+                          : const Color(0xFF8E8E8E),
+                      width: 1,
                     ),
                   ),
-                  Text(
-                    month,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isOlder ? Colors.grey[400] : Colors.grey[600],
-                    ),
+                  child: Center(
+                    child: isSelected
+                        ? SvgPicture.asset(
+                            EcliniqIcons.vectorTicked.assetPath,
+                            width: 10,
+                            height: 10,
+                          )
+                        : null,
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            _buildThumbnail(),
+                ),
+              )
+            else
+              _buildDateColumn(day, month),
 
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
+            _buildThumbnail(),
+            const SizedBox(width: 12),
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     file.fileName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xff424242),
+                      color: Color(0xff424242),
                     ),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    //overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+
                   Text(
-                    _getFileTypeDisplayName(),
-                    style: TextStyle(
+                    _getRecordForDisplay(),
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xff8E8E8E),
+                      color: Color(0xff8E8E8E),
                     ),
                   ),
                 ],
               ),
             ),
-            GestureDetector(
-              onTap: onMenuTap,
-              child: RotatedBox(
-                quarterTurns: 1,
-                child: SvgPicture.asset(
-                  EcliniqIcons.threeDots.assetPath,
-                  width: 32,
-                  height: 32,
+
+            // Hide menu button in selection mode
+            if (!isSelectionMode && onMenuTap != null)
+              GestureDetector(
+                onTap: onMenuTap,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: SvgPicture.asset(
+                    EcliniqIcons.threeDots.assetPath,
+                    width: 32,
+                    height: 32,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

@@ -64,6 +64,8 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
         ),
       ),
       child: Column(
@@ -89,7 +91,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
                     ),
                   ],
                 ),
-
+                const SizedBox(height: 8),
                 // Description
                 Text(
                   _buildDescription(),
@@ -99,7 +101,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
                     color: Color(0xFF626060),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 22),
 
                 // Location options
                 if (widget.locations.isEmpty)
@@ -107,7 +109,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
                 else
                   ...widget.locations.map(
                     (location) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 20),
                       child: _LocationCard(
                         location: location,
                         isSelected: _selectedLocationId == location.id,
@@ -157,7 +159,7 @@ class _LocationCard extends StatelessWidget {
             color: isSelected ? const Color(0xFF96BFFF) : Colors.grey[200]!,
             width: 1,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           children: [
@@ -244,10 +246,14 @@ class _LocationDetails extends StatelessWidget {
             color: Color(0xFF424242),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Row(
           children: [
-            SvgPicture.asset(EcliniqIcons.map.assetPath, width: 20, height: 20),
+            SvgPicture.asset(
+              EcliniqIcons.mapPointBlack.assetPath,
+              width: 20,
+              height: 20,
+            ),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
@@ -260,28 +266,28 @@ class _LocationDetails extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            SizedBox(width: 6),
-            if (location.distance != null) ...[
-              Container(
-                height: 24,
-                width: 44,
-                decoration: BoxDecoration(
-                  color: Color(0xffF9F9F9),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
-                ),
-                child: Center(
-                  child: Text(
-                    '${location.distance} KM',
-                    style: EcliniqTextStyles.bodySmall.copyWith(
-                      color: Color(0xff424242),
-                      fontSize: 14,
-                    ),
+            SizedBox(width: 4),
+            // if (location.distance = null) ...[
+            Container(
+              height: 24,
+              width: 44,
+              decoration: BoxDecoration(
+                color: Color(0xffF9F9F9),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
+              ),
+              child: Center(
+                child: Text(
+                  '4 Km',
+                  style: EcliniqTextStyles.bodySmall.copyWith(
+                    color: Color(0xff424242),
+                    fontSize: 14,
                   ),
                 ),
               ),
-            ],
+            ),
           ],
+          //],
         ),
       ],
     );

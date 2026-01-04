@@ -67,7 +67,7 @@ class _SuccessSnackBarContent extends StatefulWidget {
 
 class _SuccessSnackBarContentState extends State<_SuccessSnackBarContent>
     with SingleTickerProviderStateMixin {
- late AnimationController _controller;
+  late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
@@ -105,8 +105,8 @@ class _SuccessSnackBarContentState extends State<_SuccessSnackBarContent>
               const SizedBox(width: 16),
               SvgPicture.asset(
                 EcliniqIcons.errorIcon.assetPath,
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -117,16 +117,16 @@ class _SuccessSnackBarContentState extends State<_SuccessSnackBarContent>
                     Text(
                       widget.title,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFFF04248), // Green
                       ),
                     ),
-                    const SizedBox(height: 2),
+
                     Text(
                       widget.subtitle,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 14,
                         fontWeight: FontWeight.w400,
                         color: Color(0xff8E8E8E),
                       ),

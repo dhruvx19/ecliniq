@@ -63,7 +63,7 @@ class MyFilesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(14.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -71,7 +71,7 @@ class MyFilesWidget extends StatelessWidget {
             'My Files',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xff424242),
             ),
           ),
@@ -85,7 +85,7 @@ class MyFilesWidget extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   itemCount: _categories.length,
                   separatorBuilder: (context, index) =>
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 24),
                   itemBuilder: (context, index) {
                     final category = _categories[index];
                     final fileCount = provider.getFileCountByType(
@@ -139,7 +139,7 @@ class FileCategoryCard extends StatelessWidget {
               ),
 
               Positioned(
-                top: 22,
+                top: 28,
                 left: 16,
                 right: 16,
                 child: Column(
@@ -149,16 +149,16 @@ class FileCategoryCard extends StatelessWidget {
                       category.title,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+          
                     Text(
                       '$fileCount ${fileCount == 1 ? 'File' : 'Files'}',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
+                        color: Colors.white,
+                        fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
                     ),

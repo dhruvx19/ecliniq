@@ -5,80 +5,89 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SurgeryDetail extends StatelessWidget {
-  const SurgeryDetail({super.key});
+  final Map<String, dynamic> surgery;
+  
+  const SurgeryDetail({super.key, required this.surgery});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Row(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.blue, width: 0.5),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: SvgPicture.asset(
-                      EcliniqIcons.scissors.assetPath,
-                      width: 24,
-                      height: 24,
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(54),
+                        color: Color(0xffF8FAFF),
+                        border: Border.all(color: Color(0xff96BFFF), width: 0.5),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: SvgPicture.asset(
+                          surgery['icon'].assetPath,
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        surgery['name'],
+                        style: EcliniqTextStyles.headlineLarge.copyWith(
+                          color: Color(0xff424242),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  'Appendectomy',
-                  style: EcliniqTextStyles.headlineLarge.copyWith(
-                    color: Color(0xff424242),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 16),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Color(0xffF8FAFF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Description',
+                            style: EcliniqTextStyles.bodySmall.copyWith(
+                              color: Color(0xff2372EC),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            surgery['description'],
+                            style: EcliniqTextStyles.titleXLarge.copyWith(
+                              color: Color(0xff626060),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                width: double.infinity,
-                height: 89,
-                decoration: BoxDecoration(
-                  color: Color(0xffF8FAFF),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Description',
-                        style: EcliniqTextStyles.bodySmall.copyWith(
-                          color: Color(0xff2372EC),
-                        ),
-                      ),
-                      Text(
-                        'Surgical removal of the appendix, usually performed to treat appendicitis.',
-                        style: EcliniqTextStyles.titleXLarge.copyWith(
-                          color: Color(0xff626060),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            HorizontalDivider()
-          ],
-        ),
+          ),
+          HorizontalDivider(color: Color(0xffD6D6D6), height: 0.5),
+        ],
       ),
     );
   }

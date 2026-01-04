@@ -1,5 +1,5 @@
 class Endpoints {
-  static const String localhost = 'http://192.168.1.4:3000';
+  static const String localhost = 'http://192.0.0.2:3000';
   static const String prod = '';
 
   static String get websocketBaseUrl => localhost.replaceAll('/api', '');
@@ -20,7 +20,8 @@ class Endpoints {
   static String get updatePatientProfile =>
       '$localhost/api/patients/update-profile';
   static String get topHospitals => '$localhost/api/hospitals/top-hospitals';
-  static String get getAllHospitals => '$localhost/api/hospitals/getAllHospitals';
+  static String get getAllHospitals =>
+      '$localhost/api/hospitals/getAllHospitals';
   static String get topDoctors => '$localhost/api/doctors/top-doctors';
   static String get filteredDoctors => '$localhost/api/doctors/filteredDoctors';
   static String hospitalDetails(String hospitalId) =>
@@ -89,6 +90,6 @@ class Endpoints {
   // Patient notification preferences
   static String get updateNotificationPreferences =>
       '$localhost/api/patients/update-notification-preferences';
-  static String get getUnreadNotificationCount => 
+  static String get getUnreadNotificationCount =>
       '$localhost/api/notifications/patients/get-unread-count';
 }

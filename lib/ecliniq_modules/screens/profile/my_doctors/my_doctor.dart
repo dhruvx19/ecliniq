@@ -80,7 +80,10 @@ class _MyDoctorsState extends State<MyDoctors> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leadingWidth: 58,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
+
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.arrowLeft.assetPath,
@@ -112,7 +115,7 @@ class _MyDoctorsState extends State<MyDoctors> {
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
-              
+
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey, width: 1),
             ),
@@ -120,7 +123,7 @@ class _MyDoctorsState extends State<MyDoctors> {
               spacing: 10,
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Image.asset(
+                SvgPicture.asset(
                   EcliniqIcons.magnifierMyDoctor.assetPath,
                   height: 24,
                   width: 24,
@@ -143,9 +146,7 @@ class _MyDoctorsState extends State<MyDoctors> {
               ],
             ),
           ),
-          Expanded(
-            child: _buildDoctorsList(),
-          ),
+          Expanded(child: _buildDoctorsList()),
         ],
       ),
     );
@@ -161,17 +162,11 @@ class _MyDoctorsState extends State<MyDoctors> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Colors.grey,
-            ),
+            Icon(Icons.error_outline, size: 48, color: Colors.grey),
             SizedBox(height: 16),
             Text(
               _errorMessage!,
-              style: EcliniqTextStyles.bodyMedium.copyWith(
-                color: Colors.grey,
-              ),
+              style: EcliniqTextStyles.bodyMedium.copyWith(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 16),
@@ -189,17 +184,11 @@ class _MyDoctorsState extends State<MyDoctors> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.favorite_border,
-              size: 48,
-              color: Colors.grey,
-            ),
+            Icon(Icons.favorite_border, size: 48, color: Colors.grey),
             SizedBox(height: 16),
             Text(
               'No favourite doctors yet',
-              style: EcliniqTextStyles.bodyMedium.copyWith(
-                color: Colors.grey,
-              ),
+              style: EcliniqTextStyles.bodyMedium.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -244,62 +233,128 @@ class _MyDoctorsState extends State<MyDoctors> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ShimmerLoading(width: 160, height: 18, borderRadius: BorderRadius.circular(4)),
+                        ShimmerLoading(
+                          width: 160,
+                          height: 18,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                         const SizedBox(height: 8),
-                        ShimmerLoading(width: 120, height: 14, borderRadius: BorderRadius.circular(4)),
+                        ShimmerLoading(
+                          width: 120,
+                          height: 14,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                         const SizedBox(height: 6),
-                        ShimmerLoading(width: 100, height: 14, borderRadius: BorderRadius.circular(4)),
+                        ShimmerLoading(
+                          width: 100,
+                          height: 14,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ShimmerLoading(width: 24, height: 24, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 24,
+                    height: 24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ],
               ),
               // Stats row
               Row(
                 children: [
-                  ShimmerLoading(width: 24, height: 24, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 24,
+                    height: 24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   const SizedBox(width: 10),
-                  ShimmerLoading(width: 110, height: 16, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 110,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   const SizedBox(width: 10),
-                  ShimmerLoading(width: 58, height: 24, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 58,
+                    height: 24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   const SizedBox(width: 10),
-                  ShimmerLoading(width: 60, height: 16, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 60,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ],
               ),
               // Availability row
               Row(
                 children: [
-                  ShimmerLoading(width: 24, height: 24, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 24,
+                    height: 24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   const SizedBox(width: 10),
-                  ShimmerLoading(width: 140, height: 16, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 140,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   const SizedBox(width: 8),
-                  ShimmerLoading(width: 100, height: 16, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 100,
+                    height: 16,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ],
               ),
               // Location row
               Row(
                 children: [
-                  ShimmerLoading(width: 24, height: 24, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 24,
+                    height: 24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: ShimmerLoading(width: double.infinity, height: 16, borderRadius: BorderRadius.circular(4)),
+                    child: ShimmerLoading(
+                      width: double.infinity,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  ShimmerLoading(width: 70, height: 24, borderRadius: BorderRadius.circular(4)),
+                  ShimmerLoading(
+                    width: 70,
+                    height: 24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ],
               ),
               // Tokens + button
-              ShimmerLoading(width: 180, height: 24, borderRadius: BorderRadius.circular(4)),
+              ShimmerLoading(
+                width: 180,
+                height: 24,
+                borderRadius: BorderRadius.circular(4),
+              ),
               Row(
                 children: [
                   Expanded(
-                    child: ShimmerLoading(height: 48, borderRadius: BorderRadius.circular(4)),
+                    child: ShimmerLoading(
+                      height: 48,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ShimmerLoading(height: 48, borderRadius: BorderRadius.circular(4)),
+                    child: ShimmerLoading(
+                      height: 48,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ],
               ),

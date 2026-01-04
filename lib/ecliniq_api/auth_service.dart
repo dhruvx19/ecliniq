@@ -393,6 +393,7 @@ class AuthService {
         return {
           'success': false,
           'message': responseData['message'] ?? 'Failed to send OTP to new contact',
+          'statusCode': response.statusCode,
         };
       }
     } catch (e) {

@@ -36,12 +36,11 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   final TextEditingController _otpController = TextEditingController();
   final AuthService _authService = AuthService();
 
-  bool _isSendingOTP = false;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _isButtonPressed = false;
   bool _isVerifying = false;
   String? _errorMessage;
-  String? _maskedContact;
+  String? _contact;
   String? _challengeId;
   Timer? _timer;
   int _resendTimer = 30; // Consistent with other screens
@@ -51,16 +50,16 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   @override
   void initState() {
     super.initState();
-    
+
     // If phone is preloaded, use it and send OTP immediately
     if (widget.preloadedPhone != null && widget.preloadedMaskedPhone != null) {
-      _maskedContact = widget.preloadedMaskedPhone;
+      _contact = widget.preloadedPhone;
       // Send OTP immediately without showing loading state
       _sendOTPToExistingContact();
     } else if (widget.challengeId != null && widget.maskedContact != null) {
       // Use provided data if available
       _challengeId = widget.challengeId;
-      _maskedContact = widget.maskedContact;
+      _contact = widget.maskedContact;
     } else {
       // Fallback: fetch OTP (this should rarely happen now)
       _sendOTPToExistingContact();
@@ -105,7 +104,6 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
     if (!mounted) return;
 
     setState(() {
-      _isSendingOTP = true;
       _errorMessage = null;
     });
 
@@ -119,42 +117,23 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        // Process contact to ensure consistent format (remove +91 if present, we'll add it in display)
-        String contact = result['contact'] ?? '';
-        // Remove +91 prefix if present to ensure consistent display format
-        if (contact.startsWith('+91')) {
-          contact = contact.substring(3).trim();
-        } else if (contact.startsWith('91')) {
-          contact = contact.substring(2).trim();
-        }
-        
         setState(() {
           _challengeId = result['challengeId'];
-          // Only update masked contact if we don't have preloaded one
-          if (widget.preloadedMaskedPhone == null) {
-             // Mask it manually if needed, or use full if backend sends full digits? 
-             // Typically backend returns masked or we mask it.
-             // If backend returns full number, mask it. 
-             if (contact.length >= 4) {
-               _maskedContact = '******${contact.substring(contact.length - 4)}';
-             } else {
-               _maskedContact = contact;
-             }
+          // Only update contact if we don't have preloaded one
+          if (widget.preloadedPhone == null) {
+            _contact = result['contact'];
           }
-          _isSendingOTP = false;
         });
         _startTimer();
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Failed to send OTP';
-          _isSendingOTP = false;
         });
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = 'An error occurred: $e';
-        _isSendingOTP = false;
       });
     }
   }
@@ -205,16 +184,21 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
         setState(() {
           _isVerifying = false;
         });
-        
+
         // Navigate to add mobile number screen with verificationToken
         if (!mounted) return;
-        Navigator.push(
+        final addResult = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) =>
                 AddMobileNumber(verificationToken: result['verificationToken']),
           ),
         );
+
+        // Pass result back to security settings
+        if (addResult != null && mounted) {
+          Navigator.pop(context, addResult);
+        }
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Failed to verify OTP';
@@ -259,10 +243,10 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
             color: _isVerifying
                 ? const Color(0xFF2372EC)
                 : _isButtonPressed
-                    ? const Color(0xFF0E4395) // Pressed color
-                    : _isOtpValid
-                        ? const Color(0xFF2372EC) // Enabled color
-                        : const Color(0xffF9F9F9), // Disabled color
+                ? const Color(0xFF0E4395) // Pressed color
+                : _isOtpValid
+                ? const Color(0xFF2372EC) // Enabled color
+                : const Color(0xffF9F9F9), // Disabled color
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(
@@ -368,7 +352,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                   ],
                 ),
               ),
-            if (_maskedContact != null) ...[
+            if (_contact != null) ...[
               Row(
                 children: [
                   Text(
@@ -380,7 +364,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                     ),
                   ),
                   Text(
-                    '+91 $_maskedContact',
+                    '+91 ${_contact!}',
                     style: EcliniqTextStyles.headlineMedium.copyWith(
                       fontWeight: FontWeight.w500,
                       fontSize: 18,
@@ -407,6 +391,11 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                 autoFocus: true,
                 keyboardType: TextInputType.number,
                 animationType: AnimationType.fade,
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xff424242),
+                ),
                 pinTheme: PinTheme(
                   shape: PinCodeFieldShape.box,
                   borderRadius: BorderRadius.circular(8),
@@ -415,17 +404,17 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                   activeFillColor: Colors.white,
                   selectedFillColor: Colors.white,
                   inactiveFillColor: Colors.white,
-                  activeColor: const Color(0xff2372EC),
+                  activeColor: const Color(0xff626060),
                   selectedColor: const Color(0xff2372EC),
                   inactiveColor: const Color(0xff626060),
                   borderWidth: 1,
                   activeBorderWidth: 0.5,
-                  selectedBorderWidth: 1,
-                  inactiveBorderWidth: 1,
+                  selectedBorderWidth: 0.5,
+                  inactiveBorderWidth: 0.5,
                   fieldOuterPadding: const EdgeInsets.symmetric(horizontal: 2),
                 ),
                 enableActiveFill: true,
-                errorTextSpace: 16,
+                errorTextSpace: 12,
                 onChanged: (value) {
                   if (mounted) {
                     setState(() {
@@ -465,7 +454,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+            
               GestureDetector(
                 onTap: _canResend ? _resendOTP : null,
                 child: Text(

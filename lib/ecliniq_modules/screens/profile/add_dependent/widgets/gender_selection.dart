@@ -11,21 +11,24 @@ class GenderSelectionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final genders = ['Male', 'Female', 'Other'];
+    final genders = ['Male', 'Female', 'Others'];
     final providerToUse =
         provider ?? Provider.of<AddDependentProvider>(context, listen: false);
 
     return Container(
       decoration: BoxDecoration(
         color: EcliniqColors.light.bgBaseOverlay,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(22),
+          bottom: Radius.circular(16),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 4, left: 15),
+            padding: const EdgeInsets.only(top: 16, left: 12),
             child: Text(
               'Select Gender',
               style: EcliniqTextStyles.headlineBMedium.copyWith(

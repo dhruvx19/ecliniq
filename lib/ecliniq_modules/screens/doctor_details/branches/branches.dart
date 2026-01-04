@@ -11,6 +11,8 @@ class Branches extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leadingWidth: 58,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: SvgPicture.asset(
@@ -35,7 +37,6 @@ class Branches extends StatelessWidget {
         ),
       ),
       body: HospitalBranchDetail(),
-
     );
   }
 }

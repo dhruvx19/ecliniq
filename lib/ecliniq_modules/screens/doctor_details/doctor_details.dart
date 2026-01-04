@@ -3,25 +3,24 @@ import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_api/patient_service.dart';
 import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'package:ecliniq/ecliniq_icons/assets/home/widgets/easy_to_book.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/branches/branches.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/about_doctor.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/address_doctor.dart';
-import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/common_widget.dart';
-import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_hospital_select_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_location_change_sheet.dart';
-import 'package:ecliniq/ecliniq_icons/assets/home/widgets/easy_to_book.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/basic_info.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/widgets.dart';
+import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:ecliniq/widgets/horizontal_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 
 class DoctorDetailScreen extends StatefulWidget {
   final String doctorId;
@@ -116,7 +115,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     try {
       if (_isFavourite) {
         // Remove
-        await _patientService.removeFavouriteDoctor(
+        final response = await _patientService.removeFavouriteDoctor(
           authToken: authToken,
           doctorId: widget.doctorId,
         );
@@ -124,17 +123,21 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           _isFavourite = false;
         });
         if (mounted) {
+          final message =
+              response['message'] as String? ??
+              'Favourite doctor removed successfully';
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Favourite doctor removed successfully'),
-              dismissDirection: DismissDirection.horizontal,
-              behavior: SnackBarBehavior.floating,
+            CustomSuccessSnackBar(
+              context: context,
+              title: 'Success',
+              subtitle: message,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
       } else {
         // Add
-        await _patientService.addFavouriteDoctor(
+        final response = await _patientService.addFavouriteDoctor(
           authToken: authToken,
           doctorId: widget.doctorId,
         );
@@ -142,11 +145,15 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           _isFavourite = true;
         });
         if (mounted) {
+          final message =
+              response['message'] as String? ??
+              'Favourite doctor added successfully';
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Favourite doctor added successfully'),
-              dismissDirection: DismissDirection.horizontal,
-              behavior: SnackBarBehavior.floating,
+            CustomSuccessSnackBar(
+              context: context,
+              title: 'Success',
+              subtitle: message,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
@@ -352,25 +359,27 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                         doctor.workExperience ?? 0,
                         doctor.rating ?? 0.0,
                       ),
-
+                      const SizedBox(height: 8),
                       HorizontalDivider(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 30),
                       AppointmentTimingWidget(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 30),
 
                       if (clinic != null) AddressWidget(clinic: clinic),
-                      const SizedBox(height: 16),
+                      if (clinic != null) const SizedBox(height: 16),
 
                       if (doctor.about != null)
                         AboutHospital(about: doctor.about!),
-                      const SizedBox(height: 16),
+                      if (doctor.about != null) const SizedBox(height: 16),
 
                       if (doctor.professionalInformation != null &&
                           doctor.clinicDetails != null)
                         ClinicalDetailsWidget(
                           clinicDetails: doctor.clinicDetails!,
                         ),
-                      const SizedBox(height: 16),
+                      if (doctor.professionalInformation != null &&
+                          doctor.clinicDetails != null)
+                        const SizedBox(height: 16),
 
                       if (doctor.professionalInformation != null)
                         ProfessionalInformationWidget(
@@ -416,7 +425,10 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.blue, width: 3),
+                          border: Border.all(
+                            color: Color(0xff96BFFF),
+                            width: 0.5,
+                          ),
                         ),
                         child: Stack(
                           children: [
@@ -516,11 +528,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                       if (loadingProgress == null) return child;
                       return Container(
                         color: Colors.grey[200],
-                        child: Center(
-                          child: EcliniqLoader(
-                            size: 24,
-                          ),
-                        ),
+                        child: Center(child: EcliniqLoader(size: 24)),
                       );
                     },
                   )
@@ -594,7 +602,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   ) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.only(top: 80, left: 16, right: 16, bottom: 24),
+      padding: const EdgeInsets.only(top: 60, left: 16, right: 16, bottom: 24),
       child: Column(
         children: [
           Text(
@@ -674,7 +682,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset(
-                EcliniqIcons.mapPoint.assetPath,
+                EcliniqIcons.mapPointBlue.assetPath,
                 width: 24,
                 height: 24,
               ),
@@ -693,7 +701,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   Widget _buildStatsCards(int patientsServed, int experience, double rating) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -770,7 +778,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   Widget _buildFloatingTabSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 90),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       decoration: BoxDecoration(
         color: const Color(0x80000000),
         borderRadius: BorderRadius.circular(30),
@@ -792,16 +800,20 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
   Widget _buildTab(String text, bool isActive) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isActive ? Colors.white : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(23),
+        border: Border.all(
+          color: isActive ? Color(0xFF96BFFF) : Colors.transparent,
+          width: 0.5,
+        ),
       ),
       child: Text(
         text,
         style: TextStyle(
           color: isActive ? Color(0xff2372EC) : Colors.white,
-          fontWeight: isActive ? FontWeight.w400 : FontWeight.normal,
+          fontWeight: FontWeight.w400,
           fontSize: 16,
         ),
       ),
@@ -815,7 +827,18 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0x332372EC),
+                  offset: const Offset(7, 4),
+                  blurRadius: 5.3,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            height: 52,
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
@@ -842,14 +865,14 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xff2372EC),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
               child: const Text(
                 'Book Appointment',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
             ),
           ),
@@ -1036,9 +1059,6 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   }
 }
 
-
-
-
 class AppointmentTimingWidget extends StatefulWidget {
   const AppointmentTimingWidget({super.key});
 
@@ -1090,7 +1110,6 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1125,34 +1144,27 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                     ),
                   ],
                 ),
-                ElevatedButton(
-                  onPressed: () {},
-
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[50],
-                    foregroundColor: Colors.blue[700],
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      side: BorderSide(color: Color(0xff96BFFF), width: 0.5),
-                    ),
+                SizedBox(width: 10),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Color(0xffF2F7FF),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Color(0xff96BFFF), width: 0.5),
                   ),
                   child: Row(
                     children: [
-                      
-                      FittedBox(
-                        child: const Text(
-                          'Inquire Now',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xff2372EC),
-                          ),
+                      SvgPicture.asset(
+                        EcliniqIcons.phoneBlue.assetPath,
+                        width: 24,
+                        height: 24,
+                      ),
+                      const Text(
+                        'Inquire Now',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xff2372EC),
                         ),
                       ),
                     ],

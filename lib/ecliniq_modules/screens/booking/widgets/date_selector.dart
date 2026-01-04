@@ -54,7 +54,7 @@ class DateSelector extends StatelessWidget {
           }
 
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 10),
             child: GestureDetector(
               onTap: isLoading ? null : () => onDateChanged(date),
               child: isLoading
@@ -73,17 +73,18 @@ class DateSelector extends StatelessWidget {
                     )
                   : Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                        horizontal: 16,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF1565C0)
+                            ? const Color(0xFF2372EC)
                             : Colors.white,
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF1565C0)
-                              : Colors.grey[300]!,
+                              ? const Color(0xFF2372EC)
+                              : Color(0xffB8B8B8),
+                          width: 0.5,
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -97,16 +98,15 @@ class DateSelector extends StatelessWidget {
                                   : Color(0xff424242),
                             ),
                           ),
-                          const SizedBox(height: 2),
                           Text(
                             tokenCount != null
                                 ? '$tokenCount Tokens Available'
                                 : 'Tap to view slots',
                             style: EcliniqTextStyles.bodySmall.copyWith(
                               color: isSelected
-                                  ? Colors.white.withOpacity(0.9)
+                                  ? Colors.white
                                   : const Color(0xFF3EAF3F),
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ],

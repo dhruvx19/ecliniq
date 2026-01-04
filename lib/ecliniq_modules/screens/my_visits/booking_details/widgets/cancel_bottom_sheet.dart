@@ -1,9 +1,12 @@
 import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/cancelled.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class CancelBottomSheet extends StatefulWidget {
@@ -68,8 +71,42 @@ class _CancelBottomSheetState extends State<CancelBottomSheet> {
         // Close the bottom sheet first
         Navigator.of(context).pop();
         
-        // Call the callback to refresh appointment details (will show shimmer and update)
-        widget.onCancelled?.call();
+        // Fetch updated appointment details
+        try {
+          final detailResponse = await _appointmentService.getAppointmentDetail(
+            appointmentId: widget.appointmentId,
+            authToken: authToken,
+          );
+
+          if (!mounted) return;
+
+          if (detailResponse.success && detailResponse.data != null) {
+            // Convert API response to UI model
+            final appointmentDetail = AppointmentDetailModel.fromApiData(
+              detailResponse.data!,
+            );
+
+            // Navigate to cancelled detail page
+            if (mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => BookingCancelledDetail(
+                    appointmentId: widget.appointmentId,
+                    appointment: appointmentDetail,
+                  ),
+                ),
+              );
+            }
+          } else {
+            // If fetching details fails, still call the callback for backward compatibility
+            widget.onCancelled?.call();
+          }
+        } catch (e) {
+          // If fetching details fails, still call the callback for backward compatibility
+          if (mounted) {
+            widget.onCancelled?.call();
+          }
+        }
       } else {
         // Handle error
         String errorMessage = response.message;
@@ -113,31 +150,32 @@ class _CancelBottomSheetState extends State<CancelBottomSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16), bottom: Radius.circular(16)),
       ),
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.only(top: 22, right: 16, left: 16, bottom: 40),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
+          SvgPicture.asset(
             EcliniqIcons.cancelGif.assetPath,
-            fit: BoxFit.contain,
-            height: 115,
-            width: 115,
+            // fit: BoxFit.contain,
+            // height: 115,
+            // width: 115,
           ),
-          FittedBox(
-            child: const EcliniqText(
-              'Are you sure you want cancel the booking?',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF424242),
-              ),
+             const SizedBox(height: 12),
+          const EcliniqText(
+            'Are you sure you want cancel the booking?',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF424242),
+              
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
           const EcliniqText(
             'You can also change this booking at any time. Please note that the Service Fee and Tax are non-refundable if you cancel.',
             style: TextStyle(
@@ -147,7 +185,7 @@ class _CancelBottomSheetState extends State<CancelBottomSheet> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           Padding(
             padding: const EdgeInsets.only(left: 4.0, right: 4.0),
             child: Row(

@@ -324,14 +324,23 @@ class GetDependentsResponse {
   });
 
   factory GetDependentsResponse.fromJson(Map<String, dynamic> json) {
+    // The API returns data as an object with 'self' and 'dependents' properties
+    // Extract the 'dependents' array from the nested structure
+    List<DependentData> dependentsList = [];
+    
+    if (json['data'] != null && json['data'] is Map<String, dynamic>) {
+      final dataMap = json['data'] as Map<String, dynamic>;
+      if (dataMap['dependents'] != null && dataMap['dependents'] is List) {
+        dependentsList = (dataMap['dependents'] as List)
+            .map((item) => DependentData.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+    }
+    
     return GetDependentsResponse(
       success: json['success'] ?? false,
       message: json['message'] ?? '',
-      data: json['data'] != null && json['data'] is List
-          ? (json['data'] as List)
-              .map((item) => DependentData.fromJson(item))
-              .toList()
-          : [],
+      data: dependentsList,
       errors: json['errors'],
       meta: json['meta'],
       timestamp: json['timestamp'] ?? DateTime.now().toIso8601String(),

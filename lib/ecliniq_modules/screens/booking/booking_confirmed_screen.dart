@@ -14,7 +14,7 @@ class BookingConfirmedScreen extends StatelessWidget {
   final String patientName;
   final String patientSubtitle;
   final String patientBadge;
-  
+
   // Payment details (optional)
   final String? merchantTransactionId;
   final String? paymentMethod;
@@ -44,240 +44,190 @@ class BookingConfirmedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            SizedBox(
-              width: 250,
-              height: 200,
-              child: Image.asset(
-                EcliniqIcons.appointment2.assetPath,
-                fit: BoxFit.contain,
-              ),
-            ),
-
-            Text(
-              'Booking Confirmed',
-              style: EcliniqTextStyles.headlineXLarge.copyWith(
-                color: Color(0xff424242),
-              ),
-            ),
-
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                text: 'With ',
-                style: EcliniqTextStyles.headlineXLarge.copyWith(
-                  color: Color(0xff424242),
-                ),
-                children: [
-                  TextSpan(
-                    text: doctorName ?? 'Doctor',
-                    style: EcliniqTextStyles.headlineXLarge.copyWith(
-                      color: Color(0xfff0d47a1),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF2FFF3),
-                border: Border.all(color: const Color(0xFF2E7D32), width: 0.5),
-              ),
+      body: Column(
+        children: [
+          // Scrollable content area
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.08),
+
+                  SvgPicture.asset(EcliniqIcons.appointment2.assetPath),
+
                   Text(
-                    'Your Token Number',
-                    style: EcliniqTextStyles.headlineXLMedium.copyWith(
+                    'Booking Confirmed',
+                    style: EcliniqTextStyles.headlineXLarge.copyWith(
                       color: Color(0xff424242),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    tokenNumber ?? '--',
-                    style: EcliniqTextStyles.headlineLarge.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF3EAF3F),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  AppointmentDetailItem(
-                    iconAssetPath: EcliniqIcons.user.assetPath,
-                    title: patientName,
-                    subtitle: patientSubtitle,
-                    badge: patientBadge,
-                    showEdit: false,
-                  ),
-                  Divider(
-                    thickness: 0.5,
-                    color: Color(0xffB8B8B8),
-                    indent: 15,
-                    endIndent: 15,
-                  ),
-                  AppointmentDetailItem(
-                    iconAssetPath: EcliniqIcons.calendar.assetPath,
-                    title: selectedSlot,
-                    subtitle: selectedDate,
-                    showEdit: false,
-                  ),
-                  Divider(
-                    thickness: 0.5,
-                    color: Color(0xffB8B8B8),
-                    indent: 15,
-                    endIndent: 15,
-                  ),
-                  AppointmentDetailItem(
-                    iconAssetPath: EcliniqIcons.hospitalBuilding.assetPath,
-                    title: 'In-Clinic Consultation',
-                    subtitle: hospitalAddress ?? 'Address not available',
-                    showEdit: false,
-                  ),
-                ],
-              ),
-            ),
-            // Payment receipt section
-            if (totalAmount != null && totalAmount! > 0) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      text: 'With ',
+                      style: EcliniqTextStyles.headlineXLarge.copyWith(
+                        color: Color(0xff424242),
+                      ),
                       children: [
-                        Icon(Icons.receipt_outlined, color: Color(0xFF1976D2), size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Payment Receipt',
-                          style: EcliniqTextStyles.headlineMedium.copyWith(
-                            color: Color(0xff424242),
-                            fontWeight: FontWeight.bold,
+                        TextSpan(
+                          text: doctorName ?? 'Doctor',
+                          style: EcliniqTextStyles.headlineXLarge.copyWith(
+                            color: Color(0xff0D47A1),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    _buildPaymentRow('Total Amount', totalAmount!),
-                    if (walletAmount != null && walletAmount! > 0) ...[
-                      const SizedBox(height: 8),
-                      _buildPaymentRow('Paid from Wallet', walletAmount!, isSubItem: true),
-                    ],
-                    if (gatewayAmount != null && gatewayAmount! > 0) ...[
-                      const SizedBox(height: 8),
-                      _buildPaymentRow('Paid via PhonePe', gatewayAmount!, isSubItem: true),
-                    ],
-                    if (paymentMethod != null) ...[
-                      const SizedBox(height: 12),
-                      const Divider(height: 1),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Payment Method',
-                            style: EcliniqTextStyles.buttonSmall.copyWith(
-                              color: Color(0xff626060),
-                            ),
-                          ),
-                          Text(
-                            _getPaymentMethodLabel(paymentMethod!),
-                            style: EcliniqTextStyles.buttonSmall.copyWith(
-                              color: Color(0xff424242),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (merchantTransactionId != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'Transaction ID: $merchantTransactionId',
-                        style: EcliniqTextStyles.buttonLarge.copyWith(
-                          color: Color(0xff8E8E8E),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: OutlinedButton(
-                onPressed: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                  // Navigate to My Visits tab to show appointment details
-                  // This will depend on your navigation structure
-                  // You might need to use named routes or a navigation service
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF96BFFF)),
-                  backgroundColor: Color(0xffF2F7FF),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'View Details',
-                      style: EcliniqTextStyles.headlineMedium.copyWith(
-                        color: Color(0xFF2372EC),
+                  const SizedBox(height: 16),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF2FFF3),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF2E7D32),
+                        width: 0.5,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Transform.rotate(
-                      angle: 3.14159, // 180 degrees rotation for forward arrow
-                      child: SvgPicture.asset(
-                        EcliniqIcons.backArrow.assetPath,
-                        width: 24,
-                        height: 24,
-                        colorFilter: const ColorFilter.mode(
-                          Color(0xFF2372EC),
-                          BlendMode.srcIn,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Your Token Number',
+                          style: EcliniqTextStyles.headlineXLMedium.copyWith(
+                            color: Color(0xff424242),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          tokenNumber ?? '--',
+                          style: EcliniqTextStyles.headlineLarge.copyWith(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF3EAF3F),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        AppointmentDetailItem(
+                          iconAssetPath: EcliniqIcons.userBlue.assetPath,
+                          title: patientName,
+                          subtitle: patientSubtitle,
+                          badge: patientBadge,
+                          showEdit: false,
+                        ),
+                        Divider(
+                          thickness: 0.5,
+                          color: Color(0xffB8B8B8),
+                          indent: 15,
+                          endIndent: 15,
+                        ),
+                        AppointmentDetailItem(
+                          iconAssetPath: EcliniqIcons.calendar.assetPath,
+                          title: selectedSlot,
+                          subtitle: selectedDate,
+                          showEdit: false,
+                        ),
+                        Divider(
+                          thickness: 0.5,
+                          color: Color(0xffB8B8B8),
+                          indent: 15,
+                          endIndent: 15,
+                        ),
+                        AppointmentDetailItem(
+                          iconAssetPath:
+                              EcliniqIcons.hospitalBuilding1.assetPath,
+                          title: 'In-Clinic Consultation',
+                          subtitle: hospitalAddress ?? 'Address not available',
+                          showEdit: false,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+
+          // Fixed button at bottom
+          Container(
+            padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+            decoration: BoxDecoration(color: Colors.white),
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                    // Navigate to My Visits tab to show appointment details
+                    // This will depend on your navigation structure
+                    // You might need to use named routes or a navigation service
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                      color: Color(0xFF96BFFF),
+                      width: 0.5,
+                    ),
+                    backgroundColor: Color(0xffF2F7FF),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'View Details',
+                        style: EcliniqTextStyles.headlineMedium.copyWith(
+                          color: Color(0xFF2372EC),
                         ),
                       ),
-                    ),
-                  ],
+                      Transform.rotate(
+                        angle: 3.14159,
+                        child: SvgPicture.asset(
+                          EcliniqIcons.backArrow.assetPath,
+                          width: 24,
+                          height: 24,
+                          colorFilter: const ColorFilter.mode(
+                            Color(0xFF2372EC),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: 20),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildPaymentRow(String label, double amount, {bool isSubItem = false}) {
+  Widget _buildPaymentRow(
+    String label,
+    double amount, {
+    bool isSubItem = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

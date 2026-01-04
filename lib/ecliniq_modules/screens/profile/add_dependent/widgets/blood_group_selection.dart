@@ -27,25 +27,17 @@ class BloodGroupSelectionSheet extends StatelessWidget {
         height: MediaQuery.of(context).size.height * 0.6,
         decoration: BoxDecoration(
           color: EcliniqColors.light.bgBaseOverlay,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(16),
+            bottom: Radius.circular(16),
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: EcliniqColors.light.strokeNeutralSubtle,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
             Padding(
-              padding: const EdgeInsets.only(top: 15, left: 15),
+              padding: const EdgeInsets.only(top: 22, left: 16),
               child: Text(
                 'Select Blood Group',
                 style: EcliniqTextStyles.headlineBMedium.copyWith(
@@ -66,6 +58,10 @@ class BloodGroupSelectionSheet extends StatelessWidget {
                           provider.selectedBloodGroup == bloodGroup;
 
                       return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+    horizontal: 16,
+    vertical: 0, 
+  ),
                         leading: Container(
                           height: 20,
                           width: 20,
@@ -83,7 +79,7 @@ class BloodGroupSelectionSheet extends StatelessWidget {
                                 : EcliniqColors.light.bgBaseOverlay,
                           ),
                           child: Container(
-                            margin: const EdgeInsets.all(4),
+                            margin: const EdgeInsets.all(0),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: EcliniqColors.light.bgBaseOverlay,

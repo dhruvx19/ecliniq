@@ -114,8 +114,8 @@ class ProfileHeader extends StatelessWidget {
                     children: [
                       SvgPicture.asset(
                         EcliniqIcons.upcharCoinSmall.assetPath,
-                        height: 20,
-                        width: 20,
+                        height: 22,
+                        width: 22,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -129,13 +129,9 @@ class ProfileHeader extends StatelessWidget {
                       ),
                       const SizedBox(width: 2),
                       SvgPicture.asset(
-                        EcliniqIcons.angleRight.assetPath,
-                        height: 20,
-                        width: 20,
-                        colorFilter: const ColorFilter.mode(
-                          Color(0xff626060),
-                          BlendMode.srcIn,
-                        ),
+                        EcliniqIcons.arrowRightCoin.assetPath,
+                        height: 16,
+                        width: 10,
                       ),
                     ],
                   ),

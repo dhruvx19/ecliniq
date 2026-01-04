@@ -186,20 +186,16 @@ class _ProfilePageState extends State<ProfilePage>
   void _handleSettings() {}
 
   void _handleAddDependent() {
-    showModalBottomSheet(
+    EcliniqBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (_, controller) => AddDependentBottomSheet(
-          onDependentAdded: () {
-            _fetchDependents();
-          },
-        ),
+      child: AddDependentBottomSheet(
+        onDependentAdded: () {
+          _fetchDependents();
+        },
       ),
+      horizontalPadding: 12,
+      bottomPadding: 16,
+      borderRadius: 16,
     ).then((result) {
       if (result == true) {
         _fetchDependents();

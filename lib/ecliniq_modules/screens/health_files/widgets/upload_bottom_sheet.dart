@@ -1,14 +1,16 @@
 import 'dart:io';
 
+import 'package:ecliniq/ecliniq_core/media/media_permission_manager.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/edit_doc_details.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/services/file_upload_handler.dart';
+import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 
 class UploadBottomSheet extends StatefulWidget {
   final Future<void> Function()? onFileUploaded;
@@ -64,63 +66,30 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
       }
 
       // Handle permission if required
+      // Only check for permanently denied - let image_picker handle the actual permission request
       if (requiredPermission != null) {
         try {
-          PermissionStatus status = await requiredPermission.status;
-
-          if (!status.isGranted && !status.isLimited) {
-            status = await requiredPermission.request();
-
-            if (status.isPermanentlyDenied) {
-              // Store pending upload source to resume after settings
-              _pendingUploadSource = source;
-              _showPermissionDeniedDialog(
-                safeContext,
-                permissionTitle,
-                permissionMessage,
-                source: source,
-              );
-              return;
-            }
-
-            if (status.isDenied) {
-              ScaffoldMessenger.of(safeContext).showSnackBar(
-                SnackBar(
-                  content: Text('$permissionTitle is required to continue'),
-                  action: SnackBarAction(
-                    label: 'Retry',
-                    onPressed: () {
-                      if (_storedParentContext != null) {
-                        _handleUpload(source);
-                      }
-                    },
-                  ),
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-              return;
-            }
-
-            if (!status.isGranted && !status.isLimited) {
-              ScaffoldMessenger.of(safeContext).showSnackBar(
-                SnackBar(
-                  content: Text('Cannot proceed without $permissionTitle'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-              return;
-            }
+          // Check if permission is permanently denied - if so, direct to Settings
+          final permissionResult = await MediaPermissionManager.getPermissionStatus(requiredPermission);
+          
+          if (permissionResult == MediaPermissionResult.permanentlyDenied) {
+            // Permission is permanently denied, user must go to Settings
+            _pendingUploadSource = source;
+            _showPermissionDeniedDialog(
+              safeContext,
+              permissionTitle,
+              permissionMessage,
+              source: source,
+            );
+            return;
           }
+          
+          // For all other cases (granted, denied, notDetermined), let image_picker handle it
+          // image_picker will show the permission dialog if needed
+          // We'll catch any permission errors in the upload handler
         } catch (e) {
           debugPrint('Permission check error: $e');
-          ScaffoldMessenger.of(safeContext).showSnackBar(
-            SnackBar(
-              content: Text('Permission error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-          return;
+          // Continue anyway - let image_picker handle it
         }
       }
     }
@@ -144,7 +113,9 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
           loadingDialogContext = dialogContext;
           return PopScope(
             canPop: false,
-            child: const Center(child: EcliniqLoader()),
+            child: const Center(
+              child: EcliniqLoader(size: 32, color: Color(0xFF2372EC)),
+            ),
           );
         },
       );
@@ -153,12 +124,11 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
         setState(() => _isUploading = true);
       }
 
-      // Upload file
-      HealthFile? healthFile;
+      // Pick file (don't save yet - will be saved when user clicks Save in EditDocumentDetailsPage)
+      Map<String, String>? fileData;
       try {
-        healthFile = await _uploadHandler.handleUpload(
+        fileData = await _uploadHandler.handleUpload(
           source: source,
-          fileType: HealthFileType.others,
         );
       } catch (e) {
         // Handle permission errors from image_picker on iOS
@@ -185,21 +155,27 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
           _closeLoadingDialog(loadingDialogContext, safeContext);
           loadingDialogContext = null;
 
-          // Check permission status
+          // Check permission status using MediaPermissionManager
           if (source == UploadSource.camera || source == UploadSource.gallery) {
             Permission permission = source == UploadSource.camera
                 ? Permission.camera
                 : Permission.photos;
 
-            final status = await permission.status;
+            final permissionResult = await MediaPermissionManager.getPermissionStatus(permission);
 
-            if (status.isPermanentlyDenied) {
+            // On iOS, if permission is denied (even if not permanently), we should direct to Settings
+            // because requesting again might make it permanently denied
+            if (permissionResult == MediaPermissionResult.permanentlyDenied ||
+                (Platform.isIOS && permissionResult == MediaPermissionResult.denied)) {
+              _pendingUploadSource = source;
               _showPermissionDeniedDialog(
                 safeContext,
                 iosPermissionTitle,
                 iosPermissionMessage,
+                source: source,
               );
             } else {
+              // On Android, we can retry
               ScaffoldMessenger.of(safeContext).showSnackBar(
                 SnackBar(
                   content: Text('$iosPermissionTitle is required to continue'),
@@ -234,33 +210,51 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
       loadingDialogContext = null;
       await Future.delayed(const Duration(milliseconds: 200));
 
-      if (healthFile != null) {
+      if (fileData != null && fileData['path'] != null) {
         if (mounted) {
           setState(() => _isUploading = false);
         }
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        final updatedFile = await Navigator.of(safeContext, rootNavigator: true)
-            .push<HealthFile>(
-              MaterialPageRoute(
-                builder: (context) =>
-                    EditDocumentDetailsPage(healthFile: healthFile!),
-              ),
-            );
+        // Use EcliniqRouter for navigation - it uses global navigator key
+        // This ensures navigation works even after bottom sheet is closed
+        // Pass file path instead of saved HealthFile - file will be saved when user clicks Save
+        try {
+          final savedFile = await EcliniqRouter.push<HealthFile>(
+            EditDocumentDetailsPage(
+              filePath: fileData['path']!,
+              fileName: fileData['name'] ?? 'file',
+            ),
+          );
 
-        // Always refresh to show the uploaded file, even if user cancelled editing
-        // The file was already saved when picked from gallery
-        if (widget.onFileUploaded != null) {
-          await widget.onFileUploaded!();
-        }
-        
-        // Add a small delay to ensure file system operations are complete
-        await Future.delayed(const Duration(milliseconds: 300));
-        
-        // Refresh again to ensure UI is updated
-        if (widget.onFileUploaded != null) {
-          await widget.onFileUploaded!();
+          // Refresh after file is saved (user clicked Save Details)
+          if (savedFile != null && widget.onFileUploaded != null) {
+            await widget.onFileUploaded!();
+          }
+        } catch (e) {
+          debugPrint('Error navigating to EditDocumentDetailsPage: $e');
+          // Fallback: try with context if EcliniqRouter fails
+          if (safeContext != null && mounted) {
+            try {
+              final savedFile = await Navigator.of(safeContext, rootNavigator: true)
+                  .push<HealthFile>(
+                    MaterialPageRoute(
+                      builder: (context) => EditDocumentDetailsPage(
+                        filePath: fileData?['path']!,
+                        fileName: fileData?['name'] ?? 'file',
+                      ),
+                    ),
+                  );
+
+              // Refresh after file is saved (user clicked Save Details)
+              if (savedFile != null && widget.onFileUploaded != null) {
+                await widget.onFileUploaded!();
+              }
+            } catch (e2) {
+              debugPrint('Fallback navigation also failed: $e2');
+            }
+          }
         }
       } else {
         // User cancelled
@@ -338,8 +332,12 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
         ),
         content: Text(
           message.isEmpty
-              ? 'Permission is permanently denied. Please enable it in app settings to continue.'
-              : '$message\n\nPermission is permanently denied. Please enable it in app settings to continue.',
+              ? Platform.isIOS
+                  ? 'Permission is required. Please enable it in Settings > Ecliniq to continue.'
+                  : 'Permission is permanently denied. Please enable it in app settings to continue.'
+              : Platform.isIOS
+                  ? '$message\n\nPlease enable this permission in Settings > Ecliniq to continue.'
+                  : '$message\n\nPermission is permanently denied. Please enable it in app settings to continue.',
           style: const TextStyle(
             fontSize: 16,
             color: Color(0xFF8E8E8E),
@@ -435,8 +433,9 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
       // Add a small delay to ensure app is fully resumed
       await Future.delayed(const Duration(milliseconds: 500));
       
-      final status = await requiredPermission.status;
-      if (status.isGranted || status.isLimited) {
+      // Use MediaPermissionManager for better iOS 17 handling
+      final permissionResult = await MediaPermissionManager.getPermissionStatus(requiredPermission);
+      if (permissionResult == MediaPermissionResult.granted) {
         // Permission granted, proceed with upload
         _pendingUploadSource = null;
         _proceedWithUpload(source);
@@ -452,7 +451,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20), bottom: Radius.circular(16)),
       ),
       width: double.infinity,
       padding: const EdgeInsets.all(20),

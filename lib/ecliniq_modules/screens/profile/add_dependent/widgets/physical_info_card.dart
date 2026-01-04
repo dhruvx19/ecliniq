@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../../ecliniq_utils/responsive_helper.dart';
 import '../provider/dependent_provider.dart';
 
@@ -121,12 +122,7 @@ class _PhysicalInfoCardState extends State<PhysicalInfoCard> {
               ),
             ),
 
-            Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
-              height: 0,
-            ),
-
+            Divider(color: Color(0xffD6D6D6), thickness: 0.5, height: 0),
             Container(
               margin: EdgeInsets.symmetric(
                 vertical: screenSize.getResponsiveValue(
@@ -158,11 +154,7 @@ class _PhysicalInfoCardState extends State<PhysicalInfoCard> {
               ),
             ),
 
-            Divider(
-              color: EcliniqColors.light.strokeNeutralExtraSubtle,
-              thickness: 1,
-              height: 0,
-            ),
+            Divider(color: Color(0xffD6D6D6), thickness: 0.5, height: 0),
             Consumer<AddDependentProvider>(
               builder: (context, provider, child) {
                 return Row(
@@ -233,7 +225,7 @@ Widget _buildTextField({
             contentPadding: EdgeInsets.zero,
           ),
           style: EcliniqTextStyles.headlineXMedium.copyWith(
-            color: Color(0xff626060),
+            color: Color(0xff424242),
           ),
         ),
       ),

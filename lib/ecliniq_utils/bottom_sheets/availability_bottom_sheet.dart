@@ -26,18 +26,20 @@ class _AvailabilityFilterBottomSheetState
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
+      height: MediaQuery.of(context).size.height * 0.55,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
         ),
       ),
       child: Column(
         children: [
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.only(left: 16, right: 16, top: 22),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -51,12 +53,12 @@ class _AvailabilityFilterBottomSheetState
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
 
           // List of availability options
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.only(left: 16, right: 16),
               itemCount: availabilityOptions.length,
               itemBuilder: (context, index) {
                 final option = availabilityOptions[index];
@@ -76,33 +78,33 @@ class _AvailabilityFilterBottomSheetState
         Navigator.pop(context, option);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.only(top: 16, bottom: 8),
         child: Row(
           children: [
             Container(
-              width: 24,
               height: 24,
+              width: 24,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? Color(0xff2372EC) : Color(0xff8E8E8E),
+                  color: isSelected
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF8E8E8E),
                   width: 1,
                 ),
+                shape: BoxShape.circle,
+                color: isSelected ? const Color(0xFF2563EB) : Colors.white,
               ),
               child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xff2372EC),
-                        ),
+                  ? Container(
+                      margin: const EdgeInsets.all(5),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
                       ),
                     )
                   : null,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 option,

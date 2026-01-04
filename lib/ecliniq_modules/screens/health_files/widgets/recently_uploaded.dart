@@ -1,9 +1,11 @@
 import 'dart:io';
+
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/file_type_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/utils/date_formatter.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/action_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +49,8 @@ class RecentlyUploadedWidget extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.only(right: 16.0),
                   itemCount: recentFiles.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 16),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 16),
                   itemBuilder: (context, index) {
                     return RecentFileCard(file: recentFiles[index]);
                   },
@@ -90,44 +93,34 @@ class _RecentFileCardState extends State<RecentFileCard> {
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      // Today
-      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
+    // Use fileDate if available, otherwise use createdAt
+    final displayDate = widget.file.fileDate ?? date;
+    // Format as "08/08/2025 | 9:30pm"
+    return HealthFileDateFormatter.formatDateTime(displayDate);
   }
 
   String _getFileIcon() {
     if (widget.file.isImage) {
-      return EcliniqIcons.prescription.assetPath;
+      return EcliniqIcons.pdffile.assetPath;
     } else if (widget.file.extension == 'pdf') {
-      return EcliniqIcons.pdf.assetPath;
+      return EcliniqIcons.pdffile.assetPath;
     }
-    return EcliniqIcons.pdf.assetPath;
+    return EcliniqIcons.pdffile.assetPath;
   }
 
   @override
   Widget build(BuildContext context) {
     final fileExists = _fileExists ?? false;
     final filePath = widget.file.filePath;
-    
+
     return GestureDetector(
       onTap: () {
         // Navigate to file type screen
-        EcliniqRouter.push(
-          FileTypeScreen(fileType: widget.file.fileType),
-        );
+        EcliniqRouter.push(FileTypeScreen(fileType: widget.file.fileType));
       },
       child: Container(
-        width: 320,
+        width: 250,
+
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -160,7 +153,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
                             cacheWidth: 640,
                             errorBuilder: (context, error, stackTrace) {
                               return Image.asset(
-                                EcliniqIcons.prescription.assetPath,
+                                EcliniqIcons.pdffile.assetPath,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 cacheWidth: 640,
@@ -168,7 +161,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
                             },
                           )
                         : Image.asset(
-                            EcliniqIcons.prescription.assetPath,
+                            EcliniqIcons.pdffile.assetPath,
                             width: double.infinity,
                             fit: BoxFit.cover,
                             cacheWidth: 640,
@@ -185,11 +178,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
                 ),
                 child: Row(
                   children: [
-                    SvgPicture.asset(
-                      _getFileIcon(),
-                      width: 24,
-                      height: 24,
-                    ),
+                    Image.asset(_getFileIcon(), width: 24, height: 24),
                     const SizedBox(width: 12),
 
                     Expanded(
@@ -206,7 +195,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+               
                           Text(
                             _formatDate(widget.file.createdAt),
                             style: const TextStyle(

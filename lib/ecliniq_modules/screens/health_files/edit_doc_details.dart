@@ -1,20 +1,33 @@
 import 'dart:io';
 
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/details/widgets/date_picker_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/services/local_file_storage_service.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:ecliniq/ecliniq_utils/bottom_sheets/select_member_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class EditDocumentDetailsPage extends StatefulWidget {
-  final HealthFile healthFile;
+  final HealthFile? healthFile; // Existing file (for editing)
+  final String? filePath; // New file path (for new uploads)
+  final String? fileName; // New file name (for new uploads)
 
-  const EditDocumentDetailsPage({super.key, required this.healthFile});
+  const EditDocumentDetailsPage({
+    super.key,
+    this.healthFile,
+    this.filePath,
+    this.fileName,
+  }) : assert(
+         healthFile != null || (filePath != null && fileName != null),
+         'Either healthFile or filePath+fileName must be provided',
+       );
 
   @override
   State<EditDocumentDetailsPage> createState() =>
@@ -26,6 +39,9 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
   late HealthFileType _selectedFileType;
   String _selectedRecordFor = '';
   DateTime? _selectedDate;
+  bool _isSaving = false;
+  bool _isButtonPressed = false;
+  bool get isButtonEnabled => !_isSaving;
 
   final List<String> _recordForOptions = [
     'Ketan Patni',
@@ -33,21 +49,37 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
     'John Smith',
   ];
 
+  final LocalFileStorageService _storageService = LocalFileStorageService();
+
   @override
   void initState() {
     super.initState();
-    _fileNameController = TextEditingController(
-      text: widget.healthFile.fileName,
-    );
-    _selectedFileType = widget.healthFile.fileType;
-    _selectedRecordFor = widget.healthFile.recordFor ?? _recordForOptions[0];
-    _selectedDate = widget.healthFile.fileDate;
+    // If editing existing file, use its data; otherwise use new file data
+    if (widget.healthFile != null) {
+      _fileNameController = TextEditingController(
+        text: widget.healthFile!.fileName,
+      );
+      _selectedFileType = widget.healthFile!.fileType;
+      _selectedRecordFor = widget.healthFile!.recordFor ?? _recordForOptions[0];
+      _selectedDate = widget.healthFile!.fileDate;
+    } else {
+      _fileNameController = TextEditingController(text: widget.fileName ?? '');
+      _selectedFileType = HealthFileType.others;
+      _selectedRecordFor = _recordForOptions[0];
+      _selectedDate = null;
+    }
   }
 
   @override
   void dispose() {
     _fileNameController.dispose();
     super.dispose();
+  }
+
+  /// Check if file is an image based on extension
+  bool _isImageFile(String filePath) {
+    final extension = filePath.split('.').last.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].contains(extension);
   }
 
   String _getFileTypeString(HealthFileType type) {
@@ -67,15 +99,22 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final fileExists = File(widget.healthFile.filePath).existsSync();
+    final filePath = widget.healthFile?.filePath ?? widget.filePath;
+    final fileExists = filePath != null && File(filePath).existsSync();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leadingWidth: 58,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: SvgPicture.asset(
+            EcliniqIcons.arrowLeft.assetPath,
+            width: 32,
+            height: 32,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Align(
@@ -107,7 +146,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xffF9F9F9),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
                   children: [
@@ -203,9 +242,17 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                                       ),
                                     ),
                                   ),
-                                  const Icon(
-                                    Icons.keyboard_arrow_down,
-                                    size: 20,
+                                  SizedBox(width: 8),
+                                  Container(
+                                    width: 0.5,
+                                    height: 22,
+                                    color: const Color(0xFFD6D6D6),
+                                  ),
+                                  SizedBox(width: 8),
+                                  SvgPicture.asset(
+                                    EcliniqIcons.arrowDown.assetPath,
+                                    width: 20,
+                                    height: 20,
                                   ),
                                 ],
                               ),
@@ -262,9 +309,17 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                                       ),
                                     ),
                                   ),
-                                  const Icon(
-                                    Icons.keyboard_arrow_down,
-                                    size: 20,
+                                  SizedBox(width: 8),
+                                  Container(
+                                    width: 0.5,
+                                    height: 22,
+                                    color: const Color(0xFFD6D6D6),
+                                  ),
+                                  SizedBox(width: 8),
+                                  SvgPicture.asset(
+                                    EcliniqIcons.arrowDown.assetPath,
+                                    width: 20,
+                                    height: 20,
                                   ),
                                 ],
                               ),
@@ -344,9 +399,9 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                   borderRadius: BorderRadius.circular(12),
                   child: Stack(
                     children: [
-                      if (fileExists && widget.healthFile.isImage)
+                      if (fileExists && _isImageFile(filePath))
                         Image.file(
-                          File(widget.healthFile.filePath),
+                          File(filePath),
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.contain,
@@ -361,20 +416,22 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                         right: 8,
                         child: GestureDetector(
                           onTap: () {
-                            // Show full screen preview
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => _FullScreenPreview(
-                                  filePath: widget.healthFile.filePath,
-                                  isImage: widget.healthFile.isImage,
+                            if (filePath != null) {
+                              // Show full screen preview
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => _FullScreenPreview(
+                                    filePath: filePath,
+                                    isImage: _isImageFile(filePath),
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
+                              horizontal: 10,
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
@@ -392,10 +449,10 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  Icons.remove_red_eye_outlined,
-                                  color: Colors.blue.shade600,
-                                  size: 20,
+                                SvgPicture.asset(
+                                  EcliniqIcons.eyeOpen.assetPath,
+                                  width: 24,
+                                  height: 24,
                                 ),
                                 const SizedBox(width: 8),
                                 const Text(
@@ -419,22 +476,50 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
 
               SizedBox(
                 width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _saveDetails,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2372EC),
-                    shape: RoundedRectangleBorder(
+                height: 52,
+                child: GestureDetector(
+                  onTapDown: isButtonEnabled
+                      ? (_) => setState(() => _isButtonPressed = true)
+                      : null,
+                  onTapUp: isButtonEnabled
+                      ? (_) {
+                          setState(() => _isButtonPressed = false);
+                          _saveDetails();
+                        }
+                      : null,
+                  onTapCancel: isButtonEnabled
+                      ? () => setState(() => _isButtonPressed = false)
+                      : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 100),
+                    decoration: BoxDecoration(
+                      color: _isSaving
+                          ? const Color(0xFF2372EC)
+                          : _isButtonPressed
+                          ? const Color(
+                              0xFF0E4395,
+                            ) // Pressed color (darker blue)
+                          : const Color(0xFF2372EC), // Normal color
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Save Details',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    child: Center(
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text(
+                              'Save Details',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -457,7 +542,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
             Icon(Icons.description, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              widget.healthFile.fileName,
+              widget.healthFile!.fileName,
               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
           ],
@@ -499,7 +584,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
   Future<void> _showRecordForBottomSheet(BuildContext context) async {
     final String? selected = await EcliniqBottomSheet.show<String>(
       context: context,
-      child: SelectMemberBottomSheet()
+      child: SelectMemberBottomSheet(),
     );
     if (selected != null && selected != _selectedRecordFor) {
       setState(() {
@@ -519,40 +604,85 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
       return;
     }
 
-    try {
-      // Update the file with new details
-      final updatedFile = widget.healthFile.copyWith(
-        fileName: _fileNameController.text.trim(),
-        fileType: _selectedFileType,
-        recordFor: _selectedRecordFor,
-        fileDate: _selectedDate,
-      );
+    if (_isSaving) return; // Prevent multiple saves
 
-      // Update file via provider
-      if (mounted) {
-        final success = await context.read<HealthFilesProvider>().updateFile(
-          updatedFile,
+    setState(() {
+      _isSaving = true;
+      _isButtonPressed = true;
+    });
+
+    try {
+      HealthFile savedFile;
+
+      if (widget.healthFile != null) {
+        // Updating existing file
+        final updatedFile = widget.healthFile!.copyWith(
+          fileName: _fileNameController.text.trim(),
+          fileType: _selectedFileType,
+          recordFor: _selectedRecordFor,
+          fileDate: _selectedDate,
         );
 
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            CustomSuccessSnackBar(
-              title: 'Details saved successfully',
-              subtitle: 'Your changes have been saved successfully',
-              context: context,
-            ),
+        // Update file via provider
+        if (mounted) {
+          final success = await context.read<HealthFilesProvider>().updateFile(
+            updatedFile,
           );
 
-          // Navigate back with updated file
-          Navigator.pop(context, updatedFile);
+          if (!success) {
+            throw Exception('Failed to update file');
+          }
+
+          savedFile = updatedFile;
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to save details'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          return;
         }
+      } else {
+        // Saving new file - this is where the file actually gets saved
+        if (widget.filePath == null) {
+          throw Exception('File path is required');
+        }
+
+        final file = File(widget.filePath!);
+        if (!await file.exists()) {
+          throw Exception('File does not exist');
+        }
+
+        // Save the file to storage with user-provided details
+        savedFile = await _storageService.saveFile(
+          file: file,
+          fileType: _selectedFileType,
+          fileName: _fileNameController.text.trim(),
+        );
+
+        // Update with additional metadata
+        savedFile = savedFile.copyWith(
+          recordFor: _selectedRecordFor,
+          fileDate: _selectedDate,
+        );
+
+        // Save metadata with additional fields
+        await _storageService.saveFileMetadata(savedFile);
+
+        // Refresh provider to include new file
+        if (mounted) {
+          await context.read<HealthFilesProvider>().refresh();
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          CustomSuccessSnackBar(
+            title: 'Details saved successfully',
+            subtitle: widget.healthFile != null
+                ? 'Your changes have been saved successfully'
+                : 'File uploaded and saved successfully',
+            context: context,
+          ),
+        );
+
+        // Navigate back with saved file
+        Navigator.pop(context, savedFile);
       }
     } catch (e) {
       if (mounted) {
@@ -562,6 +692,13 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
             backgroundColor: Colors.red,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isButtonPressed = false;
+        });
       }
     }
   }
@@ -577,8 +714,37 @@ class _FullScreenPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: SvgPicture.asset(
+              EcliniqIcons.arrowLeft.assetPath,
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          filePath.split('/').last,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon:  SvgPicture.asset(
+              EcliniqIcons.downloadfiles.assetPath,
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+            onPressed: () async {},
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       backgroundColor: Colors.black,
       body: Center(

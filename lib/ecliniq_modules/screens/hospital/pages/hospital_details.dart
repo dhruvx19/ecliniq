@@ -1,7 +1,7 @@
 import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
-import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/widgets/easy_to_book.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/hospital/pages/branches.dart';
 import 'package:ecliniq/ecliniq_modules/screens/hospital/pages/hospital_doctors.dart';
 import 'package:ecliniq/ecliniq_modules/screens/hospital/pages/surgeries_list.dart';
@@ -12,12 +12,12 @@ import 'package:ecliniq/ecliniq_modules/screens/hospital/widgets/appointment_tim
 import 'package:ecliniq/ecliniq_modules/screens/hospital/widgets/specialities.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/widgets/basic_info.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:ecliniq/widgets/horizontal_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 
 class HospitalDetailScreen extends StatefulWidget {
   final String hospitalId;
@@ -111,7 +111,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             _buildDoctorsContent(hospital),
 
             _buildSurgeriesContent(),
-              _buildBranchesContent(),
+            _buildBranchesContent(),
           ],
         ),
         // Floating Tab Section (only show for Details tab)
@@ -136,98 +136,101 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
 
   Widget _buildDetailsContent(hospital) {
     return RefreshIndicator(
-      onRefresh: () async => await _provider.fetchHospitalDetails(hospitalId: widget.hospitalId),
+      onRefresh: () async =>
+          await _provider.fetchHospitalDetails(hospitalId: widget.hospitalId),
       child: SingleChildScrollView(
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeaderImage(hospital),
-              const SizedBox(height: 16),
-              _buildHospitalInfo(hospital),
-              const SizedBox(height: 16),
-              _buildStatsCards(hospital),
-              HorizontalDivider(),
-              const SizedBox(height: 28),
-              const AppointmentTimingWidget(),
-              const SizedBox(height: 16),
-              AddressWidget(hospital: hospital),
-              const SizedBox(height: 16),
-              AboutHospital(hospital: hospital),
-              const SizedBox(height: 16),
-              if (hospital.specialties.isNotEmpty)
-                MedicalSpecialtiesWidget(specialties: hospital.specialties),
-              if (hospital.specialties.isNotEmpty) const SizedBox(height: 16),
-              if (hospital.hospitalServices.isNotEmpty)
-                HospitalServicesWidget(services: hospital.hospitalServices),
-              if (hospital.hospitalServices.isNotEmpty)
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderImage(hospital),
                 const SizedBox(height: 16),
-              if (hospital.accreditation.isNotEmpty)
-                CertificatesWidget(accreditation: hospital.accreditation),
-              if (hospital.accreditation.isNotEmpty) const SizedBox(height: 16),
-              const SizedBox(height: 16),
-              const ContactDetailsWidget(),
-              const SizedBox(height: 16),
-              const EasyWayToBookWidget(),
-              const SizedBox(height: 100),
-            ],
-          ),
-          Positioned(
-            top: 230,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.blue, width: 3),
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: hospital.logo.isNotEmpty
-                          ? ClipOval(
-                              child: Image.network(
-                                _getImageUrl(hospital.logo),
-                                width: 94,
-                                height: 94,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.local_hospital,
-                                    size: 60,
-                                    color: Colors.orange[700],
-                                  );
-                                },
+                _buildHospitalInfo(hospital),
+                const SizedBox(height: 8),
+                _buildStatsCards(hospital),
+                const SizedBox(height: 8),
+                HorizontalDivider(),
+                const SizedBox(height: 30),
+                const AppointmentTimingWidget(),
+                const SizedBox(height: 30),
+                AddressWidget(hospital: hospital),
+                const SizedBox(height: 30),
+                AboutHospital(hospital: hospital),
+                const SizedBox(height: 30),
+                if (hospital.specialties.isNotEmpty)
+                  MedicalSpecialtiesWidget(specialties: hospital.specialties),
+                if (hospital.specialties.isNotEmpty) const SizedBox(height: 30),
+                if (hospital.hospitalServices.isNotEmpty)
+                  HospitalServicesWidget(services: hospital.hospitalServices),
+                if (hospital.hospitalServices.isNotEmpty)
+                  const SizedBox(height: 30),
+                if (hospital.accreditation.isNotEmpty)
+                  CertificatesWidget(accreditation: hospital.accreditation),
+                if (hospital.accreditation.isNotEmpty)
+                  const SizedBox(height: 30),
+
+                const ContactDetailsWidget(),
+                const SizedBox(height: 30),
+                const EasyWayToBookWidget(),
+                const SizedBox(height: 200),
+              ],
+            ),
+            Positioned(
+              top: 230,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Color(0xff2372EC), width: 2),
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: hospital.logo.isNotEmpty
+                            ? ClipOval(
+                                child: Image.network(
+                                  _getImageUrl(hospital.logo),
+                                  width: 94,
+                                  height: 94,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.local_hospital,
+                                      size: 60,
+                                      color: Colors.orange[700],
+                                    );
+                                  },
+                                ),
+                              )
+                            : Icon(
+                                Icons.local_hospital,
+                                size: 60,
+                                color: Colors.orange[700],
                               ),
-                            )
-                          : Icon(
-                              Icons.local_hospital,
-                              size: 60,
-                              color: Colors.orange[700],
-                            ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: SvgPicture.asset(
-                        EcliniqIcons.verified.assetPath,
-                        width: 24,
-                        height: 24,
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: SvgPicture.asset(
+                          EcliniqIcons.verified.assetPath,
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -302,11 +305,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   () => EcliniqRouter.pop(),
                 ),
                 Row(
-                  children: [
-                    _buildCircleButton(EcliniqIcons.heartUnfilled, () => {}),
-                    const SizedBox(width: 8),
-                    _buildCircleButton(EcliniqIcons.share, () => {}),
-                  ],
+                  children: [_buildCircleButton(EcliniqIcons.share, () => {})],
                 ),
               ],
             ),
@@ -337,7 +336,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildHospitalInfo(hospital) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 24),
+      padding: const EdgeInsets.only(top: 50, left: 16, right: 16),
       child: Column(
         children: [
           Text(
@@ -473,13 +472,13 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   ? '${hospital.numberOfDoctors * 1000}'
                   : 'N/A',
             ),
-            DashedVerticalDivider(height: 100),
+            DashedVerticalDivider(height: 110),
             _buildStatCard(
               EcliniqIcons.stethoscopeBlue,
               'Doctors',
               '${hospital.numberOfDoctors}',
             ),
-            DashedVerticalDivider(height: 100),
+            DashedVerticalDivider(height: 110),
             _buildStatCard(
               EcliniqIcons.bed,
               'Total Beds',
@@ -496,8 +495,8 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
       width: 140,
       child: Column(
         children: [
-          SvgPicture.asset(icon.assetPath, width: 32, height: 32),
-          const SizedBox(height: 8),
+          SvgPicture.asset(icon.assetPath, width: 24, height: 24),
+          const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
@@ -507,7 +506,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
@@ -525,7 +524,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: const Color(0x80000000),
           borderRadius: BorderRadius.circular(30),
@@ -565,19 +564,20 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
 
   Widget _buildTab(String text, bool isActive) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isActive ? Colors.white : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: isActive
-            ? Border.all(color: const Color(0xff96BFFF), width: 0.5)
-            : null,
+        borderRadius: BorderRadius.circular(23),
+        border: Border.all(
+          color: isActive ? Color(0xFF96BFFF) : Colors.transparent,
+          width:1,
+        ),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: isActive ? const Color(0xff2372EC) : Colors.white,
-          fontWeight: isActive ? FontWeight.w400 : FontWeight.normal,
+          color: isActive ? Color(0xff2372EC) : Colors.white,
+          fontWeight: FontWeight.w400,
           fontSize: 16,
         ),
       ),
@@ -587,25 +587,36 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildBottomSection() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x332372EC),
+                  offset: Offset(7, 4),
+                  blurRadius: 5.3,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            height: 52,
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xff2372EC),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
               child: const Text(
                 'Book Appointment',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
             ),
           ),
@@ -809,8 +820,5 @@ Widget _buildSurgeriesContent() {
 }
 
 Widget _buildBranchesContent() {
-  return BranchesPage(
-    hospitalId: '', hospitalName: ' ',
-    
-  );
+  return BranchesPage(hospitalId: '', hospitalName: ' ');
 }

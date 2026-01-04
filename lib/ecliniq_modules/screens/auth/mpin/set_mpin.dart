@@ -1,28 +1,29 @@
 import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
 import 'package:ecliniq/ecliniq_core/auth/session_service.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'package:ecliniq/ecliniq_icons/assets/home/home_screen.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/otp_screen.dart';
-import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/phone_input.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/details/user_details.dart';
 import 'package:ecliniq/ecliniq_modules/screens/login/login.dart';
 import 'package:ecliniq/ecliniq_modules/screens/login/login_trouble.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/profile_help.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/security_settings/security_settings.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
+import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
-import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 
 class MPINSet extends StatefulWidget {
   final bool isResetMode;
-  
+
   const MPINSet({super.key, this.isResetMode = false});
 
   @override
@@ -36,7 +37,6 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
   final ValueNotifier<bool> _isLoadingNotifier = ValueNotifier(false);
   final ValueNotifier<String> _errorNotifier = ValueNotifier('');
   final ValueNotifier<bool> _pinsMatchNotifier = ValueNotifier(false);
-  bool _isButtonPressed = false;
 
   late final AnimationController _animationController;
   late final Animation<double> _fadeAnimation;
@@ -171,15 +171,12 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
       return;
     }
 
-    setState(() {
-      _isButtonPressed = true;
-    });
     _isLoadingNotifier.value = true;
     _errorNotifier.value = '';
 
     try {
       if (!mounted) return;
-      
+
       final createMPIN = _createMPINController.text.trim();
 
       // Call backend API to setup or reset MPIN
@@ -191,53 +188,51 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
       if (!mounted) return;
 
       if (success) {
-        _showSuccessSnackBar();
-
-        await Future.delayed(const Duration(milliseconds: 500));
-
         if (mounted) {
           if (widget.isResetMode) {
             // Reset mode: Check if user is authenticated (change MPIN from settings) or not (forget PIN from login)
             final hasValidSession = await SessionService.hasValidSession();
             if (hasValidSession) {
               // User is authenticated - this is change MPIN from security settings
-              // Navigation stack: SecuritySettings -> ChangeMPIN -> MPINSet
-              // Pop twice to get back to SecuritySettings (pop MPINSet, then pop ChangeMPIN)
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context); // Pop MPINSet
-              }
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context); // Pop ChangeMPIN, now at SecuritySettings
-              }
+              // Reset loading state before navigation
+              _isLoadingNotifier.value = false;
+              // Small delay to ensure state is stable before navigation
+              await Future.delayed(const Duration(milliseconds: 100));
+              // Return true to ChangeMPINScreen so it can show snackbar on SecuritySettings page
+              if (!mounted || !context.mounted) return;
+              Navigator.of(context).pop(true);
+              return; // Exit early to prevent finally block from resetting loading state again
             } else {
               // User is not authenticated - this is forget PIN from login
+              // Reset loading state
+              _isLoadingNotifier.value = false;
+              // Show snackbar before navigating
+              _showSuccessSnackBar();
+              await Future.delayed(const Duration(milliseconds: 500));
               // Navigate back to login
               EcliniqRouter.pushAndRemoveUntil(
                 const LoginPage(),
                 (route) => route.isFirst,
               );
+              return; // Exit early
             }
           } else {
             // Normal mode: Request biometric permission via native dialog after MPIN setup
             await _requestBiometricPermission(createMPIN);
-            // Continue to user details page
-            _navigateToUserDetails();
+            // Navigate based on flow state
+            await _navigateAfterMPINSetup();
           }
         }
       } else {
-        setState(() {
-          _isButtonPressed = false;
-        });
-        _errorNotifier.value = authProvider.errorMessage ?? 'Failed to create MPIN. Please try again.';
+        _errorNotifier.value =
+            authProvider.errorMessage ??
+            'Failed to create MPIN. Please try again.';
       }
     } on Exception catch (e) {
       debugPrint('MPIN creation error: $e');
-      setState(() {
-        _isButtonPressed = false;
-      });
       _errorNotifier.value = 'An unexpected error occurred. Please try again.';
     } finally {
-      if (mounted) {
+      if (mounted && _isLoadingNotifier.value) {
         _isLoadingNotifier.value = false;
       }
     }
@@ -257,11 +252,10 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
         return;
       }
 
-      
       // This will trigger the native biometric permission dialog automatically
       // The native dialog will appear just like location permission dialog
       final success = await SecureStorageService.storeMPINWithBiometric(mpin);
-      
+
       if (success) {
       } else {
         // User skipped or denied - that's okay, continue without biometric
@@ -269,6 +263,19 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
     } catch (e) {
       // Continue without biometric if permission request fails
     }
+  }
+
+  Future<void> _navigateAfterMPINSetup() async {
+    if (!mounted) return;
+
+    // Always navigate to User Details after MPIN setup
+    // Flow: OTP → MPIN → User Details → Home
+    await SessionService.saveFlowState('profile_setup');
+    if (!mounted) return;
+    EcliniqRouter.pushAndRemoveUntil(
+      const UserDetails(),
+      (route) => route.isFirst,
+    );
   }
 
   void _navigateToUserDetails() {
@@ -279,52 +286,48 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
     );
   }
 
-  
-
-
   @override
   Widget build(BuildContext context) {
-    return EcliniqScaffold(
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: EcliniqScaffold.primaryBlue,
+        toolbarHeight: 50,
+        title: Text(
+          widget.isResetMode ? 'Reset M-PIN' : 'Create Your M-PIN',
+          style: EcliniqTextStyles.headlineMedium.copyWith(color: Colors.white),
+        ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              EcliniqRouter.push(LoginTroublePage());
+            },
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  EcliniqIcons.questionCircleWhite.assetPath,
+                  width: 24,
+                  height: 24,
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'Help',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
+        ],
+      ),
       backgroundColor: EcliniqScaffold.primaryBlue,
       body: SizedBox.expand(
         child: Column(
           children: [
-            SizedBox(height: 40),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: EcliniqRouter.pop,
-                  icon: Image.asset(
-                    EcliniqIcons.arrowBack.assetPath,
-                    width: 24,
-                    height: 24,
-                    color: Colors.white,
-                  ),
-                ),
-                const Spacer(),
-                SizedBox(width: 35),
-                Center(
-                  child: Text(
-                    widget.isResetMode ? 'Reset Your M-PIN' : 'Create Your M-PIN',
-                    style: EcliniqTextStyles.headlineMedium.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () {
-                    EcliniqRouter.push(const LoginTroublePage());
-                  },
-                  icon: const Icon(Icons.help_outline, color: Colors.white),
-                  label: const Text(
-                    'Help',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-  
             Expanded(
               child: AnimatedBuilder(
                 animation: _animationController,
@@ -356,19 +359,24 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const _MPINImage(),
+                  const SizedBox(height: 18),
+                  Image.asset(
+                    EcliniqIcons.mpin.assetPath,
+                    width: 132,
+                    height: 120,
+                  ),
                   const SizedBox(height: 16),
                   const _InstructionsText(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   _buildPinInputSection(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
                   _buildPinInputDescription(),
                 ],
               ),
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             child: _buildCreateButton(),
           ),
         ],
@@ -384,22 +392,34 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
           controller: _createMPINController,
           autoFocus: true,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         _buildPinField(
           title: 'Confirm M-PIN',
           controller: _confirmMPINController,
-          onCompleted: (_) => _handleMPINCreation(),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 10),
         ValueListenableBuilder<String>(
           valueListenable: _errorNotifier,
           builder: (context, error, _) {
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: error.isEmpty ? 0 : null,
-              child: error.isEmpty
-                  ? const SizedBox.shrink()
-                  : _ErrorMessage(message: error),
+            return ValueListenableBuilder<bool>(
+              valueListenable: _pinsMatchNotifier,
+              builder: (context, pinsMatch, _) {
+                // Show success message if pins match and no error
+                if (pinsMatch && error.isEmpty) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    child: _SuccessMessage(message: 'M-PIN matches'),
+                  );
+                }
+                // Show error message if there's an error
+                if (error.isNotEmpty) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    child: _ErrorMessage(message: error),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             );
           },
         ),
@@ -408,76 +428,87 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
   }
 
   Widget _buildPinInputDescription() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Image.asset(
-                  EcliniqIcons.shield.assetPath,
-                  width: 24,
-                  height: 24,
+  return Container(
+    decoration: BoxDecoration(
+      color: Color(0xFFF9F9F9),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    padding: const EdgeInsets.all(16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SvgPicture.asset(
+          EcliniqIcons.shieldBlue.assetPath,
+          width: 32,
+          height: 32,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your M-PIN will be used for:',
+                style: EcliniqTextStyles.titleXBLarge.copyWith(
+                  color: Color(0xff424242),
                 ),
-                SizedBox(width: 2),
-                Column(
-                  children: [
-                    Text(
-                      'Your M-PIN will be used for:',
-                      style: EcliniqTextStyles.titleXBLarge.copyWith(
-                        color: Color(0xff424242),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            Text(
-              ' • Quick log in to your account',
-              style: EcliniqTextStyles.titleXLarge.copyWith(
-                color: Color(0xff626060),
               ),
-            ),
-            Text(
-              ' • Secure access to your medical records',
-              style: EcliniqTextStyles.titleXLarge.copyWith(
-                 color: Color(0xff626060),
-              ),
-            ),
-            Text(
-              ' • Authorizing important actions',
-              style: EcliniqTextStyles.titleXLarge.copyWith(
-                color: Colors.black38,
-              ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              _buildBulletPoint('Quick login to your account'),
+              const SizedBox(height: 4),
+              _buildBulletPoint('Secure access to your medical records'),
+              const SizedBox(height: 4),
+              _buildBulletPoint('Authorizing important actions'),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildBulletPoint(String text) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        width: 5,
+        height: 5,
+        margin: const EdgeInsets.only(right: 8, top: 8),
+        decoration: BoxDecoration(
+          color: Color(0xff626060),
+          shape: BoxShape.circle,
         ),
       ),
-    );
-  }
-
+      Expanded(
+        child: Text(
+          text,
+          style: EcliniqTextStyles.titleXLarge.copyWith(
+            color: Color(0xff626060),
+          ),
+        ),
+      ),
+    ],
+  );
+}
   Widget _buildPinField({
     required String title,
     required TextEditingController controller,
     bool autoFocus = false,
-    void Function(String)? onCompleted,
   }) {
     return Column(
       children: [
         Text(
           title,
           style: EcliniqTextStyles.headlineMedium.copyWith(
-            color: Colors.black87,
+            color: Color(0xff424242),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         PinCodeTextField(
+          textStyle: EcliniqTextStyles.headlineXMedium.copyWith(
+            color: const Color(0xff424242),
+          ),
           appContext: context,
           length: 4,
           controller: controller,
@@ -487,12 +518,12 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
           keyboardType: TextInputType.number,
           animationType: AnimationType.fade,
           hapticFeedbackTypes: HapticFeedbackTypes.light,
-          onCompleted: onCompleted,
           pinTheme: _getPinTheme(),
           enableActiveFill: true,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           cursorColor: Colors.black,
           hintCharacter: '-',
+          errorTextSpace: 0,
         ),
       ],
     );
@@ -504,14 +535,17 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
       borderRadius: BorderRadius.circular(12),
       fieldHeight: 52,
       fieldWidth: 80,
-      activeFillColor: Colors.blue.shade50,
-      selectedFillColor: Colors.blue.shade50,
-      inactiveFillColor: Colors.grey.shade50,
-      activeColor: EcliniqScaffold.primaryBlue,
-      selectedColor: EcliniqScaffold.primaryBlue,
-      inactiveColor: Colors.grey.shade400,
-      borderWidth: 2,
-      fieldOuterPadding: const EdgeInsets.symmetric(horizontal: 4),
+      activeFillColor: Color(0xffffffff),
+      selectedFillColor: Color(0xffffffff),
+      inactiveFillColor: Color(0xffffffff),
+      activeColor: Color(0xff626060),
+      selectedColor: Color(0xff626060),
+      inactiveColor: Color(0xff626060),
+      borderWidth: 0.5,
+      activeBorderWidth: 0.5,
+      selectedBorderWidth: 1,
+      inactiveBorderWidth: 0.5,
+      fieldOuterPadding: const EdgeInsets.symmetric(horizontal: 2),
     );
   }
 
@@ -524,54 +558,15 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
           builder: (context, pinsMatch, _) {
             final isButtonEnabled = pinsMatch && !isLoading;
 
-            return SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: GestureDetector(
-                onTap: isButtonEnabled ? _handleMPINCreation : null,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: _isButtonPressed
-                        ? Color(0xFF0E4395)
-                        : isButtonEnabled
-                        ? EcliniqButtonType.brandPrimary.backgroundColor(
-                            context,
-                          )
-                        : EcliniqButtonType.brandPrimary
-                              .disabledBackgroundColor(context),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: isLoading
-                      ? const Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-						child: EcliniqLoader(
-							size: 20,
-							color: Colors.white,
-						),
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              widget.isResetMode ? 'Reset M-PIN' : 'Create M-PIN',
-                              style: EcliniqTextStyles.titleXLarge.copyWith(
-                                color: isButtonEnabled
-                                    ? Colors.white
-                                    : Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_forward,
-                              color: isButtonEnabled
-                                  ? Colors.white
-                                  : Colors.grey,
-                            ),
-                          ],
-                        ),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: _MPINButton(
+                  isEnabled: isButtonEnabled,
+                  isLoading: isLoading,
+                  onPressed: isButtonEnabled ? _handleMPINCreation : null,
                 ),
               ),
             );
@@ -582,17 +577,96 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
   }
 }
 
-class _MPINImage extends StatelessWidget {
-  const _MPINImage();
+class _MPINButton extends StatefulWidget {
+  final bool isEnabled;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  const _MPINButton({
+    required this.isEnabled,
+    required this.isLoading,
+    this.onPressed,
+  });
+
+  @override
+  State<_MPINButton> createState() => _MPINButtonState();
+}
+
+class _MPINButtonState extends State<_MPINButton> {
+  bool _isButtonPressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 140,
-      width: 140,
-      child: Image.asset(
-        'lib/ecliniq_icons/assets/mpin.gif',
-        fit: BoxFit.contain,
+    return GestureDetector(
+      onTapDown: widget.isEnabled
+          ? (_) => setState(() => _isButtonPressed = true)
+          : null,
+      onTapUp: widget.isEnabled
+          ? (_) {
+              setState(() => _isButtonPressed = false);
+              widget.onPressed?.call();
+            }
+          : null,
+      onTapCancel: widget.isEnabled
+          ? () => setState(() => _isButtonPressed = false)
+          : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        decoration: BoxDecoration(
+          color: widget.isLoading
+              ? const Color(0xFF2372EC)
+              : _isButtonPressed
+              ? const Color(0xFF0E4395) // Pressed color
+              : widget.isEnabled
+              ? const Color(0xFF2372EC) // Enabled color
+              : const Color(0xffF9F9F9), // Disabled color
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: widget.isLoading
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: EcliniqLoader(size: 20, color: Colors.white),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Setting M-PIN',
+                      style: EcliniqTextStyles.headlineMedium.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Create M-PIN',
+                      style: EcliniqTextStyles.headlineMedium.copyWith(
+                        color: widget.isEnabled
+                            ? Colors.white
+                            : const Color(0xffD6D6D6),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SvgPicture.asset(
+                      EcliniqIcons.arrowRight.assetPath,
+                      width: 24,
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        widget.isEnabled
+                            ? Colors.white
+                            : const Color(0xff8E8E8E),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -605,8 +679,40 @@ class _InstructionsText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       'Enter a 4-digit PIN that you can remember easily',
-      style: EcliniqTextStyles.headlineXMedium.copyWith(color: Colors.black87),
+      style: EcliniqTextStyles.headlineXMedium.copyWith(
+        color: Color(0xff424242),
+      ),
       textAlign: TextAlign.center,
+    );
+  }
+}
+
+class _SuccessMessage extends StatelessWidget {
+  final String message;
+
+  const _SuccessMessage({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SvgPicture.asset(
+          EcliniqIcons.shieldCheck.assetPath,
+          width: 24,
+          height: 24,
+        ),
+        SizedBox(width: 2),
+        Text(
+          textAlign: TextAlign.center,
+          message,
+          style: TextStyle(
+            color: Color(0xff3EAF3F),
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
     );
   }
 }

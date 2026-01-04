@@ -47,7 +47,7 @@ class MedicalSpecialtiesWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
             child: Wrap(
               spacing: 8,
               runSpacing: 12,
@@ -122,7 +122,7 @@ class HospitalServicesWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
             child: Wrap(
               spacing: 8,
               runSpacing: 12,
@@ -202,7 +202,7 @@ class CertificatesWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+       padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
             child: Wrap(
               spacing: 16,
               runSpacing: 12,
@@ -280,7 +280,7 @@ class ContactDetailsWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(top: 18, left: 16, right: 16),
             child: Column(
               children: [
                 _buildContactItem(

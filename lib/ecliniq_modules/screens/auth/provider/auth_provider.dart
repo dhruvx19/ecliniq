@@ -25,6 +25,8 @@ class AuthProvider with ChangeNotifier {
   String? _userId;
   String? _profilePhotoKey;
   bool _isNewUser = false;
+  String? _redirectTo;
+  String? _userStatus;
 
   bool get isLoading => _isLoading;
   bool get isUploadingImage => _isUploadingImage;
@@ -37,6 +39,8 @@ class AuthProvider with ChangeNotifier {
   String? get profilePhotoKey => _profilePhotoKey;
   bool get isAuthenticated => _authToken != null;
   bool get isNewUser => _isNewUser;
+  String? get redirectTo => _redirectTo;
+  String? get userStatus => _userStatus;
 
   /// Initialize AuthProvider - production-grade initialization
   /// Performs storage health check and migration if needed
@@ -120,14 +124,15 @@ class AuthProvider with ChangeNotifier {
               _authToken = data['token'];
 
               // Extract userStatus and redirectTo if available
-              final redirectTo = data['redirectTo'];
+              _redirectTo = data['redirectTo'];
+              _userStatus = data['userStatus'];
 
               // Set onboarding status based on redirectTo (matches backend logic)
               // redirectTo: 'home' means patient profile exists (onboarding complete)
               // redirectTo: 'profile_setup' means patient profile doesn't exist (onboarding not complete)
-              if (redirectTo == 'home') {
+              if (_redirectTo == 'home') {
                 await SessionService.setOnboardingComplete(true);
-              } else if (redirectTo == 'profile_setup') {
+              } else if (_redirectTo == 'profile_setup') {
                 await SessionService.setOnboardingComplete(false);
               }
             } else {
@@ -429,6 +434,8 @@ class AuthProvider with ChangeNotifier {
       _userId = null;
       _profilePhotoKey = null;
       _isNewUser = false;
+      _redirectTo = null;
+      _userStatus = null;
 
       // Clear session using SessionService
       final success = await SessionService.clearSession();

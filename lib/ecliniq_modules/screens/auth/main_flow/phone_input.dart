@@ -3,11 +3,14 @@ import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/otp_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/login_trouble.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/profile_help.dart';
 import 'package:ecliniq/ecliniq_modules/screens/login/terms_and_conditions.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class PhoneInputScreen extends StatefulWidget {
@@ -119,7 +122,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       await SecureStorageService.storePhoneNumber(phone);
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
+
       // Use forget MPIN API if it's forget PIN flow, otherwise use normal login/register
       final success = widget.isForgotPinFlow
           ? await authProvider.forgetMpinSendOtp(phone)
@@ -134,8 +137,12 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
           setState(() {
             _isButtonPressed = false;
           });
-          _showSnackBar(authProvider.errorMessage ?? 
-              (widget.isForgotPinFlow ? 'Failed to send OTP' : 'Login failed'));
+          _showSnackBar(
+            authProvider.errorMessage ??
+                (widget.isForgotPinFlow
+                    ? 'Failed to send OTP'
+                    : 'Login failed'),
+          );
         }
       }
     } catch (e) {
@@ -158,26 +165,32 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Color(0xff626060), width: 0.5),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: Colors.grey.shade300)),
+              border: Border(
+                right: BorderSide(color: Color(0xffD6D6D6), width: 0.5),
+              ),
             ),
             child: Row(
               children: [
                 const Text(
                   '+91',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xff424242),
+                  ),
                 ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Colors.grey.shade600,
-                  size: 20,
+                const SizedBox(width: 8),
+                SvgPicture.asset(
+                  EcliniqIcons.arrowDown.assetPath,
+                  width: 20,
+                  height: 20,
                 ),
               ],
             ),
@@ -188,15 +201,24 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
               keyboardType: TextInputType.phone,
               autofocus: true,
               maxLength: 10,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+                color: Color(0xff424242),
+              ),
               decoration: const InputDecoration(
                 hintText: 'Mobile Number',
+                hintStyle: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xffD6D6D6),
+                ),
                 border: InputBorder.none,
                 counterText: '',
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 16,
                 ),
-                hintStyle: EcliniqTextStyles.bodyMedium,
               ),
             ),
           ),
@@ -259,7 +281,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
         return SizedBox(
           width: double.infinity,
-          height: 46,
+          height: 52,
           child: GestureDetector(
             onTap: isButtonEnabled ? _submitPhoneNumber : null,
             child: Container(
@@ -271,25 +293,31 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                     : EcliniqButtonType.brandPrimary.disabledBackgroundColor(
                         context,
                       ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Continue',
-                    style: EcliniqTextStyles.titleXLarge.copyWith(
+                    style: EcliniqTextStyles.headlineMedium.copyWith(
                       color: _isButtonPressed
                           ? Colors.white
                           : isButtonEnabled
                           ? Colors.white
-                          : Colors.grey,
+                          : Color(0xffD6D6D6),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.arrow_forward,
-                    color: isButtonEnabled ? Colors.white : Colors.grey,
+                  const SizedBox(width: 4),
+                  SvgPicture.asset(
+                    EcliniqIcons.arrowRightWhite.assetPath,
+                    width: 24,
+                    height: 24,
+                    color: _isButtonPressed
+                        ? Colors.white
+                        : isButtonEnabled
+                        ? Colors.white
+                        : Color(0xff8E8E8E),
                   ),
                 ],
               ),
@@ -308,28 +336,41 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       body: SizedBox.expand(
         child: Column(
           children: [
-            const SizedBox(height: 45),
+            const SizedBox(height: 52),
 
             Row(
               children: [
                 IconButton(
                   onPressed: widget.onClose,
-                  icon: Image.asset(
-                    EcliniqIcons.arrowBack.assetPath,
-                    width: 24,
-                    height: 24,
-                    color: Colors.white,
+                  icon: SvgPicture.asset(
+                    EcliniqIcons.reply.assetPath,
+                    width: 32,
+                    height: 32,
                   ),
                 ),
                 const Spacer(),
-                FadeTransition(
-                  opacity: widget.fadeAnimation,
-                  child: TextButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.help_outline, color: Colors.white),
-                    label: const Text(
-                      'Help',
-                      style: TextStyle(color: Colors.white),
+                GestureDetector(
+                  onTap: () => EcliniqRouter.push(LoginTroublePage()),
+                  child: FadeTransition(
+                    opacity: widget.fadeAnimation,
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          EcliniqIcons.questionCircleWhite.assetPath,
+                          width: 24,
+                          height: 24,
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Help',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
                     ),
                   ),
                 ),
@@ -345,7 +386,11 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                     children: [
                       Expanded(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.only(
+                            top: 24,
+                            left: 18,
+                            right: 18,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -356,9 +401,9 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                                 style: EcliniqTextStyles.headlineXMedium
                                     .copyWith(color: const Color(0xff626060)),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 4),
                               _buildPhoneInputField(),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 24),
                               _buildTermsAndConditions(),
                             ],
                           ),
@@ -366,7 +411,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                       ),
 
                       Container(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.only(right: 18, left: 18, bottom: 24),
                         child: _buildContinueButton(),
                       ),
                     ],

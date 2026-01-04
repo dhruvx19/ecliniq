@@ -104,40 +104,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             filled: true,
             fillColor: Colors.white,
             isDense: true,
-            suffixIcon: query.isNotEmpty
-                ? Animate(
-                    effects: const [
-                      FadeEffect(
-                        duration: Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                      ),
-                    ],
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.grey[600],
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        if (widget.onClear != null) {
-                          widget.onClear!();
-                        }
-                        setState(() => query = '');
-                        _controller.clear();
-                      },
-                    ),
-                  )
-                : Container(
-                    margin: const EdgeInsets.only(right: 8.0),
-                    child: GestureDetector(
-                      onTap: _handleVoiceSearch,
-                      child: SvgPicture.asset(
-                        EcliniqIcons.microphoneMyDoctor.assetPath,
-                        width: 22,
-                        height: 22,
-                      ),
-                    ),
-                  ),
+            
             prefixIcon: widget.showBackButton
                 ? IconButton(
                     onPressed: widget.onBack,
@@ -147,14 +114,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                       size: 22,
                     ),
                   )
-                : Container(
-                    margin: const EdgeInsets.only(left: 4.0),
-                    child: Image.asset(
-                      EcliniqIcons.magnifierMyDoctor.assetPath,
-                      width: 20,
-                      height: 20,
-                    ),
-                  ),
+                : SvgPicture.asset(
+                  EcliniqIcons.magnifierMyDoctor.assetPath,
+                  width: 20,
+                  height: 20,
+                ),
             hintText: widget.hintText,
             hintStyle: TextStyle(
               color: Colors.grey[500],

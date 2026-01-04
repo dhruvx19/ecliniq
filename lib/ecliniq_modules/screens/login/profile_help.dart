@@ -36,7 +36,7 @@ class ProfileHelpPage extends StatelessWidget {
           child: Container(
             color: Colors.white,
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.only(top: 24.0,left: 18.0,right: 18.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

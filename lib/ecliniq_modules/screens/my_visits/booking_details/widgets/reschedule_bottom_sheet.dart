@@ -1,18 +1,15 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class RescheduleBottomSheet extends StatefulWidget {
   final AppointmentDetailModel appointment;
 
-  const RescheduleBottomSheet({
-    super.key,
-    required this.appointment,
-  });
+  const RescheduleBottomSheet({super.key, required this.appointment});
 
   @override
   State<RescheduleBottomSheet> createState() => _RescheduleBottomSheetState();
@@ -24,20 +21,16 @@ class _RescheduleBottomSheetState extends State<RescheduleBottomSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20), bottom: Radius.circular(16)),
       ),
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 22, bottom: 40),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
-            EcliniqIcons.reschedule.assetPath,
-            fit: BoxFit.contain,
-            height: 115,
-            width: 115,
-          ),
+          SvgPicture.asset(EcliniqIcons.reschedule.assetPath),
+           const SizedBox(height: 8),
           const EcliniqText(
             'Are you sure you want Reschedule the Confirmed Appointment?',
             style: TextStyle(
@@ -47,7 +40,7 @@ class _RescheduleBottomSheetState extends State<RescheduleBottomSheet> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 22),
 
           Padding(
             padding: const EdgeInsets.only(left: 4.0, right: 4.0),
@@ -58,14 +51,16 @@ class _RescheduleBottomSheetState extends State<RescheduleBottomSheet> {
                   child: GestureDetector(
                     onTap: () {
                       // Check if appointment is already rescheduled
-                      final isAlreadyRescheduled = widget.appointment.isRescheduled ?? false;
+                      final isAlreadyRescheduled =
+                          widget.appointment.isRescheduled ?? false;
                       if (isAlreadyRescheduled) {
                         Navigator.pop(context, false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           CustomErrorSnackBar(
                             context: context,
                             title: 'Cannot Reschedule',
-                            subtitle: 'This appointment has already been rescheduled. You cannot reschedule it again.',
+                            subtitle:
+                                'This appointment has already been rescheduled. You cannot reschedule it again.',
                             duration: const Duration(seconds: 3),
                           ),
                         );

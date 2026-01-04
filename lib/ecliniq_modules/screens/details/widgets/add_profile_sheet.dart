@@ -10,10 +10,13 @@ class ProfilePhotoSelector extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20), bottom: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+          bottom: Radius.circular(16),
+        ),
       ),
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,9 +69,9 @@ class ProfilePhotoSelector extends StatelessWidget {
       child: Container(
         width: double.infinity,
         height: 52,
-        
+
         decoration: BoxDecoration(
-          border: Border.all(color: Color(0xff8E8E8E)),
+          border: Border.all(color: Color(0xff8E8E8E), width: 0.5),
           borderRadius: BorderRadius.circular(4),
           color: Colors.white,
         ),

@@ -6,6 +6,7 @@ import 'package:ecliniq/ecliniq_api/models/doctor.dart';
 import 'package:ecliniq/ecliniq_api/models/patient.dart';
 import 'package:ecliniq/ecliniq_api/models/payment.dart';
 import 'package:ecliniq/ecliniq_api/patient_service.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/request_sent.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/payment_processing_screen.dart';
@@ -13,6 +14,7 @@ import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/appointment_deta
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/clinic_location_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/widgets/top_bar_widgets/easy_way_book.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/profile_help.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart'
     hide DoctorInfoCard, ClinicLocationCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
@@ -20,6 +22,7 @@ import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 
@@ -81,13 +84,13 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   String? _authToken;
   String? _hospitalAddress;
   DependentData? _selectedDependent;
-  
+
   Doctor? _doctor;
   String? _currentLocationName;
   String? _currentLocationAddress;
   String? _currentDistance;
   bool _isLoadingDoctorDetails = false;
-  
+
   PatientDetailsData? _currentUserDetails;
   bool _isLoadingUserDetails = false;
 
@@ -102,7 +105,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     _loadPatientId();
     _fetchHospitalAddress();
     _fetchCurrentUserDetails();
-    
+
     if (widget.doctor != null) {
       _doctor = widget.doctor;
       _currentLocationName = widget.locationName;
@@ -112,7 +115,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     } else {
       _fetchDoctorDetails();
     }
-    
+
     _reasonController.addListener(() {
       setState(() {});
     });
@@ -176,11 +179,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
     setState(() {
       _authToken = authToken;
-      _patientId = prefs.getString('patient_id') ??
-        prefs.getString('patientId') ??
-        prefs.getString('user_id');
+      _patientId =
+          prefs.getString('patient_id') ??
+          prefs.getString('patientId') ??
+          prefs.getString('user_id');
     });
-    
+
     await _fetchWalletBalance();
   }
 
@@ -469,66 +473,92 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     return parts.join(', ') + age;
   }
 
+  // Replace your build method's body with this:
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        leadingWidth: 58,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: SvgPicture.asset(
+            EcliniqIcons.backArrow.assetPath,
+            width: 32,
+            height: 32,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            widget.isReschedule ? 'Reschedule' : 'Review Details',
+            'Review Details',
             style: EcliniqTextStyles.headlineMedium.copyWith(
               color: Color(0xff424242),
             ),
           ),
         ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              EcliniqRouter.push(ProfileHelpPage());
+            },
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  EcliniqIcons.questionCircleWhite.assetPath,
+                  width: 24,
+                  height: 24,
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'Help',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.2),
           child: Container(color: Color(0xFFB8B8B8), height: 1.0),
         ),
-        actions: [
-          TextButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.help_outline, size: 24),
-            label: Text(
-              'Help',
-              style: EcliniqTextStyles.headlineXMedium.copyWith(
-                color: Color(0xff424242),
-              ),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
+          // Fixed DoctorInfoCard at the top (not scrollable)
+          RepaintBoundary(
+            child: _isLoadingDoctorDetails
+                ? _buildDoctorInfoShimmer()
+                : DoctorInfoCard(
+                    doctor: _doctor,
+                    doctorName: widget.doctorName,
+                    specialization: widget.doctorSpecialization,
+                    locationName: _currentLocationName,
+                    locationAddress: _currentLocationAddress,
+                    locationDistance: _currentDistance,
+                  ),
+          ),
+
+          
+
+          // Scrollable content starting from "Appointment Details"
           Expanded(
             child: SingleChildScrollView(
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              clipBehavior: Clip.none,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  RepaintBoundary(
-                    child: _isLoadingDoctorDetails
-                        ? _buildDoctorInfoShimmer()
-                        : DoctorInfoCard(
-                            doctor: _doctor,
-                            doctorName: widget.doctorName,
-                            specialization: widget.doctorSpecialization,
-                            locationName: _currentLocationName,
-                            locationAddress: _currentLocationAddress,
-                            locationDistance: _currentDistance,
-                          ),
-                  ),
-
                   const Padding(
                     padding: EdgeInsets.all(20),
                     child: Text(
@@ -542,8 +572,9 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   ),
                   RepaintBoundary(
                     child: AppointmentDetailItem(
-                      iconAssetPath: EcliniqIcons.user.assetPath,
-                      title: _selectedDependent?.fullName ?? 
+                      iconAssetPath: EcliniqIcons.userBlue.assetPath,
+                      title:
+                          _selectedDependent?.fullName ??
                           (_currentUserDetails?.fullName ?? 'User'),
                       subtitle: _selectedDependent != null
                           ? _formatDependentSubtitle(_selectedDependent!)
@@ -570,6 +601,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                       subtitle: widget.selectedDate,
                       showEdit: false,
                     ),
+
                   ),
                   Divider(
                     thickness: 0.5,
@@ -577,15 +609,17 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     indent: 15,
                     endIndent: 15,
                   ),
-                  
+
                   RepaintBoundary(
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: ClinicLocationCard(
                         hospitalId: widget.hospitalId ?? '',
                         clinicId: widget.clinicId,
-                        locationName: _currentLocationName ?? widget.locationName,
-                        locationAddress: _currentLocationAddress ?? widget.locationAddress,
+                        locationName:
+                            _currentLocationName ?? widget.locationName,
+                        locationAddress:
+                            _currentLocationAddress ?? widget.locationAddress,
                       ),
                     ),
                   ),
@@ -681,7 +715,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Wallet checkbox section (only for new appointments)
                   if (!widget.isReschedule) ...[
                     RepaintBoundary(
@@ -709,23 +743,26 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                                 ),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Use Wallet Balance',
-                                        style: EcliniqTextStyles.headlineMedium.copyWith(
-                                          color: const Color(0xff424242),
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        style: EcliniqTextStyles.headlineMedium
+                                            .copyWith(
+                                              color: const Color(0xff424242),
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         'Available balance: ₹${_walletBalance.toStringAsFixed(0)}',
-                                        style: EcliniqTextStyles.buttonSmall.copyWith(
-                                          color: _walletBalance > 0
-                                              ? const Color(0xFF4CAF50)
-                                              : const Color(0xFF757575),
-                                        ),
+                                        style: EcliniqTextStyles.buttonSmall
+                                            .copyWith(
+                                              color: _walletBalance > 0
+                                                  ? const Color(0xFF4CAF50)
+                                                  : const Color(0xFF757575),
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -738,7 +775,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
+
                   RepaintBoundary(
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -840,7 +877,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                             if (_walletBalance < _consultationFee) ...[
                               const SizedBox(height: 8),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Via PhonePe',
@@ -870,10 +908,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                                 _useWallet && _walletBalance >= _consultationFee
                                     ? 'Paid from Wallet'
                                     : _useWallet && _walletBalance > 0
-                                        ? '₹${(_consultationFee - _walletBalance).toStringAsFixed(0)}'
-                                        : '₹${_consultationFee.toStringAsFixed(0)}',
+                                    ? '₹${(_consultationFee - _walletBalance).toStringAsFixed(0)}'
+                                    : '₹${_consultationFee.toStringAsFixed(0)}',
                                 style: EcliniqTextStyles.headlineLarge.copyWith(
-                                  color: _useWallet && _walletBalance >= _consultationFee
+                                  color:
+                                      _useWallet &&
+                                          _walletBalance >= _consultationFee
                                       ? Color(0xFF4CAF50)
                                       : Color(0xff424242),
                                 ),
@@ -886,11 +926,13 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
                   RepaintBoundary(child: const EasyWayToBookWidget()),
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
+
+          // Fixed button at bottom
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -927,9 +969,9 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     }
 
     await _loadPatientId();
-    
+
     final finalPatientId = _currentUserDetails?.userId ?? _patientId;
-    
+
     if (finalPatientId == null || finalPatientId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         CustomErrorSnackBar(
@@ -984,7 +1026,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             });
 
             String errorMessage = 'Failed to reschedule appointment';
-            if (response.errors != null && response.errors.toString().isNotEmpty) {
+            if (response.errors != null &&
+                response.errors.toString().isNotEmpty) {
               errorMessage = response.errors.toString();
             } else if (response.message.isNotEmpty) {
               errorMessage = response.message;
@@ -1049,42 +1092,46 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 print('Merchant Txn ID: ${paymentData.merchantTransactionId}');
                 print('Gateway amount: ${paymentData.gatewayAmount}');
                 print('==========================================');
-                
+
                 // Validate payment data
-                if (paymentData.requestPayload == null || paymentData.requestPayload!.isEmpty) {
+                if (paymentData.requestPayload == null ||
+                    paymentData.requestPayload!.isEmpty) {
                   if (paymentData.token == null || paymentData.token!.isEmpty) {
                     setState(() {
                       _isBooking = false;
                     });
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       CustomErrorSnackBar(
                         context: context,
                         title: 'Payment Error',
-                        subtitle: 'Payment data is missing. Please try booking again.',
+                        subtitle:
+                            'Payment data is missing. Please try booking again.',
                         duration: const Duration(seconds: 4),
                       ),
                     );
                     return;
                   }
-                  
-                  if (paymentData.orderId == null || paymentData.orderId!.isEmpty) {
+
+                  if (paymentData.orderId == null ||
+                      paymentData.orderId!.isEmpty) {
                     setState(() {
                       _isBooking = false;
                     });
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       CustomErrorSnackBar(
                         context: context,
                         title: 'Payment Error',
-                        subtitle: 'Order ID is missing. Please try booking again.',
+                        subtitle:
+                            'Order ID is missing. Please try booking again.',
                         duration: const Duration(seconds: 4),
                       ),
                     );
                     return;
                   }
                 }
-                
+
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -1143,11 +1190,13 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               final appointmentData = response.data is AppointmentData
                   ? response.data as AppointmentData
                   : null;
-              final appointmentId = appointmentData?.id ?? responseDataJson?['id'] ?? '';
+              final appointmentId =
+                  appointmentData?.id ?? responseDataJson?['id'] ?? '';
 
               final verifyRequest = VerifyAppointmentRequest(
                 appointmentId: appointmentId,
-                merchantTransactionId: 'LEGACY_${DateTime.now().millisecondsSinceEpoch}',
+                merchantTransactionId:
+                    'LEGACY_${DateTime.now().millisecondsSinceEpoch}',
               );
 
               await _appointmentService.verifyAppointment(
@@ -1180,7 +1229,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             });
 
             String errorMessage = 'Failed to book appointment';
-            if (response.errors != null && response.errors.toString().isNotEmpty) {
+            if (response.errors != null &&
+                response.errors.toString().isNotEmpty) {
               errorMessage = response.errors.toString();
             } else if (response.message.isNotEmpty) {
               errorMessage = response.message;
@@ -1229,7 +1279,9 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           decoration: BoxDecoration(
             color: isButtonEnabled
                 ? EcliniqButtonType.brandPrimary.backgroundColor(context)
-                : EcliniqButtonType.brandPrimary.disabledBackgroundColor(context),
+                : EcliniqButtonType.brandPrimary.disabledBackgroundColor(
+                    context,
+                  ),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
@@ -1239,10 +1291,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 const SizedBox(
                   width: 20,
                   height: 20,
-                  child: EcliniqLoader(
-                    size: 20,
-                    color: Colors.white,
-                  ),
+                  child: EcliniqLoader(size: 20, color: Colors.white),
                 )
               else ...[
                 Text(
@@ -1258,12 +1307,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
       ),
     );
   }
-  
+
   String _getButtonText() {
     if (widget.isReschedule) {
       return 'Confirm Reschedule';
     }
-    
+
     if (_useWallet && _walletBalance >= _consultationFee) {
       return 'Pay ₹${_consultationFee.toStringAsFixed(0)} with Wallet';
     } else if (_useWallet && _walletBalance > 0) {
@@ -1274,3 +1323,4 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     }
   }
 }
+

@@ -93,47 +93,37 @@ class _SuccessSnackBarContentState extends State<_SuccessSnackBarContent>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
-        ),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.black.withOpacity(0.1),
-        //     blurRadius: 10,
-        //     offset: const Offset(0, 4),
-        //   ),
-        // ],
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 8),
           Row(
             children: [
               const SizedBox(width: 16),
-              // Icon Container
               SvgPicture.asset(
                 EcliniqIcons.snackbar.assetPath,
                 width: 32,
                 height: 32,
               ),
               const SizedBox(width: 16),
-              // Text Content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF3EAF3F), // Green
+                    FittedBox(
+                      child: Text(
+                        widget.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF3EAF3F), // Green
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
                     FittedBox(
                       child: Text(
                         widget.subtitle,
@@ -154,13 +144,13 @@ class _SuccessSnackBarContentState extends State<_SuccessSnackBarContent>
           // Animated green progress indicator at the bottom
           ClipRRect(
             borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(12),
-              bottomRight: Radius.circular(12),
+              bottomLeft: Radius.circular(8),
+              bottomRight: Radius.circular(8),
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SizedBox(
-                  height: 4,
+                  height: 6,
                   child: AnimatedBuilder(
                     animation: _animation,
                     builder: (context, child) {
@@ -176,7 +166,7 @@ class _SuccessSnackBarContentState extends State<_SuccessSnackBarContent>
                             alignment: Alignment.centerLeft,
                             child: Container(
                               width: constraints.maxWidth * _animation.value,
-                              height: 3,
+                              height: 6,
                               decoration: const BoxDecoration(
                                 color: Color(0xFF6DDB72), // Green
                                 borderRadius: BorderRadius.only(

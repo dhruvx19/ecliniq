@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SelectSpecialitiesBottomSheet extends StatefulWidget {
   final List<String>? initialSelection;
@@ -86,15 +87,17 @@ class _SelectSpecialitiesBottomSheetState
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
         ),
       ),
       child: Column(
         children: [
           // Title
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.only(left: 16, right: 16, top: 22),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -108,17 +111,15 @@ class _SelectSpecialitiesBottomSheetState
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
 
           // Search bar
           SearchBarWidget(onSearch: _filterSpecialities, hintText: 'Search'),
 
-          const SizedBox(height: 16),
-
           // List of specialities
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.only(left: 16, right: 16),
               itemCount: filteredSpecialities.length,
               itemBuilder: (context, index) {
                 final speciality = filteredSpecialities[index];
@@ -145,7 +146,7 @@ class _SelectSpecialitiesBottomSheetState
         _onSelectionChanged();
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.only(top: 16, bottom: 8),
         child: Row(
           children: [
             Container(
@@ -219,70 +220,45 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final outlinedBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide.none,
-    );
-
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      height: 52,
+      margin: EdgeInsets.only(top: 12, left: 16, right: 16, bottom: 16),
+      height: 50,
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Color(0xffD6D6D6)),
+
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Color(0xff626060), width: 0.5),
       ),
-      child: TextField(
-        autofocus: widget.autofocus,
-        controller: _controller,
-        decoration: InputDecoration(
-          enabledBorder: outlinedBorder,
-          focusedBorder: outlinedBorder,
-          border: outlinedBorder,
-          filled: true,
-          fillColor: Colors.white,
-          isDense: true,
-          suffixIcon: query.isNotEmpty
-              ? IconButton(
-                  icon: Icon(Icons.close, color: Colors.grey[600], size: 20),
-                  onPressed: () {
-                    setState(() => query = '');
-                    _controller.clear();
-                    widget.onSearch('');
-                  },
-                )
-              : null,
-          prefixIcon: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Image.asset(
-              EcliniqIcons.magnifierMyDoctor.assetPath,
-              width: 20,
-              height: 20,
+      child: Row(
+        spacing: 10,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          SvgPicture.asset(
+            EcliniqIcons.magnifierMyDoctor.assetPath,
+            height: 24,
+            width: 24,
+          ),
+          Expanded(
+            child: TextField(
+              cursorColor: Colors.black,
+              decoration: InputDecoration(
+                hintText: 'Search',
+                hintStyle: TextStyle(color: Colors.grey),
+                border: InputBorder.none,
+              ),
             ),
           ),
-          hintText: widget.hintText,
-          hintStyle: TextStyle(
-            color: Color(0xffD6D6D6),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20.0,
-            vertical: 14.0,
-          ),
-        ),
-        onChanged: search,
-        textInputAction: TextInputAction.search,
-        style: const TextStyle(
-          color: Colors.black87,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
-        textAlignVertical: TextAlignVertical.center,
-        cursorColor: Color(0xff2372EC),
-        cursorWidth: 1.5,
-        cursorHeight: 20,
-        onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
+          if (query.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _controller.clear();
+                search('');
+              },
+              child: Icon(Icons.close, color: Colors.grey),
+            ),
+        ],
       ),
     );
   }

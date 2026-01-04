@@ -69,7 +69,7 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
         Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
               child: Row(
                 children: [
                   SvgPicture.asset(

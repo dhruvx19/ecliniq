@@ -100,7 +100,7 @@ class ClinicalDetailsWidget extends StatelessWidget {
             color: Color(0xff424242),
           ),
         ),
-        Divider(color: Colors.grey[300]),
+        Divider(color: Color(0xffD6D6D6), thickness: 0.5),
       ],
     );
   }
@@ -151,7 +151,7 @@ class ProfessionalInformationWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (professionalInfo.registrationNumber != null)
-                  _buildDetailItem(
+                  _buildDetailItemRegis(
                     label: 'Registration Number:',
                     value: professionalInfo.registrationNumber!,
                     hasVerification: true,
@@ -188,11 +188,7 @@ class ProfessionalInformationWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem({
-    required String label,
-    required String value,
-    bool hasVerification = false,
-  }) {
+  Widget _buildDetailItem({required String label, required String value}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -205,6 +201,7 @@ class ProfessionalInformationWidget extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
+
         Row(
           children: [
             Expanded(
@@ -218,16 +215,55 @@ class ProfessionalInformationWidget extends StatelessWidget {
                 ),
               ),
             ),
-            if (hasVerification) ...[
-              const SizedBox(width: 4),
-              const Icon(Icons.verified, size: 16, color: Colors.green),
-            ],
           ],
         ),
-        Divider(color: Colors.grey[300]),
+        Divider(color: Color(0xffD6D6D6), thickness: 0.5),
       ],
     );
   }
+}
+
+Widget _buildDetailItemRegis({
+  required String label,
+  required String value,
+  bool hasVerification = false,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: Color(0xff8E8E8E),
+        ),
+      ),
+      const SizedBox(height: 4),
+
+      Row(
+        children: [
+          Text(
+            value,
+            maxLines: 20,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Color(0xff424242),
+            ),
+          ),
+          if (hasVerification) ...[
+            SvgPicture.asset(
+              EcliniqIcons.verifiedGreenDoctor.assetPath,
+              width: 16,
+              height: 16,
+            ),
+          ],
+        ],
+      ),
+      Divider(color: Color(0xffD6D6D6), thickness: 0.5),
+    ],
+  );
 }
 
 class DoctorContactDetailsWidget extends StatelessWidget {
@@ -318,7 +354,7 @@ class DoctorContactDetailsWidget extends StatelessWidget {
       children: [
         Row(
           children: [
-            SvgPicture.asset(icon.assetPath, width: 28, height: 26),
+            SvgPicture.asset(icon.assetPath, width: 32, height: 32),
 
             const SizedBox(width: 12),
             Expanded(
@@ -356,7 +392,7 @@ class DoctorContactDetailsWidget extends StatelessWidget {
               ),
           ],
         ),
-        Divider(color: Colors.grey[300]),
+        Divider(color: Color(0xffD6D6D6), thickness: 0.5),
       ],
     );
   }
@@ -434,48 +470,52 @@ class EducationalInformationWidget extends StatelessWidget {
     required String type,
     required String year,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        SvgPicture.asset(
-          EcliniqIcons.academicCap.assetPath,
-          width: 24,
-          height: 24,
+        Row(
+          children: [
+            SvgPicture.asset(
+              EcliniqIcons.academicCap.assetPath,
+              width: 32,
+              height: 32,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    degree,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    institution,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$type - $year',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                degree,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                institution,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '$type - $year',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
+        Divider(color: Color(0xffD6D6D6), thickness: 0.5),
       ],
     );
   }

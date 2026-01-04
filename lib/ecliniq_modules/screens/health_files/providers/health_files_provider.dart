@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../models/health_file_model.dart';
 import '../services/local_file_storage_service.dart';
@@ -45,6 +46,7 @@ class HealthFilesProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to load files: $e';
+      debugPrint('❌ Error loading files: $e');
       notifyListeners();
     } finally {
       _setLoading(false);
@@ -122,6 +124,7 @@ class HealthFilesProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = 'Failed to add file: $e';
+      debugPrint('❌ Error adding file: $e');
       notifyListeners();
       return false;
     }
@@ -138,24 +141,70 @@ class HealthFilesProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = 'Failed to update file: $e';
+      debugPrint('❌ Error updating file: $e');
       notifyListeners();
       return false;
     }
   }
 
-  /// Delete a file
+  /// Delete a file - removes both physical file and metadata
   Future<bool> deleteFile(HealthFile file) async {
     try {
-      final success = await _storageService.deleteFile(file);
-      if (success) {
-        _allFiles.removeWhere((f) => f.id == file.id);
-        _invalidateCache();
-        notifyListeners();
-        return true;
+      debugPrint('🗑️ Attempting to delete file: ${file.fileName}');
+      debugPrint('📁 File path: ${file.filePath}');
+      debugPrint('🆔 File ID: ${file.id}');
+      
+      // Step 1: Try to delete physical file
+      bool physicalFileDeleted = false;
+      final physicalFile = File(file.filePath);
+      
+      try {
+        final exists = await physicalFile.exists();
+        debugPrint('📋 Physical file exists: $exists');
+        
+        if (exists) {
+          await physicalFile.delete();
+          physicalFileDeleted = true;
+          debugPrint('✅ Physical file deleted successfully');
+        } else {
+          debugPrint('⚠️ Physical file not found, will remove from database');
+        }
+      } catch (fileError) {
+        debugPrint('⚠️ Error deleting physical file: $fileError');
+        debugPrint('   Continuing with metadata deletion...');
+        // Continue anyway - we still want to remove from database
       }
-      return false;
-    } catch (e) {
+      
+      // Step 2: Delete metadata from storage service
+      final metadataDeleted = await _storageService.deleteFile(file);
+      debugPrint('📝 Metadata deletion result: $metadataDeleted');
+      
+      if (!metadataDeleted) {
+        debugPrint('❌ Failed to delete metadata from storage service');
+        return false;
+      }
+      
+      // Step 3: Remove from local list
+      final initialCount = _allFiles.length;
+      _allFiles.removeWhere((f) => f.id == file.id);
+      final finalCount = _allFiles.length;
+      debugPrint('📊 Files before: $initialCount, after: $finalCount');
+      
+      // Step 4: Invalidate cache
+      _invalidateCache();
+      debugPrint('🔄 Cache invalidated');
+      
+      // Step 5: Notify listeners to update UI
+      notifyListeners();
+      debugPrint('📢 Listeners notified');
+      
+      debugPrint('✅ File deletion completed successfully');
+      return true;
+      
+    } catch (e, stackTrace) {
       _errorMessage = 'Failed to delete file: $e';
+      debugPrint('❌ Error deleting file: $e');
+      debugPrint('Stack trace: $stackTrace');
       notifyListeners();
       return false;
     }
@@ -174,7 +223,13 @@ class HealthFilesProvider extends ChangeNotifier {
 
   /// Refresh files from storage
   Future<void> refresh() async {
+    debugPrint('🔄 Refreshing files from storage...');
     await loadFiles();
   }
+  
+  /// Clear all error messages
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
 }
-

@@ -40,10 +40,10 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
   bool _isButtonPressed = false;
   bool _isVerifying = false;
   String? _errorMessage;
-  String? _maskedContact;
+  String? _contact;
   String? _challengeId;
   Timer? _timer;
-  int _resendTimer = 30;
+  int _resendTimer = 150;
   bool _canResend = false;
   bool _isDisposed = false;
 
@@ -53,32 +53,20 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
 
     // If email is preloaded, use it and send OTP immediately
     if (widget.preloadedEmail != null && widget.preloadedMaskedEmail != null) {
-      _maskedContact = widget.preloadedMaskedEmail;
+      _contact = widget.preloadedEmail;
       // Send OTP immediately without showing loading state
       _sendOTPToExistingContact();
     } else if (widget.challengeId != null && widget.maskedContact != null) {
       // Use provided data if available
       _challengeId = widget.challengeId;
-      _maskedContact = widget.maskedContact;
+      _contact = widget.maskedContact;
     } else if (widget.existingEmail != null) {
-      _maskedContact = _maskEmail(widget.existingEmail!);
+      _contact = widget.existingEmail;
       _sendOTPToExistingContact();
     } else {
-      // Fallback: fetch OTP 
+      // Fallback: fetch OTP
       _sendOTPToExistingContact();
     }
-  }
-
-  String _maskEmail(String email) {
-    if (email.isEmpty) return email;
-    final parts = email.split('@');
-    if (parts.length != 2) return email;
-    final username = parts[0];
-    final domain = parts[1];
-    if (username.length <= 2) {
-      return '${username[0]}***@$domain';
-    }
-    return '${username.substring(0, 2)}***@$domain';
   }
 
   @override
@@ -125,7 +113,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
 
     try {
       final authToken = await SessionService.getAuthToken();
-      
+
       // Check if email exists, if not use mobile for verification
       String otpType = 'email';
       if (widget.existingEmail == null || widget.existingEmail!.isEmpty) {
@@ -143,23 +131,9 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       if (result['success'] == true) {
         setState(() {
           _challengeId = result['challengeId'];
-          // Only update masked contact if we don't have preloaded one and API returns it
-          if (widget.preloadedMaskedEmail == null) {
-             _maskedContact = result['contact'];
-             if (otpType == 'mobile') {
-                // If it was mobile, mask it appropriately if needed, or backend returns masked
-                // Assuming backend returns masked or we handle it. 
-                // For consistnecy with MPIN screen:
-                String contact = result['contact'] ?? '';
-                 if (contact.startsWith('+91')) {
-                  contact = contact.substring(3).trim();
-                } else if (contact.startsWith('91')) {
-                  contact = contact.substring(2).trim();
-                }
-                if (contact.length >= 4) {
-                   _maskedContact = '******${contact.substring(contact.length - 4)}';
-                }
-             }
+          // Only update contact if we don't have preloaded one and API returns it
+          if (widget.preloadedEmail == null) {
+            _contact = result['contact'];
           }
           _isSendingOTP = false;
         });
@@ -228,13 +202,18 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
 
         // Navigate to add email screen with verificationToken
         if (!mounted) return;
-        Navigator.push(
+        final addResult = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) =>
                 AddEmailAddress(verificationToken: result['verificationToken']),
           ),
         );
+
+        // Pass result back to security settings
+        if (addResult != null && mounted) {
+          Navigator.pop(context, addResult);
+        }
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Failed to verify OTP';
@@ -368,7 +347,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                 color: const Color(0xff424242),
               ),
             ),
-             if (_isLoading)
+            if (_isLoading)
               Padding(
                 padding: const EdgeInsets.only(top: 24.0),
                 child: Column(
@@ -388,7 +367,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                   ],
                 ),
               ),
-            if (_maskedContact != null) ...[
+            if (_contact != null) ...[
               Row(
                 children: [
                   Text(
@@ -400,9 +379,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                     ),
                   ),
                   Text(
-                    (widget.existingEmail == null || widget.existingEmail!.isEmpty) 
-                       ? '+91 $_maskedContact' // Assume mobile format if email is missing
-                       : _maskedContact!,
+                    _contact!,
                     style: EcliniqTextStyles.headlineMedium.copyWith(
                       fontWeight: FontWeight.w500,
                       fontSize: 18,
@@ -424,6 +401,9 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
               const SizedBox(height: 24),
               PinCodeTextField(
                 appContext: context,
+                textStyle: EcliniqTextStyles.headlineXMedium.copyWith(
+                  color: const Color(0xff424242),
+                ),
                 length: 6,
                 controller: _otpController,
                 autoFocus: true,
@@ -437,17 +417,17 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                   activeFillColor: Colors.white,
                   selectedFillColor: Colors.white,
                   inactiveFillColor: Colors.white,
-                  activeColor: const Color(0xff2372EC),
+                  activeColor: const Color(0xff626060),
                   selectedColor: const Color(0xff2372EC),
                   inactiveColor: const Color(0xff626060),
                   borderWidth: 1,
                   activeBorderWidth: 0.5,
                   selectedBorderWidth: 1,
-                  inactiveBorderWidth: 1,
+                  inactiveBorderWidth: 0.5,
                   fieldOuterPadding: const EdgeInsets.symmetric(horizontal: 2),
                 ),
                 enableActiveFill: true,
-                errorTextSpace: 16,
+                errorTextSpace: 12,
                 onChanged: (value) {
                   if (mounted) {
                     setState(() {
@@ -487,7 +467,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+
               GestureDetector(
                 onTap: _canResend ? _resendOTP : null,
                 child: Text(

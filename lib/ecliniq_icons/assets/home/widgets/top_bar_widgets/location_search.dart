@@ -1,8 +1,8 @@
 import 'package:ecliniq/ecliniq_core/location/location_permission_manager.dart';
 import 'package:ecliniq/ecliniq_core/location/location_service.dart';
-import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/provider/doctor_provider.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/provider/hospital_provider.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
@@ -97,7 +97,10 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+          bottom: Radius.circular(16),
+        ),
       ),
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -113,7 +116,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
               color: Color(0xFF424242),
             ),
           ),
-      
+
           EcliniqText(
             'Enable your location for better services',
             style: EcliniqTextStyles.titleXLarge.copyWith(

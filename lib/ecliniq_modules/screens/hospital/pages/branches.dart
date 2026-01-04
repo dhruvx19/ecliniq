@@ -53,7 +53,7 @@ class _BranchesPageState extends State<BranchesPage> {
       _branches = [
         BranchModel(
           id: '1',
-          name: '${widget.hospitalName} - Baner',
+          name: 'Manipal Hospital - Baner',
           type: 'Multi-speciality',
           doctorCount: 50,
           bedCount: 650,
@@ -65,7 +65,7 @@ class _BranchesPageState extends State<BranchesPage> {
         ),
         BranchModel(
           id: '2',
-          name: '${widget.hospitalName} - Wakad',
+          name: 'Manipal Hospital - Wakad',
           type: 'Multi-speciality',
           doctorCount: 20,
           bedCount: 650,
@@ -77,7 +77,7 @@ class _BranchesPageState extends State<BranchesPage> {
         ),
         BranchModel(
           id: '3',
-          name: '${widget.hospitalName} - Kharadi',
+          name: 'Manipal Hospital - Kharadi',
           type: 'Multi-speciality',
           doctorCount: 35,
           bedCount: 450,
@@ -118,8 +118,6 @@ class _BranchesPageState extends State<BranchesPage> {
 
           // Divider
           HorizontalDivider(),
-
-          const SizedBox(height: 16),
 
           // Branches List
           _buildBranchesList(),
@@ -178,14 +176,7 @@ class _BranchesPageState extends State<BranchesPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xff2372EC), width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                border: Border.all(color: const Color(0xff2372EC), width: 2),
               ),
               child: Stack(
                 children: [
@@ -231,12 +222,12 @@ class _BranchesPageState extends State<BranchesPage> {
 
         // Hospital Info
         Container(
-          margin: const EdgeInsets.only(top: 230),
+          margin: const EdgeInsets.only(top: 260),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
               Text(
-                widget.hospitalName,
+                'Manipal Hospital',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
@@ -244,7 +235,7 @@ class _BranchesPageState extends State<BranchesPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -258,8 +249,8 @@ class _BranchesPageState extends State<BranchesPage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    width: 1,
-                    height: 16,
+                    width: 0.5,
+                    height: 20,
                     color: const Color(0xffD6D6D6),
                   ),
                   const SizedBox(width: 8),
@@ -299,37 +290,71 @@ class _BranchesPageState extends State<BranchesPage> {
   }
 
   Widget _buildStatsCards() {
-    final totalDoctors = widget.totalDoctors ?? 90;
-    final totalBeds = widget.totalBeds ?? 1800;
-    final patientsServed = widget.patientsServed ?? (totalDoctors * 1000);
-
+      final totalDoctors = widget.totalDoctors ?? 90;
+  final totalBeds = widget.totalBeds ?? 1800;
+  final patientsServed = widget.patientsServed ?? (totalDoctors * 1000);
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatCard(
-            EcliniqIcons.usersGroupRounded,
-            'Patients Served',
-            _formatNumber(patientsServed),
-          ),
-          DashedVerticalDivider(height: 80),
-          _buildStatCard(
-            EcliniqIcons.stethoscopeBlue,
-            'Doctors',
-            '$totalDoctors',
-          ),
-          DashedVerticalDivider(height: 80),
-          _buildStatCard(
-            EcliniqIcons.bed,
-            'Total Beds',
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            _buildStatCard(
+              EcliniqIcons.usersGroupRounded,
+              'Patients Served',
+             
+                 _formatNumber(patientsServed),
+            ),
+            DashedVerticalDivider(height: 110),
+            _buildStatCard(
+              EcliniqIcons.stethoscopeBlue,
+              'Doctors',
+              '$totalDoctors',
+            ),
+            DashedVerticalDivider(height: 110),
+            _buildStatCard(
+              EcliniqIcons.bed,
+              'Total Beds',
             _formatNumber(totalBeds),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(final EcliniqIcons icon, String label, String value) {
+    return SizedBox(
+      width: 140,
+      child: Column(
+        children: [
+          SvgPicture.asset(icon.assetPath, width: 24, height: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: Color(0xff626060),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Color(0xff2372EC),
+            ),
           ),
         ],
       ),
     );
   }
+
 
   String _formatNumber(int number) {
     if (number >= 1000000) {
@@ -340,32 +365,7 @@ class _BranchesPageState extends State<BranchesPage> {
     return number.toString();
   }
 
-  Widget _buildStatCard(EcliniqIcons icon, String label, String value) {
-    return Column(
-      children: [
-        SvgPicture.asset(icon.assetPath, width: 32, height: 32),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Color(0xff626060),
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: Color(0xff2372EC),
-          ),
-        ),
-      ],
-    );
-  }
+  
 
   Widget _buildBranchesList() {
     if (_branches.isEmpty) {
@@ -373,11 +373,11 @@ class _BranchesPageState extends State<BranchesPage> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _branches.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      padding: EdgeInsets.zero,
+      separatorBuilder: (context, index) => const SizedBox(height: 0),
       itemBuilder: (context, index) {
         return _buildBranchCard(_branches[index]);
       },
@@ -385,203 +385,225 @@ class _BranchesPageState extends State<BranchesPage> {
   }
 
   Widget _buildBranchCard(BranchModel branch) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Hospital Name with Verified Badge
-          Row(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 12, right: 12, top: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                branch.name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xff424242),
-                ),
+              // Hospital Name with Verified Badge
+              Row(
+                children: [
+                  Text(
+                    branch.name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff424242),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SvgPicture.asset(
+                    EcliniqIcons.verified.assetPath,
+                    width: 20,
+                    height: 20,
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              SvgPicture.asset(
-                EcliniqIcons.verified.assetPath,
-                width: 22,
-                height: 22,
-              ),
-            ],
-          ),
+              SizedBox(height: 4),
 
-          // Type | Doctors | Beds
-          Text(
-            '${branch.type} | ${branch.doctorCount}+ Doctors | ${branch.bedCount} Beds',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xff424242),
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Location and Rating Row
-          Row(
-            children: [
-              SvgPicture.asset(
-                EcliniqIcons.mapPoint.assetPath,
-                width: 20,
-                height: 20,
-              ),
-              const SizedBox(width: 4),
+              // Type | Doctors | Beds
               Text(
-                branch.location,
+                '${branch.type} | ${branch.doctorCount}+ Doctors | ${branch.bedCount} Beds',
                 style: const TextStyle(
                   fontSize: 16,
                   color: Color(0xff424242),
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xffF9F9F9),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: const Color(0xffB8B8B8),
-                    width: 0.5,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${branch.distance.toStringAsFixed(0)} KM',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xff424242),
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    SvgPicture.asset(
-                      EcliniqIcons.mapArrow.assetPath,
-                      width: 14,
-                      height: 14,
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xffFEF9E6),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: Row(
-                    children: [
-                      SvgPicture.asset(
-                        EcliniqIcons.star.assetPath,
-                        width: 18,
-                        height: 18,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        branch.rating.toString(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Color(0xffBE8B00),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
-          // OPD Timing
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SvgPicture.asset(
-                EcliniqIcons.clockCircle.assetPath,
-                width: 20,
-                height: 20,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'OPD Timing: ${branch.opdTiming}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Color(0xff424242),
-                    fontWeight: FontWeight.w400,
+              // Location and Rating Row
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    EcliniqIcons.mapPointBlack.assetPath,
+                    width: 26,
+                    height: 26,
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Action Buttons Row
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      EcliniqRouter.push(
-                        HospitalDetailScreen(hospitalId: branch.id),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff2372EC),
-                      shadowColor: const Color(0xff2372EC4D).withOpacity(0.3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                  const SizedBox(width: 4),
+                  Text(
+                    branch.location,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xff424242),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffF9F9F9),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: const Color(0xffB8B8B8),
+                        width: 0.5,
                       ),
-                      elevation: 0,
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'View All Doctors',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                        Text(
+                          '${branch.distance.toStringAsFixed(0)} KM',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xff424242),
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         SvgPicture.asset(
-                          EcliniqIcons.arrowRight.assetPath,
-                          width: 24,
-                          height: 24,
+                          EcliniqIcons.mapArrow.assetPath,
+                          width: 12,
+                          height: 12,
                         ),
                       ],
                     ),
                   ),
-                ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffFEF9E6),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          EcliniqIcons.star.assetPath,
+                          width: 18,
+                          height: 18,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          branch.rating.toString(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xffBE8B00),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              IconButton(
-                onPressed: () {
-                  // TODO: Handle phone call
-                },
-                icon: SvgPicture.asset(
-                  EcliniqIcons.phone.assetPath,
-                  width: 32,
-                  height: 32,
-                ),
+              const SizedBox(height: 8),
+
+              // OPD Timing
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SvgPicture.asset(
+                    EcliniqIcons.clockCircle.assetPath,
+                    width: 24,
+                    height: 24,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'OPD Timing: ${branch.opdTiming}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xff424242),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Action Buttons Row
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x4D2372EC),
+                            offset: Offset(2, 2),
+                            blurRadius: 10,
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          EcliniqRouter.push(
+                            HospitalDetailScreen(hospitalId: branch.id),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff2372EC),
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'View All Doctors',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            SvgPicture.asset(
+                              EcliniqIcons.arrowRight.assetPath,
+                              width: 24,
+                              height: 24,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  IconButton(
+                    onPressed: () {
+                      // TODO: Handle phone call
+                    },
+                    icon: SvgPicture.asset(
+                      EcliniqIcons.phone.assetPath,
+                      width: 32,
+                      height: 32,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        ),
+
+        SizedBox(height: 16),
+        HorizontalDivider(color: Color(0xffD6D6D6)),
+      ],
     );
   }
 

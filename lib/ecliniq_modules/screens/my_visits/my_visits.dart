@@ -282,7 +282,10 @@ class _MyVisitsState extends State<MyVisits>
 
   Widget _buildTopTabs() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      margin: const EdgeInsets.only(
+        top: 8,
+        bottom: 12,
+      ), // Changed bottom margin to 12
       child: Row(
         children: [
           Expanded(child: _buildTabButton('Scheduled', 0)),
@@ -307,8 +310,8 @@ class _MyVisitsState extends State<MyVisits>
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? Color(0xFF2372EC) : Colors.transparent,
-              width: 2,
+              color: isSelected ? Color(0xFF2372EC) : Color(0xFFE0E0E0),
+              width: isSelected ? 3 : 1,
             ),
           ),
         ),
@@ -317,7 +320,7 @@ class _MyVisitsState extends State<MyVisits>
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 18,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: FontWeight.w400,
             color: isSelected ? Color(0xFF2372EC) : Color(0xFF626060),
           ),
         ),
@@ -331,10 +334,12 @@ class _MyVisitsState extends State<MyVisits>
 
     return Container(
       height: screenWidth * 0.13,
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.04,
-        vertical: screenWidth * 0.02,
-      ),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        bottom: 6,
+        top: 6,
+      ), // Removed top padding
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
@@ -353,17 +358,17 @@ class _MyVisitsState extends State<MyVisits>
                 color: isSelected ? Color(0xffF8FAFF) : Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isSelected ? Color(0xFF2372EC) : Colors.white,
-                  width: 1,
+                  color: isSelected ? Color(0xFF96BFFF) : Colors.white,
+                  width: 0.5,
                 ),
               ),
               child: Center(
                 child: Text(
                   filters[index],
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                    color: isSelected ? Color(0xff2372EC) : Color(0xFF757575),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                    color: isSelected ? Color(0xff2372EC) : Color(0xFF626060),
                   ),
                 ),
               ),
@@ -383,7 +388,7 @@ class _MyVisitsState extends State<MyVisits>
       onTap: () => _navigateToDetailPage(appointment),
       child: Container(
         width: screenWidth - (horizontalMargin * 2),
-        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
 
         decoration: BoxDecoration(
           color: Colors.white,
@@ -395,7 +400,12 @@ class _MyVisitsState extends State<MyVisits>
           children: [
             _buildStatusHeader(appointment),
             Padding(
-              padding: EdgeInsets.all(cardPadding),
+              padding: EdgeInsets.only(
+                left: 16,
+                top: 12,
+                right: 16,
+                bottom: 16,
+              ),
               child: Column(
                 children: [
                   _buildDoctorInfo(appointment),
@@ -403,7 +413,7 @@ class _MyVisitsState extends State<MyVisits>
                   _buildAppointmentDetails(appointment),
                   const SizedBox(height: 12),
                   _buildPatientInfo(appointment),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _buildActionButtons(appointment),
                 ],
               ),
@@ -418,23 +428,28 @@ class _MyVisitsState extends State<MyVisits>
 
   Widget _buildStatusHeader(AppointmentData appointment) {
     Color statusColor;
+    Color textColor;
     String statusText;
 
     switch (appointment.status) {
       case AppointmentStatus.confirmed:
-        statusColor = Color(0xFF3EAF3F);
+        statusColor = Color(0xFFF2FFF3);
+        textColor = Color(0xff3EAF3F);
         statusText = 'Booking Confirmed';
         break;
       case AppointmentStatus.requested:
-        statusColor = Color(0xFFBE8B00);
+        statusColor = Color(0xFFFEF9E6);
+        textColor = Color(0xffBE8B00);
         statusText = 'Requested';
         break;
       case AppointmentStatus.cancelled:
-        statusColor = Color(0xFFF04248);
+        statusColor = Color(0xFFFFF8F8);
+        textColor = Color(0xffF04248);
         statusText = 'Cancelled';
         break;
       case AppointmentStatus.completed:
         statusColor = Color(0xFF4CAF50);
+        textColor = Colors.white;
         statusText = 'Completed';
         break;
     }
@@ -443,10 +458,10 @@ class _MyVisitsState extends State<MyVisits>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
+          topLeft: Radius.circular(12),
+          topRight: Radius.circular(12),
         ),
       ),
       child: appointment.status == AppointmentStatus.confirmed
@@ -454,9 +469,11 @@ class _MyVisitsState extends State<MyVisits>
               children: [
                 Text(
                   statusText,
-                  style: EcliniqTextStyles.headlineMedium.copyWith(
-                    color: statusColor,
-                  ),
+                  style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: textColor,
+                ),
                 ),
                 const Spacer(),
                 if (appointment.tokenNumber != null)
@@ -467,7 +484,7 @@ class _MyVisitsState extends State<MyVisits>
                           text: 'Token Number ',
                           style: TextStyle(
                             fontSize: 18,
-                            color: Color(0xFF424242),
+                            color: Color(0xff424242),
                             fontWeight: FontWeight.w300,
                           ),
                         ),
@@ -475,7 +492,7 @@ class _MyVisitsState extends State<MyVisits>
                           text: appointment.tokenNumber,
                           style: TextStyle(
                             fontSize: 18,
-                            color: Color(0xFF3EAF3F),
+                            color: Color(0xff3EAF3F),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -490,7 +507,7 @@ class _MyVisitsState extends State<MyVisits>
                 Text(
                   statusText,
                   style: EcliniqTextStyles.headlineZMedium.copyWith(
-                    color: statusColor,
+                    color: textColor,
                   ),
                 ),
                 if (appointment.tokenNumber != null) ...[
@@ -499,7 +516,7 @@ class _MyVisitsState extends State<MyVisits>
                     'Token Number ${appointment.tokenNumber}',
                     style: TextStyle(
                       fontSize: 18,
-                      color: Color(0xFF424242),
+                      color: Colors.white.withOpacity(0.9),
                       fontWeight: FontWeight.w300,
                     ),
                   ),
@@ -549,7 +566,7 @@ class _MyVisitsState extends State<MyVisits>
             ),
           ],
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,19 +625,20 @@ class _MyVisitsState extends State<MyVisits>
     return Row(
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: 24,
+          height: 24,
           decoration: BoxDecoration(
-            color: Color(0xFFFF9800),
-            borderRadius: BorderRadius.circular(10),
+            color: Color(0xFFFFF7F0),
+            borderRadius: BorderRadius.circular(42),
+            border: Border.all(color: Color(0xffEC7600), width: 0.5),
           ),
           child: Center(
             child: Text(
-              'KP',
+              'DB',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xffEC7600),
                 fontSize: 10,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -647,7 +665,7 @@ class _MyVisitsState extends State<MyVisits>
           child: OutlinedButton(
             onPressed: () => _navigateToDetailPage(appointment),
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Color(0xFF8E8E8E)),
+              side: BorderSide(color: Color(0xFF8E8E8E), width: 0.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -664,7 +682,7 @@ class _MyVisitsState extends State<MyVisits>
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 SvgPicture.asset(
                   EcliniqIcons.arrowRight.assetPath,
                   width: 24,
@@ -848,6 +866,7 @@ class _MyVisitsState extends State<MyVisits>
                                       ),
                                     )
                                   : ListView.builder(
+                                      padding: EdgeInsets.only(top: 20, bottom: 50),
                                       itemCount: currentAppointments.length,
                                       itemBuilder: (context, index) {
                                         final appointment =
@@ -858,13 +877,15 @@ class _MyVisitsState extends State<MyVisits>
                                       },
                                     ),
                             ),
-                            EcliniqBottomNavigationBar(
-                              currentIndex: _currentIndex,
-                              onTap: _onTabTapped,
-                            ),
+
+                       
                           ],
                         ),
                       ),
+                    ),
+                    EcliniqBottomNavigationBar(
+                      currentIndex: _currentIndex,
+                      onTap: _onTabTapped,
                     ),
                   ],
                 ),

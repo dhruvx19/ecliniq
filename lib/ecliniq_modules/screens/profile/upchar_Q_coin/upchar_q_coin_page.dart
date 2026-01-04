@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'Widgets/transaction_widgets.dart';
+
 class UpcharCoin extends StatefulWidget {
   const UpcharCoin({super.key});
   @override
@@ -18,6 +19,8 @@ class _UpcharCoinState extends State<UpcharCoin> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leadingWidth: 58,
+        titleSpacing: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: SvgPicture.asset(
@@ -44,9 +47,9 @@ class _UpcharCoinState extends State<UpcharCoin> {
           Row(
             children: [
               SvgPicture.asset(
-                EcliniqIcons.questionCircle.assetPath,
-                width: 32,
-                height: 32,
+                EcliniqIcons.questionCircleFilled.assetPath,
+                width: 24,
+                height: 24,
               ),
               Text(
                 ' Help',
@@ -62,7 +65,7 @@ class _UpcharCoinState extends State<UpcharCoin> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 24),
         child: Column(
           children: [
             SizedBox(
@@ -74,10 +77,10 @@ class _UpcharCoinState extends State<UpcharCoin> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       color: Color(0xFFBE8B00),
-                      border: Border.all(color: Color(0xFFB8B8B8), width: 1),
+                      border: Border.all(color: Color(0xFFB8B8B8), width: 0.6),
                     ),
                     child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -164,7 +167,7 @@ class _UpcharCoinState extends State<UpcharCoin> {
                     style: EcliniqTextStyles.bodyLarge.copyWith(
                       fontSize: 20,
                       fontWeight: FontWeight.w400,
-                      color: Colors.black45,
+                      color: Color(0xff626060),
                     ),
                   ),
                   Spacer(),
@@ -172,8 +175,8 @@ class _UpcharCoinState extends State<UpcharCoin> {
                     width: 74,
                     height: 30,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(6),
+                      color: Color(0xffF9F9F9),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -182,8 +185,8 @@ class _UpcharCoinState extends State<UpcharCoin> {
                           '2025',
                           style: EcliniqTextStyles.bodyLarge.copyWith(
                             fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black45,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xff424242),
                           ),
                         ),
                         SvgPicture.asset(

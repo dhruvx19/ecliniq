@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:ecliniq/ecliniq_utils/bottom_sheets/filter_bottom_sheet.dart';
+import 'package:flutter/material.dart';
 
 class HealthFilesFilter extends StatefulWidget {
   final Function(Map<String, dynamic>)? onApply;
@@ -36,10 +36,13 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      height: MediaQuery.of(context).size.height * 0.45,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+          bottom: Radius.circular(16),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

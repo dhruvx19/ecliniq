@@ -1,28 +1,29 @@
 import 'package:ecliniq/ecliniq_modules/screens/profile/security_settings/change_email_id/verify_existing_email.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/security_settings/change_mpin/change_mpin_screen.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
 import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
-import '../../../../ecliniq_icons/icons.dart';
 import '../../../../ecliniq_api/auth_service.dart';
-import '../../../../ecliniq_core/auth/session_service.dart';
-import '../../../../ecliniq_core/auth/secure_storage.dart';
-import '../../../../ecliniq_core/auth/jwt_decoder.dart';
-import '../../../../ecliniq_core/auth/jwt_decoder.dart';
 import '../../../../ecliniq_api/models/patient.dart';
+import '../../../../ecliniq_api/patient_service.dart';
+import '../../../../ecliniq_core/auth/jwt_decoder.dart';
+import '../../../../ecliniq_core/auth/secure_storage.dart';
+import '../../../../ecliniq_core/auth/session_service.dart';
+import '../../../../ecliniq_core/router/route.dart';
+import '../../../../ecliniq_icons/icons.dart';
+import '../../../../ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import '../../../../ecliniq_modules/screens/login/login.dart';
 import 'change_mobile_number/screens/verify_existing_account.dart';
 
 class SecuritySettingsOptions extends StatefulWidget {
   final PatientDetailsData? patientData;
-  
-  const SecuritySettingsOptions({
-    super.key, 
-    this.patientData,
-  });
+
+  const SecuritySettingsOptions({super.key, this.patientData});
 
   @override
   State<SecuritySettingsOptions> createState() =>
@@ -36,6 +37,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
   String? _existingPhone;
   String? _existingEmail;
   final AuthService _authService = AuthService();
+  final PatientService _patientService = PatientService();
 
   @override
   void initState() {
@@ -50,8 +52,8 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
         if (widget.patientData!.user?.phone != null) {
           _existingPhone = widget.patientData!.user!.phone;
         }
-        if (widget.patientData!.user?.email != null) {
-          _existingEmail = widget.patientData!.user!.email;
+        if (widget.patientData!.user?.emailId != null) {
+          _existingEmail = widget.patientData!.user!.emailId;
         }
       }
 
@@ -72,7 +74,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
           }
         }
       }
-      
+
       if (mounted) {
         setState(() {});
       }
@@ -87,7 +89,45 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
     }
   }
 
-    Future<void> onPressedChangeMobileNumber() async {
+  /// Refresh user info from API after phone/email change
+  Future<void> _refreshUserInfo() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authToken = authProvider.authToken;
+
+      if (authToken == null) {
+        return;
+      }
+
+      final response = await _patientService.getPatientDetails(
+        authToken: authToken,
+      );
+
+      if (response.success && response.data != null) {
+        final user = response.data!.user;
+        
+          if (mounted) {
+           // Update phone number
+           if (user?.phone != null) {
+             _existingPhone = user!.phone;
+             // Also update secure storage if phone is stored there
+             await SecureStorageService.storePhoneNumber(user.phone!);
+           }
+           
+           // Update email
+           if (user?.emailId != null) {
+             _existingEmail = user!.emailId;
+           }
+           
+           setState(() {});
+         }
+      }
+    } catch (e) {
+      print('Error refreshing user info: $e');
+    }
+  }
+
+  Future<void> onPressedChangeMobileNumber() async {
     // Show loader while navigating
     showDialog(
       context: context,
@@ -106,7 +146,8 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
             maskedContact: null,
             existingPhone: _existingPhone,
             preloadedPhone: _existingPhone,
-            preloadedMaskedPhone: _existingPhone != null && _existingPhone!.length >= 10 
+            preloadedMaskedPhone:
+                _existingPhone != null && _existingPhone!.length >= 10
                 ? '******${_existingPhone!.substring(_existingPhone!.length - 4)}'
                 : null,
           ),
@@ -116,6 +157,22 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
       // Dismiss loader when navigation completes
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      // Show success snackbar if phone was changed successfully
+      if (result != null && result is Map && result['success'] == true && result['type'] == 'phone') {
+        // Refresh user info from API to get updated phone number
+        await _refreshUserInfo();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            CustomSuccessSnackBar(
+              title: 'Mobile number changed successfully!',
+              subtitle: 'Your mobile number has been updated',
+              context: context,
+            ),
+          );
+        }
       }
     }
   }
@@ -139,7 +196,8 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
             maskedContact: null,
             existingEmail: _existingEmail,
             preloadedEmail: _existingEmail,
-            preloadedMaskedEmail: _existingEmail != null && _existingEmail!.contains('@')
+            preloadedMaskedEmail:
+                _existingEmail != null && _existingEmail!.contains('@')
                 ? _maskEmail(_existingEmail!)
                 : null,
           ),
@@ -149,6 +207,22 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
       // Dismiss loader when navigation completes
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      // Show success snackbar if email was changed successfully
+      if (result != null && result is Map && result['success'] == true && result['type'] == 'email') {
+        // Refresh user info from API to get updated email
+        await _refreshUserInfo();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            CustomSuccessSnackBar(
+              title: 'Email changed successfully!',
+              subtitle: 'Your email address has been updated',
+              context: context,
+            ),
+          );
+        }
       }
     }
   }
@@ -170,17 +244,74 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
     Future<void> onPressedChangeMPin() async {
       // Navigate to change MPIN screen with preloaded phone number
       if (mounted) {
-        await Navigator.push(
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ChangeMPINScreen(
               preloadedPhoneNumber: _existingPhone,
-              preloadedMaskedPhone: _existingPhone != null && _existingPhone!.length >= 10 
+              preloadedMaskedPhone:
+                  _existingPhone != null && _existingPhone!.length >= 10
                   ? '******${_existingPhone!.substring(_existingPhone!.length - 4)}'
                   : null,
             ),
           ),
         );
+
+        // Show success snackbar if MPIN was changed successfully
+        if (result == true) {
+          if (mounted) {
+            // Wait a bit to ensure navigation is complete and widget is stable
+            await Future.delayed(const Duration(milliseconds: 100));
+            if (mounted && context.mounted) {
+              // Use postFrameCallback to ensure the page is fully built before showing snackbar
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && context.mounted) {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  scaffoldMessenger.showSnackBar(
+                    CustomSuccessSnackBar(
+                      title: 'M-PIN changed successfully!',
+                      subtitle: 'Your M-PIN has been updated',
+                      context: context,
+                    ),
+                  );
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+
+    Future<void> onPressedLogout() async {
+      if (!mounted) return;
+
+      try {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        
+        // Clear session
+        final success = await authProvider.logout();
+        
+        if (success && mounted) {
+          // Navigate to login page and clear navigation stack
+          EcliniqRouter.pushAndRemoveUntil(
+            const LoginPage(),
+            (route) => false,
+          );
+        } else if (mounted) {
+          // If logout failed, still navigate to login for security
+          EcliniqRouter.pushAndRemoveUntil(
+            const LoginPage(),
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        // Even if there's an error, navigate to login for security
+        if (mounted) {
+          EcliniqRouter.pushAndRemoveUntil(
+            const LoginPage(),
+            (route) => false,
+          );
+        }
       }
     }
 
@@ -261,12 +392,31 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
                   if (_isExpanded) ...[
                     _buildDropDown(isOn, handleBiometricPermission),
                   ],
+                  Container(
+                    color: Color(0xffD6D6D6),
+                    width: double.infinity,
+                    height: 0.5,
+                  ),
+                  _buildTile(
+                    EcliniqIcons.logout.assetPath,
+                    'Logout',
+                    onPressedLogout,
+                    _isExpanded,
+                  ),
 
                   Spacer(),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 30),
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                         ScaffoldMessenger.of(context).showSnackBar(
+                        CustomSuccessSnackBar(
+                          title: 'OTP verified successfully!',
+                          subtitle: 'You can now reset your MPIN',
+                          context: context,
+                        ),
+                      );
+                      },
                       child: Container(
                         width: double.infinity,
                         height: 52,
@@ -306,6 +456,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
             ),
     );
   }
+
   String _maskEmail(String email) {
     if (email.isEmpty) return email;
     final parts = email.split('@');
@@ -394,7 +545,6 @@ Widget _buildTile(
                       EcliniqIcons.angleDown.assetPath,
                       width: 24,
                       height: 24,
-                      
                     ),
             ],
           ),
@@ -420,7 +570,7 @@ Widget _buildDropDown(bool isOn, VoidCallback onPressed) {
                   fontSize: 18,
                 ),
               ),
-              SizedBox(height: 8),
+  
               FittedBox(
                 child: Text(
                   'Keep it turn ON to unlock app quickly without \ninputting m-pin. ',
@@ -469,7 +619,7 @@ Widget _buildDropDown(bool isOn, VoidCallback onPressed) {
           ),
         ],
       ),
-      Divider(),
+      Divider(color: Color(0xffD6D6D6), thickness: 0.5),
     ],
   );
 }

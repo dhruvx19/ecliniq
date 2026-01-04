@@ -2,19 +2,20 @@
 
 import 'dart:async';
 
-import 'package:ecliniq/ecliniq_api/hospital_service.dart';
 import 'package:ecliniq/ecliniq_api/doctor_service.dart';
-import 'package:ecliniq/ecliniq_api/models/hospital_doctor_model.dart';
+import 'package:ecliniq/ecliniq_api/hospital_service.dart';
 import 'package:ecliniq/ecliniq_api/models/doctor.dart' as api_doctor;
+import 'package:ecliniq/ecliniq_api/models/hospital_doctor_model.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
-import 'package:ecliniq/ecliniq_utils/bottom_sheets/availability_bottom_sheet.dart';
-import 'package:ecliniq/ecliniq_utils/bottom_sheets/filter_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/availability_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_utils/bottom_sheets/filter_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_utils/bottom_sheets/select_specialities_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_utils/bottom_sheets/sort_by_filter_bottom_sheet.dart';
+import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
@@ -22,7 +23,7 @@ import 'package:shimmer/shimmer.dart';
 class HospitalDoctorsScreen extends StatefulWidget {
   final String hospitalId;
   final String hospitalName;
-  final String authToken; // REQUIRED: Authentication token
+  final String authToken;
   final bool hideAppBar;
 
   const HospitalDoctorsScreen({
@@ -49,7 +50,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   String _searchQuery = '';
   Timer? _filterDebounceTimer;
   String? _selectedSortOption;
-  
+
   // Filter state
   List<String>? _selectedSpecialities;
   String? _selectedAvailability;
@@ -72,7 +73,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       return a.compareTo(b);
     }
 
-    double? _computeFee(Doctor d) {
+    double? computeFee(Doctor d) {
       if (d.fee != null) return d.fee;
       double? minFee;
       for (final h in d.hospitals) {
@@ -84,8 +85,8 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       for (final c in d.clinics) {
         final val = (c is Map && c['consultationFee'] != null)
             ? (c['consultationFee'] is num
-                ? (c['consultationFee'] as num).toDouble()
-                : double.tryParse(c['consultationFee'].toString()))
+                  ? (c['consultationFee'] as num).toDouble()
+                  : double.tryParse(c['consultationFee'].toString()))
             : null;
         if (val != null) {
           if (minFee == null || val < minFee) minFee = val;
@@ -94,7 +95,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       return minFee;
     }
 
-    double? _computeDistance(Doctor d) {
+    double? computeDistance(Doctor d) {
       double? minDist;
       for (final h in d.hospitals) {
         final val = h.distanceKm;
@@ -105,8 +106,8 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       for (final c in d.clinics) {
         final val = (c is Map && c['distance'] != null)
             ? (c['distance'] is num
-                ? (c['distance'] as num).toDouble()
-                : double.tryParse(c['distance'].toString()))
+                  ? (c['distance'] as num).toDouble()
+                  : double.tryParse(c['distance'].toString()))
             : null;
         if (val != null) {
           if (minDist == null || val < minDist) minDist = val;
@@ -118,22 +119,34 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     setState(() {
       switch (option) {
         case 'Price: Low - High':
-          _filteredDoctors.sort((a, b) => safeCompare(_computeFee(a), _computeFee(b)));
+          _filteredDoctors.sort(
+            (a, b) => safeCompare(computeFee(a), computeFee(b)),
+          );
           break;
         case 'Price: High - Low':
-          _filteredDoctors.sort((a, b) => safeCompare(_computeFee(b), _computeFee(a)));
+          _filteredDoctors.sort(
+            (a, b) => safeCompare(computeFee(b), computeFee(a)),
+          );
           break;
         case 'Experience - Most Experience first':
-          _filteredDoctors.sort((a, b) => safeCompare(b.experience, a.experience));
+          _filteredDoctors.sort(
+            (a, b) => safeCompare(b.experience, a.experience),
+          );
           break;
         case 'Distance - Nearest First':
-          _filteredDoctors.sort((a, b) => safeCompare(_computeDistance(a), _computeDistance(b)));
+          _filteredDoctors.sort(
+            (a, b) => safeCompare(computeDistance(a), computeDistance(b)),
+          );
           break;
         case 'Order A-Z':
-          _filteredDoctors.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())) ;
+          _filteredDoctors.sort(
+            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+          );
           break;
         case 'Order Z-A':
-          _filteredDoctors.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase())) ;
+          _filteredDoctors.sort(
+            (a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()),
+          );
           break;
         case 'Rating High - low':
           _filteredDoctors.sort((a, b) => safeCompare(b.rating, a.rating));
@@ -226,7 +239,8 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
 
   Future<void> _applyFilters() async {
     // Check if any filters are actually applied
-    final hasFilters = (_selectedSpecialities != null && _selectedSpecialities!.isNotEmpty) ||
+    final hasFilters =
+        (_selectedSpecialities != null && _selectedSpecialities!.isNotEmpty) ||
         _selectedAvailability != null ||
         (_otherFilters != null && _otherFilters!.isNotEmpty);
 
@@ -388,33 +402,159 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
 
     switch (doctor.availability!.status) {
       case 'AVAILABLE':
-        return 'Available Now';
+        return 'Queue Started';
       case 'NEXT_DAY':
         return doctor.availability!.message;
       case 'BUSY':
         return 'Currently Busy';
       case 'UNAVAILABLE':
-        return 'Not Available';
+        return 'Queue Not Started';
       default:
         return 'Queue Not Started';
     }
   }
 
-  Color _getAvailabilityColor(Doctor doctor) {
-    if (doctor.availability == null) return Colors.grey[100]!;
+  Color _getAvailabilityBackgroundColor(Doctor doctor) {
+    if (doctor.availability == null) return Colors.yellow[50]!;
 
     switch (doctor.availability!.status) {
       case 'AVAILABLE':
         return Colors.green[50]!;
       case 'NEXT_DAY':
-        return Colors.blue[50]!;
+        return Colors.white;
       case 'BUSY':
         return Colors.orange[50]!;
       case 'UNAVAILABLE':
-        return Colors.red[50]!;
+        return Colors.yellow[50]!;
       default:
-        return Colors.grey[100]!;
+        return Colors.yellow[50]!;
     }
+  }
+
+  Color _getAvailabilityTextColor(Doctor doctor) {
+    if (doctor.availability == null) return Colors.grey[600]!;
+
+    switch (doctor.availability!.status) {
+      case 'AVAILABLE':
+        return Colors.green[700]!;
+      case 'NEXT_DAY':
+        return Colors.grey[600]!;
+      case 'BUSY':
+        return Colors.orange[700]!;
+      case 'UNAVAILABLE':
+        return Colors.grey[600]!;
+      default:
+        return Colors.grey[600]!;
+    }
+  }
+
+  Widget _buildAvailabilityStatusWidget(Doctor doctor) {
+    if (doctor.availability == null ||
+        doctor.availability!.status == 'UNAVAILABLE') {
+      // Queue Not Started - yellow container, grey text
+      return Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.yellow[50]!,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: Text(
+            'Queue Not Started',
+            textAlign: TextAlign.center,
+            style: EcliniqTextStyles.titleXLarge.copyWith(
+              color: Colors.grey[600]!,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      );
+    }
+
+    if (doctor.availability!.status == 'AVAILABLE') {
+      // Queue Started - green container, green text
+      return Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.green[50]!,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: Text(
+            'Queue Started',
+            textAlign: TextAlign.center,
+            style: EcliniqTextStyles.titleXLarge.copyWith(
+              color: Colors.green[700]!,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      );
+    }
+
+    if (doctor.availability!.status == 'NEXT_DAY') {
+      // Next available - white container, "Next available" in grey, day/time in blue
+      final message = doctor.availability!.message;
+      // Parse message like "Next available Wednesday, 3:30 AM"
+      String prefix = '';
+      String dayTime = message;
+
+      if (message.toLowerCase().startsWith('next available')) {
+        prefix = 'Next available';
+        dayTime = message.substring('Next available'.length).trim();
+      }
+
+      return Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: Color(0xffF9F9F9),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: RichText(
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              style: EcliniqTextStyles.labelMedium.copyWith(
+                color: Color(0xff2372EC),
+              ),
+              children: [
+                if (prefix.isNotEmpty) ...[TextSpan(text: '$prefix ')],
+                TextSpan(
+                  text: dayTime,
+                  style: EcliniqTextStyles.titleXLarge.copyWith(
+                    color: const Color(0xff626060),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Default case
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: _getAvailabilityBackgroundColor(doctor),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Center(
+        child: Text(
+          _getAvailabilityStatus(doctor),
+          textAlign: TextAlign.center,
+          style: EcliniqTextStyles.titleXLarge.copyWith(
+            color: _getAvailabilityTextColor(doctor),
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
   }
 
   String _getTokenAvailability(Doctor doctor) {
@@ -440,104 +580,80 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-
+        leadingWidth: 58,
+        titleSpacing: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => EcliniqRouter.pop(),
+          icon: SvgPicture.asset(
+            EcliniqIcons.backArrow.assetPath,
+            width: 32,
+            height: 32,
+          ),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          textAlign: TextAlign.left,
-          widget.hospitalName,
-          style: EcliniqTextStyles.headlineMedium.copyWith(
-            color: Color(0xff424242),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            widget.hospitalName,
+            style: EcliniqTextStyles.headlineMedium.copyWith(
+              color: Color(0xff424242),
+            ),
           ),
         ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(0.2),
+          child: Container(color: Color(0xFFB8B8B8), height: 0.5),
+        ),
       ),
-
-      body: _isLoading
-          ? _buildShimmerScreen()
-          : Container(
-              color: const Color(0xffF9F9F9),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  _buildSearchBar(),
-                  _buildFilterOptions(),
-                  Expanded(child: _buildDoctorList()),
-                ],
-              ),
-            ),
+      body: Container(
+        color: const Color(0xffF9F9F9),
+        child: Column(
+          children: [
+            _buildSearchBar(),
+            _buildFilterOptions(),
+            Expanded(child: _buildDoctorList()),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildSearchBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      height: 52,
+      margin: EdgeInsets.only(top: 12, left: 16, right: 16, bottom: 16),
+      height: 50,
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
+
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xff626060), width: 0.7),
+        border: Border.all(color: Color(0xff626060), width: 0.5),
       ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
+      child: Row(
+        spacing: 10,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          SvgPicture.asset(
+            EcliniqIcons.magnifierMyDoctor.assetPath,
+            height: 24,
+            width: 24,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          prefixIcon: Container(
-            margin: const EdgeInsets.only(left: 4),
-            child: Image.asset(
-              EcliniqIcons.magnifierMyDoctor.assetPath,
-              width: 20,
-              height: 20,
-            ),
-          ),
-          suffixIcon: Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Voice search coming soon!'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: SvgPicture.asset(
-                EcliniqIcons.microphone.assetPath,
-                width: 16,
-                height: 16,
+          Expanded(
+            child: TextField(
+              cursorColor: Colors.black,
+              decoration: InputDecoration(
+                hintText: 'Search Doctor',
+                hintStyle: TextStyle(color: Colors.grey),
+                border: InputBorder.none,
               ),
             ),
           ),
-          hintText: 'Search Doctor',
-          hintStyle: TextStyle(
-            color: Color(0xffD6D6D6),
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
+          SvgPicture.asset(
+            EcliniqIcons.microphone.assetPath,
+            height: 32,
+            width: 32,
           ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 14,
-          ),
-        ),
-        style: const TextStyle(
-          color: Colors.black87,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-        ),
+        ],
       ),
     );
   }
@@ -545,7 +661,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   Widget _buildFilterOptions() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
       child: Row(
         children: [
           _buildFilterButton(
@@ -565,10 +681,11 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
+          Container(width: 0.5, height: 20, color: const Color(0xffD6D6D6)),
+          const SizedBox(width: 12),
           _buildFilterButton(
-            iconAssetPath:
-                EcliniqIcons.filter.assetPath, 
+            iconAssetPath: EcliniqIcons.filter.assetPath,
             label: 'Filters',
             onTap: () {
               EcliniqBottomSheet.show(
@@ -592,10 +709,14 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
+          Container(width: 0.5, height: 20, color: const Color(0xffD6D6D6)),
+          const SizedBox(width: 12),
           _buildFilterChip(
             label: 'Specialities',
-            isSelected: _selectedSpecialities != null && _selectedSpecialities!.isNotEmpty,
+            isSelected:
+                _selectedSpecialities != null &&
+                _selectedSpecialities!.isNotEmpty,
             onTap: () {
               EcliniqBottomSheet.show(
                 context: context,
@@ -603,7 +724,9 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                   initialSelection: _selectedSpecialities,
                   onSelectionChanged: (specialities) {
                     setState(() {
-                      _selectedSpecialities = specialities.isEmpty ? null : specialities;
+                      _selectedSpecialities = specialities.isEmpty
+                          ? null
+                          : specialities;
                     });
                     _applyFiltersDebounced();
                   },
@@ -620,7 +743,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                 context: context,
                 child: AvailabilityFilterBottomSheet(),
               );
-              
+
               if (availability != null) {
                 setState(() {
                   _selectedAvailability = availability;
@@ -666,7 +789,11 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.keyboard_arrow_down, size: 16, color: Colors.grey[700]),
+            SvgPicture.asset(
+              EcliniqIcons.arrowDown.assetPath,
+              width: 16,
+              height: 16,
+            ),
           ],
         ),
       ),
@@ -681,9 +808,9 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
-          color:  Colors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: Color(0xff8E8E8E), width: 0.5),
         ),
@@ -695,10 +822,12 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
+                color: Color(0xff424242),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
+            Container(width: 0.5, height: 20, color: const Color(0xffD6D6D6)),
+            const SizedBox(width: 8),
             SvgPicture.asset(
               EcliniqIcons.arrowDown.assetPath,
               width: 16,
@@ -711,6 +840,10 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   }
 
   Widget _buildDoctorList() {
+    if (_isLoading) {
+      return _buildShimmerDoctorList();
+    }
+
     if (_errorMessage != null) {
       return _buildErrorState();
     }
@@ -720,7 +853,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.only(bottom: 16),
       itemCount: _filteredDoctors.length,
       itemBuilder: (context, index) {
         return _buildDoctorCard(_filteredDoctors[index]);
@@ -753,16 +886,9 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Color(0xffF8FAFF),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      border: Border.all(color: Color(0xff96BFFF), width: 0.5),
                     ),
                     child: Stack(
                       children: [
@@ -821,7 +947,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -833,9 +959,9 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                         SvgPicture.asset(
                           EcliniqIcons.medicalKit.assetPath,
                           width: 24,
-                          height: 23,
+                          height: 24,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 8),
                         Text(
                           experience,
                           style: EcliniqTextStyles.titleXLarge.copyWith(
@@ -847,7 +973,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                           '●',
                           style: TextStyle(
                             color: Color(0xff8E8E8E),
-                            fontSize: 8,
+                            fontSize: 6,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -859,7 +985,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xffFEF9E6),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -875,7 +1001,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Color(0xffBE8B00),
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ],
@@ -892,7 +1018,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                         width: 24,
                         height: 24,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _formatTimings(doctor.timings),
@@ -903,7 +1029,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   // Token Availability
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -930,56 +1056,50 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                 children: [
                   Expanded(
                     flex: 1,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 15,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getAvailabilityColor(doctor),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        _getAvailabilityStatus(doctor),
-                        textAlign: TextAlign.center,
-                        style: EcliniqTextStyles.titleXLarge.copyWith(
-                          color: const Color(0xff626060),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                    child: _buildAvailabilityStatusWidget(doctor),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        EcliniqRouter.push(
-                          ClinicVisitSlotScreen(
-                            doctorId: doctor.id,
-                            hospitalId: widget.hospitalId,
-                            doctorName: doctor.name,
-                            doctorSpecialization:
-                                doctor.specializations.isNotEmpty
-                                ? doctor.specializations.first
-                                : null,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x4D2372EC),
+                            offset: Offset(2, 2),
+                            blurRadius: 10,
+                            spreadRadius: 0,
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2372EC),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        elevation: 0,
+                        ],
                       ),
-                      child: Text(
-                        'Book Appointment',
-                        style: EcliniqTextStyles.headlineMedium.copyWith(
-                          color: Colors.white,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          EcliniqRouter.push(
+                            ClinicVisitSlotScreen(
+                              doctorId: doctor.id,
+                              hospitalId: widget.hospitalId,
+                              doctorName: doctor.name,
+                              doctorSpecialization:
+                                  doctor.specializations.isNotEmpty
+                                  ? doctor.specializations.first
+                                  : null,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xff2372EC),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Book Appointment',
+                          style: EcliniqTextStyles.headlineMedium.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -990,17 +1110,6 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
           ),
         ),
         Container(height: 1, color: Colors.grey[300]),
-      ],
-    );
-  }
-
-  Widget _buildShimmerScreen() {
-    return Column(
-      children: [
-        if (!widget.hideAppBar) const SizedBox(height: 8),
-        _buildShimmerSearchBar(),
-
-        Expanded(child: _buildShimmerDoctorList()),
       ],
     );
   }
@@ -1035,7 +1144,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
 
   Widget _buildShimmerDoctorList() {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.only(bottom: 16),
       itemCount: 5,
       itemBuilder: (context, index) {
         return _buildShimmerDoctorCard();
@@ -1044,101 +1153,142 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   }
 
   Widget _buildShimmerDoctorCard() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      children: [
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(16),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey.shade300,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: 150,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: 120,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: 100,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Shimmer.fromColors(
                 baseColor: Colors.grey.shade300,
                 highlightColor: Colors.grey.shade100,
                 child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: const BoxDecoration(
+                  width: 200,
+                  height: 16,
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Shimmer.fromColors(
+              const SizedBox(height: 8),
+              Shimmer.fromColors(
+                baseColor: Colors.grey.shade300,
+                highlightColor: Colors.grey.shade100,
+                child: Container(
+                  width: 150,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Shimmer.fromColors(
                       baseColor: Colors.grey.shade300,
                       highlightColor: Colors.grey.shade100,
                       child: Container(
-                        width: 150,
-                        height: 20,
+                        height: 52,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Shimmer.fromColors(
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: Shimmer.fromColors(
                       baseColor: Colors.grey.shade300,
                       highlightColor: Colors.grey.shade100,
                       child: Container(
-                        width: 120,
-                        height: 16,
+                        height: 52,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        ),
+        Container(height: 1, color: Colors.grey[300]),
+      ],
     );
   }
 
@@ -1178,19 +1328,14 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              _searchQuery.isNotEmpty
-                  ? 'No doctors found matching your search'
-                  : 'No doctors available',
-              style: EcliniqTextStyles.bodyMedium.copyWith(
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
+          SvgPicture.asset(EcliniqIcons.noDoctor.assetPath),
+          const SizedBox(height: 8),
+          Text(
+            'No Doctor Match Found',
+            style: EcliniqTextStyles.bodyMedium.copyWith(
+              color: Color(0xff424242),
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

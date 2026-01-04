@@ -228,7 +228,7 @@ class DoctorInfoCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Container(width: 1, height: 20, color: Colors.grey),
+                  Container(width: 0.5, height: 20, color: Color(0xffD6D6D6)),
                   const SizedBox(width: 8),
                   Row(
                     children: [
@@ -258,7 +258,7 @@ class DoctorInfoCard extends StatelessWidget {
                 Row(
                   children: [
                     SvgPicture.asset(
-                      EcliniqIcons.mapPoint.assetPath,
+                      EcliniqIcons.mapPointBlack.assetPath,
                       width: 24,
                       height: 24,
                     ),

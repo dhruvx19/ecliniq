@@ -1,5 +1,3 @@
-import 'package:ecliniq/ecliniq_icons/icons.dart';
-import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
 
@@ -18,10 +16,13 @@ class _CancellationPolicyBottomSheetState
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16),
+          bottom: Radius.circular(16),
+        ),
       ),
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 22, bottom: 40),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,8 +36,7 @@ class _CancellationPolicyBottomSheetState
             ),
             textAlign: TextAlign.center,
           ),
-
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
           _buildBulletPoint(
             'You can cancel or reschedule your appointment up to 30 minutes before the scheduled appointment time.',
           ),
@@ -55,19 +55,18 @@ class _CancellationPolicyBottomSheetState
 
   Widget _buildBulletPoint(String text) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(right: 8),
-          child: Text(
-            '•',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF626060),
-            ),
+        Container(
+          margin: EdgeInsets.only(top: 12),
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: Color(0xFF626060),
+            shape: BoxShape.circle,
           ),
         ),
+        const SizedBox(width: 8),
         Expanded(
           child: EcliniqText(
             text,
@@ -75,6 +74,7 @@ class _CancellationPolicyBottomSheetState
               fontSize: 16,
               fontWeight: FontWeight.w400,
               color: Color(0xFF626060),
+              height: 1.5,
             ),
           ),
         ),

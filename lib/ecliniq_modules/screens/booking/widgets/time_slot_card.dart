@@ -8,6 +8,7 @@ class TimeSlotCard extends StatefulWidget {
   final int available;
   final String iconPath;
   final bool isSelected;
+  final bool isDisabled;
   final VoidCallback onTap;
 
   const TimeSlotCard({
@@ -17,6 +18,7 @@ class TimeSlotCard extends StatefulWidget {
     required this.available,
     required this.iconPath,
     required this.isSelected,
+    this.isDisabled = false,
     required this.onTap,
   });
 
@@ -28,6 +30,9 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
   bool _isPressed = false;
 
   Color _getAvailabilityColor() {
+    if (widget.isDisabled || widget.available == 0) {
+      return Color(0xffB8B8B8);
+    }
     if (widget.available <= 2) return const Color(0xFFBE8B00);
     if (widget.available <= 5) return const Color(0xFFBE8B00);
     return const Color(0xFF3EAf3f);
@@ -39,7 +44,11 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
     Color borderColor;
     Color textColor;
 
-    if (_isPressed) {
+    if (widget.isDisabled) {
+      backgroundColor = Colors.white;
+      borderColor = const Color(0xFFB8B8B8);
+      textColor = Color(0xffB8B8B8);
+    } else if (_isPressed) {
       backgroundColor = const Color(0xFF2372EC);
       borderColor = const Color(0xFF2372EC);
       textColor = Colors.white;
@@ -49,7 +58,7 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
       textColor = const Color(0xFF0D47A1);
     } else {
       backgroundColor = Colors.white;
-      borderColor = Colors.grey[300]!;
+      borderColor = const Color(0xFFB8B8B8);
       textColor = Colors.black87;
     }
 
@@ -70,64 +79,83 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
         });
       },
       child: GestureDetector(
-        onTap: widget.onTap,
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            border: Border.all(
-              color: borderColor,
-              width: widget.isSelected ? 0.5 : 1,
+        onTap: widget.isDisabled ? null : widget.onTap,
+        child: Opacity(
+          opacity: widget.isDisabled ? 0.6 : 1.0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border.all(color: borderColor, width: 0.5),
+              borderRadius: BorderRadius.circular(8),
             ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                child: SvgPicture.asset(
-                  widget.iconPath,
-                  width: 32,
-                  height: 32,
-                  colorFilter: _isPressed
-                      ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
-                      : null,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    top: 20,
+                    bottom: 20,
+                    right: 10,
+                  ),
+                  child: SvgPicture.asset(
+                    widget.iconPath,
+                    width: 32,
+                    height: 32,
+                    colorFilter: widget.isDisabled
+                        ? const ColorFilter.mode(Colors.grey, BlendMode.srcIn)
+                        : _isPressed
+                        ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
+                        : null,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${widget.title} (${widget.time})',
-                      style: EcliniqTextStyles.headlineMedium.copyWith(
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _isPressed
-                            ? Colors.white.withOpacity(0.9)
-                            : _getAvailabilityColor().withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${widget.available} Tokens Available',
-                        style: EcliniqTextStyles.titleXLarge.copyWith(
-                          color: _getAvailabilityColor(),
+                const SizedBox(width: 2),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 6, bottom: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${widget.title} (${widget.time})',
+                          style: EcliniqTextStyles.headlineXMedium.copyWith(
+                            color: textColor,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: widget.isDisabled
+                                ? Colors.transparent
+                                : _isPressed
+                                ? Colors.white.withOpacity(0.9)
+                                : _getAvailabilityColor().withOpacity(0.15),
+                            border: Border.all(
+                              color: widget.isSelected
+                                  ? Color(0xff2372EC)
+                                  : Colors.transparent,
+                              width: 0.5,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            widget.available == 0
+                                ? 'No tokens available'
+                                : '${widget.available} Tokens Available',
+                            style: EcliniqTextStyles.titleXLarge.copyWith(
+                              color: _getAvailabilityColor(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

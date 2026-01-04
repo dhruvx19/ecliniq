@@ -121,13 +121,16 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           dob: formattedDob,
-          gender: _selectedGender,
+          gender: _selectedGender.toLowerCase(),
         );
 
         if (success && mounted) {
           // Mark onboarding as complete
           await SessionService.setOnboardingComplete(true);
 
+          // Profile setup complete - navigate to home
+          // Flow: OTP → MPIN → User Details → Home
+          await SessionService.clearFlowState(); // Clear flow state as onboarding is complete
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
@@ -278,6 +281,7 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
       builder: (context, authProvider, child) {
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             backgroundColor: EcliniqScaffold.primaryBlue,
             title: Text(
               'Profile Details',

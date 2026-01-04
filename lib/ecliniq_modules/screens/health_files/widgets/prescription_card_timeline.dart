@@ -37,16 +37,22 @@ class PrescriptionCardTimeline extends StatelessWidget {
     final fileExists = File(file.filePath).existsSync();
     
     if (fileExists && file.isImage) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Image.file(
-          File(file.filePath),
-          width: 50,
-          height: 60,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildPlaceholderThumbnail();
-          },
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Color(0xffF69800), width: 1),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: Image.file(
+            File(file.filePath),
+            width: 50,
+            height: 60,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildPlaceholderThumbnail();
+            },
+          ),
         ),
       );
     }

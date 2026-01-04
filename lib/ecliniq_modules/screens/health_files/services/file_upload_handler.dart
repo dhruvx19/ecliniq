@@ -12,7 +12,8 @@ class FileUploadHandler {
 
   /// Take a photo using camera
   /// Note: Permission should be checked before calling this method
-  Future<HealthFile?> takePhoto(HealthFileType fileType) async {
+  /// Returns the file path - file will be saved later when user confirms
+  Future<String?> takePhoto() async {
     try {
       // Pick image from camera
       final XFile? image = await _imagePicker.pickImage(
@@ -26,14 +27,8 @@ class FileUploadHandler {
         return null;
       }
 
-      // Save file
-      final healthFile = await _storageService.saveFile(
-        file: File(image.path),
-        fileType: fileType,
-        fileName: 'photo_${DateTime.now().millisecondsSinceEpoch}.jpg',
-      );
-
-      return healthFile;
+      // Return file path - don't save yet
+      return image.path;
     } catch (e) {
       throw Exception('Failed to take photo: ${e.toString()}');
     }
@@ -41,7 +36,8 @@ class FileUploadHandler {
 
   /// Pick image from gallery
   /// Note: Permission should be checked before calling this method
-  Future<HealthFile?> pickImageFromGallery(HealthFileType fileType) async {
+  /// Returns the file path - file will be saved later when user confirms
+  Future<String?> pickImageFromGallery() async {
     try {
       // Pick image from gallery
       final XFile? image = await _imagePicker.pickImage(
@@ -55,23 +51,16 @@ class FileUploadHandler {
         return null;
       }
 
-      // Save file
-      final healthFile = await _storageService.saveFile(
-        file: File(image.path),
-        fileType: fileType,
-        fileName: image.name.isEmpty 
-            ? 'image_${DateTime.now().millisecondsSinceEpoch}.jpg' 
-            : image.name,
-      );
-
-      return healthFile;
+      // Return file path - don't save yet
+      return image.path;
     } catch (e) {
       throw Exception('Failed to pick image: ${e.toString()}');
     }
   }
 
   /// Pick file from device storage
-  Future<HealthFile?> pickFile(HealthFileType fileType) async {
+  /// Returns the file path and name - file will be saved later when user confirms
+  Future<Map<String, String>?> pickFile() async {
     try {
       // File picker handles its own permissions on modern systems
       final result = await file_picker.FilePicker.platform.pickFiles(
@@ -88,33 +77,41 @@ class FileUploadHandler {
         return null;
       }
 
-      final pickedFile = File(result.files.single.path!);
-
-      // Save file
-      final healthFile = await _storageService.saveFile(
-        file: pickedFile,
-        fileType: fileType,
-        fileName: result.files.single.name,
-      );
-
-      return healthFile;
+      // Return file path and name - don't save yet
+      return {
+        'path': result.files.single.path!,
+        'name': result.files.single.name,
+      };
     } catch (e) {
       throw Exception('Failed to pick file: ${e.toString()}');
     }
   }
 
   /// Handle upload based on source type
-  Future<HealthFile?> handleUpload({
+  /// Returns file path (and name for files) - file will be saved later when user confirms
+  Future<Map<String, String>?> handleUpload({
     required UploadSource source,
-    required HealthFileType fileType,
   }) async {
     switch (source) {
       case UploadSource.camera:
-        return await takePhoto(fileType);
+        final path = await takePhoto();
+        if (path == null) return null;
+        return {
+          'path': path,
+          'name': 'photo_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        };
       case UploadSource.gallery:
-        return await pickImageFromGallery(fileType);
+        final path = await pickImageFromGallery();
+        if (path == null) return null;
+        final fileName = path.split('/').last;
+        return {
+          'path': path,
+          'name': fileName.isEmpty 
+              ? 'image_${DateTime.now().millisecondsSinceEpoch}.jpg' 
+              : fileName,
+        };
       case UploadSource.files:
-        return await pickFile(fileType);
+        return await pickFile();
     }
   }
 }

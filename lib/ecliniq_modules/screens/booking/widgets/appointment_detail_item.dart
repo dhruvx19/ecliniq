@@ -27,11 +27,11 @@ class AppointmentDetailItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16,),
       child: Row(
         children: [
           SvgPicture.asset(iconAssetPath, width: 32, height: 32),
-          const SizedBox(width: 16),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,13 +65,14 @@ class AppointmentDetailItem extends StatelessWidget {
                     ],
                   ],
                 ),
-                const SizedBox(height: 3),
+
                 Text(
                   subtitle,
                   style: EcliniqTextStyles.titleXLarge.copyWith(
                     color: Color(0xff8E8E8E),
                   ),
                 ),
+                    const SizedBox(height: 8),
               ],
             ),
           ),

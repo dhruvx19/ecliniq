@@ -235,65 +235,62 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
   }
 
   Widget _buildContent() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          StatusHeader(status: _appointment!.status),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: DoctorInfoCard(
-                  doctor: _appointment!.doctor,
-                  clinic: _appointment!.clinic,
-                  isSimplified: true,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              const SizedBox(height: 24),
-              Padding(
-                padding: EdgeInsets.zero,
-                child: RatingSection(
-                  initialRating: _userRating,
-                  onRatingChanged: _userRating == 0
-                      ? (rating) {
-                          setState(() {
-                            _userRating = rating;
-                          });
-                        }
-                      : null,
-                  doctorName: _appointment!.doctor.name,
-                  appointmentId: _appointment!.id,
-                  showAsReadOnly: _userRating > 0,
-                  onRefetch: _loadAppointmentDetails,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    AppointmentDetailsSection(
-                      patient: _appointment!.patient,
-                      timeInfo: _appointment!.timeInfo,
-                    ),
-                    const SizedBox(height: 24),
-                    ClinicLocationCard(clinic: _appointment!.clinic),
-                    const SizedBox(height: 24),
-                    PaymentDetailsCard(payment: _appointment!.payment),
-                    const SizedBox(height: 40),
-                    _buildCallbackSection(),
-                    const SizedBox(height: 24),
-                    _buildBottomButton(context),
-                  ],
-                ),
-              ),
-            ],
+    return Column(
+      children: [
+        // Fixed sections: StatusHeader, DoctorInfoCard, and RatingSection
+        StatusHeader(status: _appointment!.status),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: DoctorInfoCard(
+            doctor: _appointment!.doctor,
+            clinic: _appointment!.clinic,
+            isSimplified: true,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: EdgeInsets.zero,
+          child: RatingSection(
+            initialRating: _userRating,
+            onRatingChanged: _userRating == 0
+                ? (rating) {
+                    setState(() {
+                      _userRating = rating;
+                    });
+                  }
+                : null,
+            doctorName: _appointment!.doctor.name,
+            appointmentId: _appointment!.id,
+            showAsReadOnly: _userRating > 0,
+            onRefetch: _loadAppointmentDetails,
+          ),
+        ),
+        const SizedBox(height: 24),
+        // Scrollable content starting after RatingSection
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  AppointmentDetailsSection(
+                    patient: _appointment!.patient,
+                    timeInfo: _appointment!.timeInfo,
+                  ),
+                  const SizedBox(height: 24),
+                  ClinicLocationCard(clinic: _appointment!.clinic),
+                  const SizedBox(height: 24),
+                  PaymentDetailsCard(payment: _appointment!.payment),
+                  const SizedBox(height: 40),
+                  _buildCallbackSection(),
+                  const SizedBox(height: 24),
+                  _buildBottomButton(context),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

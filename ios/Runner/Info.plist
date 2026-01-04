@@ -45,13 +45,31 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Location Permissions -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location to show nearby hospitals and provide better services.</string>
+	<string>Ecliniq needs access to your location to show nearby hospitals and provide better services.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs access to location to show nearby hospitals and provide better services.</string>
+	<string>Ecliniq needs access to your location to show nearby hospitals and provide better services.</string>
+	
+	<!-- Speech and Microphone Permissions -->
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app needs access to speech recognition for searching health files.</string>
+	<string>Ecliniq needs access to speech recognition for searching health files.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs access to microphone for voice search.</string>
+	<string>Ecliniq needs access to your microphone for voice search.</string>
+	
+	<!-- Camera Permission -->
+	<key>NSCameraUsageDescription</key>
+	<string>Ecliniq needs access to your camera to take photos of your health documents and medical records.</string>
+	
+	<!-- Photo Library Permissions -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ecliniq needs access to your photo library to select and upload health documents, medical records, and images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ecliniq needs permission to save photos to your photo library.</string>
+	
+	<!-- For iOS 14+ Limited Photo Library Access (Optional) -->
+	<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
+	<true/>
 </dict>
 </plist>

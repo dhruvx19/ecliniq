@@ -1,25 +1,29 @@
+import 'dart:io';
+
+import 'package:ecliniq/ecliniq_core/media/media_permission_manager.dart';
 import 'package:ecliniq/ecliniq_core/router/navigation_helper.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/models/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/custom_refresh_indicator.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/my_files.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/prescription_card_list.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/recently_uploaded.dart';
-import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/search_bar.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/upload_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/upload_timeline.dart';
 import 'package:ecliniq/ecliniq_modules/screens/notifications/notification_screen.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigation.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
+import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-import 'dart:io';
-import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
+
+import '../../../ecliniq_icons/assets/home/widgets/top_bar_widgets/search_bar.dart';
 
 class HealthFiles extends StatefulWidget {
   const HealthFiles({super.key});
@@ -40,7 +44,9 @@ class _HealthFilesState extends State<HealthFiles> {
   @override
   void initState() {
     super.initState();
-    // Load files when screen initializes
+    // Load files when page loads
+    // NOTE: We don't request permissions upfront on iOS to avoid them becoming permanently denied
+    // Permissions will be requested when user actually tries to upload (handled in upload_bottom_sheet.dart)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthFilesProvider>().loadFiles();
     });
@@ -81,7 +87,7 @@ class _HealthFilesState extends State<HealthFiles> {
     setState(() {
       _searchController.text = result.recognizedWords;
       _onSearch(result.recognizedWords);
-      
+
       if (result.finalResult) {
         _isListening = false;
       }
@@ -118,11 +124,47 @@ class _HealthFilesState extends State<HealthFiles> {
       context: context,
       child: UploadBottomSheet(
         onFileUploaded: () async {
-          // Refresh files after upload
+          // Refresh files after upload - ensure UI updates immediately
           if (mounted) {
-            await context.read<HealthFilesProvider>().refresh();
+            final provider = context.read<HealthFilesProvider>();
+            // Force refresh to reload files from storage
+            await provider.refresh();
+            // Ensure listeners are notified
+            if (mounted) {
+              provider.notifyListeners();
+            }
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(EcliniqIcons.nofiles.assetPath),
+          const SizedBox(height: 12),
+          Text(
+            'No Documents Uploaded Yet',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+              color: Color(0xff424242),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Click upload button to maintain your health files',
+            style: TextStyle(
+              fontSize: 15,
+              color: Color(0xff8E8E8E),
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
@@ -130,10 +172,6 @@ class _HealthFilesState extends State<HealthFiles> {
   Widget _buildSearchResults() {
     return Consumer<HealthFilesProvider>(
       builder: (context, provider, child) {
-        if (provider.isLoading) {
-          return const Center(child: EcliniqLoader());
-        }
-
         final files = provider.searchResults;
 
         if (files.isEmpty) {
@@ -145,14 +183,15 @@ class _HealthFilesState extends State<HealthFiles> {
                   EcliniqIcons.healthfile.assetPath,
                   height: 120,
                   width: 120,
+                  colorFilter: ColorFilter.mode(
+                    Colors.grey.shade300,
+                    BlendMode.srcIn,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No files found for "$_searchQuery"',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               ],
             ),
@@ -167,7 +206,7 @@ class _HealthFilesState extends State<HealthFiles> {
             return PrescriptionCardList(
               file: files[index],
               onTap: () {
-                 Navigator.push(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => _FileViewerScreen(file: files[index]),
@@ -176,6 +215,35 @@ class _HealthFilesState extends State<HealthFiles> {
               },
             );
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Consumer<HealthFilesProvider>(
+      builder: (context, provider, child) {
+        // Show normal content with files directly
+        return CustomRefreshIndicator(
+          onRefresh: () async {
+            await context.read<HealthFilesProvider>().refresh();
+          },
+          color: const Color(0xFF2372EC),
+          backgroundColor: Colors.white,
+          displacement: 40,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                const MyFilesWidget(),
+                if (provider.allFiles.isEmpty) _buildEmptyState(),
+                const RecentlyUploadedWidget(),
+                const UploadTimeline(),
+                const SizedBox(height: 100),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -192,7 +260,12 @@ class _HealthFilesState extends State<HealthFiles> {
               children: [
                 const SizedBox(height: 40),
                 Padding(
-                  padding: const EdgeInsets.all(14.0),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 20,
+                    bottom: 10,
+                  ),
                   child: Row(
                     children: [
                       SvgPicture.asset(
@@ -223,38 +296,22 @@ class _HealthFilesState extends State<HealthFiles> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              SizedBox(height: 18),
                               SearchBarWidget(
-                                controller: _searchController,
-                                hintText: _isListening ? 'Listening...' : 'Search File',
-                                onSearch: _onSearch,
-                                onClear: () => _onSearch(''),
-                                onVoiceSearch: _isListening ? _stopListening : _startListening,
+                                onSearch: (String value) {},
+                                hintText: 'Search File',
                               ),
                               if (_isListening)
                                 const LinearProgressIndicator(
                                   backgroundColor: Colors.transparent,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.blue,
+                                  ),
                                 ),
                               Expanded(
                                 child: _searchQuery.isNotEmpty
                                     ? _buildSearchResults()
-                                    : RefreshIndicator(
-                                        onRefresh: () async {
-                                          await context.read<HealthFilesProvider>().refresh();
-                                        },
-                                        child: SingleChildScrollView(
-                                          controller: _scrollController,
-                                          physics: const AlwaysScrollableScrollPhysics(),
-                                          child: Column(
-                                            children: [
-                                              const MyFilesWidget(),
-                                              const RecentlyUploadedWidget(),
-                                              const UploadTimeline(),
-                                              const SizedBox(height: 100),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                    : _buildMainContent(),
                               ),
                             ],
                           ),
@@ -288,9 +345,14 @@ class _HealthFilesState extends State<HealthFiles> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.upload_file, color: Colors.white, size: 28),
-                  SizedBox(width: 8),
+                children: [
+                  SvgPicture.asset(
+                    EcliniqIcons.upload.assetPath,
+                    width: 24,
+                    height: 24,
+                  ),
+                  SizedBox(width: 4),
+
                   Text(
                     'Upload',
                     style: TextStyle(

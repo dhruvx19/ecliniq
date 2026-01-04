@@ -40,7 +40,7 @@ class UploadTimeline extends StatelessWidget {
           padding: const EdgeInsets.only(
             left: 16.0,
             right: 16.0,
-            top: 16.0,
+            top: 24.0,
             bottom: 16.0,
           ),
           child: Column(
@@ -54,7 +54,7 @@ class UploadTimeline extends StatelessWidget {
                   color: Color(0xff424242),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               SizedBox(
                 height: 180,
                 child: Stack(

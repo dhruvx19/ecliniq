@@ -317,7 +317,7 @@ class AddDependentProvider extends ChangeNotifier {
         relation: _relation!.toLowerCase(),
         phone: _contactNumber.trim().isNotEmpty ? _contactNumber.trim() : null,
         emailId: _email.trim().isNotEmpty ? _email.trim() : null,
-        bloodGroup: _bloodGroup,
+        bloodGroup: _mapBloodGroupToApi(_bloodGroup),
         height: _height,
         weight: _weight,
         profilePhoto: _profilePhotoKey,
@@ -373,5 +373,23 @@ class AddDependentProvider extends ChangeNotifier {
     _isUploadingPhoto = false;
     _errorMessage = null;
     notifyListeners();
+  }
+
+  /// Maps UI blood group format (e.g., "AB-") to API format (e.g., "AB_NEGATIVE")
+  String? _mapBloodGroupToApi(String? uiValue) {
+    if (uiValue == null || uiValue.isEmpty) return null;
+    final v = uiValue.toUpperCase();
+    const map = {
+      'A+': 'A_POSITIVE',
+      'A-': 'A_NEGATIVE',
+      'B+': 'B_POSITIVE',
+      'B-': 'B_NEGATIVE',
+      'AB+': 'AB_POSITIVE',
+      'AB-': 'AB_NEGATIVE',
+      'O+': 'O_POSITIVE',
+      'O-': 'O_NEGATIVE',
+      'OTHERS': 'OTHERS',
+    };
+    return map[v] ?? null;
   }
 }

@@ -10,7 +10,7 @@ class EcliniqBottomSheet with WidgetsBindingObserver {
     required BuildContext context,
     required Widget child,
     double? horizontalPadding = 8,
-    double? bottomPadding = 40,
+    double? bottomPadding = 22,
     Color? barrierColor,
     Color? backgroundColor,
     VoidCallback? onClosing,

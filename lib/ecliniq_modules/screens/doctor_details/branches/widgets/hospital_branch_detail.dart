@@ -40,7 +40,7 @@ class HospitalBranchDetail extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sunrise Family Clinic, Wakad',
+                      'Sunrise Family Clinic',
                       style: EcliniqTextStyles.headlineLarge.copyWith(
                         color: Color(0xff424242),
                       ),
@@ -142,7 +142,7 @@ class HospitalBranchDetail extends StatelessWidget {
             Row(
               children: [
                 SvgPicture.asset(
-                  EcliniqIcons.map.assetPath,
+                  EcliniqIcons.mapPointBlue.assetPath,
                   width: 24,
                   height: 24,
                 ),
@@ -246,14 +246,25 @@ class HospitalBranchDetail extends StatelessWidget {
                   child: Container(
                     height: 52,
                     decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0x332372EC),
+                          offset: const Offset(7, 4),
+                          blurRadius: 5.3,
+                          spreadRadius: 0,
+                        ),
+                      ],
                       color: Color(0xff2372EC),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Center(
-                      child: Text(
-                        'Book Appointment',
-                        style: EcliniqTextStyles.headlineMedium.copyWith(
-                          color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Center(
+                        child: Text(
+                          'Book Appointment',
+                          style: EcliniqTextStyles.headlineMedium.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),

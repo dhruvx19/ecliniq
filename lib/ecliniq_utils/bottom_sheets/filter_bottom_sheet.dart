@@ -38,7 +38,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
     'Availability',
     'Gender',
     'Distance',
-    'Fees',
+    // 'Fees',
     'Experience',
     'Languages',
     'Meet at',
@@ -85,15 +85,17 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
         ),
       ),
       child: Column(
         children: [
           // Title
           const Padding(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.only(left: 16, right: 16, top: 22),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -107,15 +109,14 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
             ),
           ),
           SearchBarWidget(onSearch: (String value) {}),
-          SizedBox(height: 20),
+          SizedBox(height: 22),
           Container(height: 0.5, color: Color(0xffD6D6D6)),
-          SizedBox(height: 10),
+          SizedBox(height: 8),
           // Content
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left side - Filter categories
                 SizedBox(
                   width: 130,
                   child: ListView.builder(
@@ -164,7 +165,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                             style: TextStyle(
                               color: isSelected
                                   ? Color(0xff2372EC)
-                                  : Colors.grey[700],
+                                  : Color(0xff626060),
                               fontSize: 16,
                               fontWeight: isSelected
                                   ? FontWeight.w500
@@ -257,10 +258,10 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(6),
-                    color: isSelected ? Colors.blue : Colors.transparent,
+                    color: isSelected ? Color(0xff2372EC) : Colors.transparent,
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check, size: 16, color: Colors.white)
+                      ? const Icon(Icons.check, size: 18, color: Colors.white)
                       : null,
                 ),
               ],
@@ -305,8 +306,8 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? Color(0xff2372EC) : Colors.grey[400]!,
-                      width: 2,
+                      color: isSelected ? Color(0xff2372EC) : Color(0xff8E8E8E),
+                      width: 1,
                     ),
                   ),
                   child: isSelected
@@ -414,8 +415,8 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? Color(0xff2372EC) : Colors.grey[400]!,
-                      width: 2,
+                      color: isSelected ? Color(0xff2372EC) : Color(0xff8E8E8E),
+                      width: 1,
                     ),
                   ),
                   child: isSelected
@@ -453,23 +454,39 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
               color: Color(0xff424242),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(color: Color(0xff626060), width: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Center(
-                    child: Text(
-                      '0 Km',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xff626060),
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 10, right: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '0',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xff424242),
+                            ),
+                          ),
+                          Text(
+                            'Km',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xff626060),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -478,18 +495,34 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
               const SizedBox(width: 16),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(color: Color(0xff626060), width: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
-                    child: Text(
-                      '${distanceRange.toInt()} Km',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xff626060),
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 10, right: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${distanceRange.toInt()}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xff424242),
+                            ),
+                          ),
+                          Text(
+                            'Km',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xff626060),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -497,14 +530,14 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 4),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: Color(0xff2372EC),
-              inactiveTrackColor: Colors.grey[300],
+              inactiveTrackColor: Color(0xffF9F9F9),
               thumbColor: Color(0xff2372EC),
-              overlayColor: Color(0xff2372EC).withOpacity(0.2),
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+              overlayColor: Color(0xff2372EC),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
               trackHeight: 4,
             ),
             child: Slider(
@@ -577,7 +610,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     );
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      margin: EdgeInsets.only(top: 22, left: 16, right: 16, bottom: 16),
+
       height: 52,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -594,7 +628,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         child: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 12, right: 8),
+              padding: const EdgeInsets.only(left: 12),
               child: SvgPicture.asset(
                 EcliniqIcons.magnifierMyDoctor.assetPath,
                 width: 24,
@@ -638,13 +672,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                       : SizedBox(),
                   hintText: widget.hintText,
                   hintStyle: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 16,
+                    color: Color(0xffD6D6D6),
+                    fontSize: 18,
                     fontWeight: FontWeight.w400,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                    vertical: 14.0,
                   ),
                 ),
                 onChanged: search,

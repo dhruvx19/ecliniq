@@ -104,6 +104,9 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leadingWidth: 58,
+        titleSpacing: 0,
+           surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: SvgPicture.asset(
@@ -124,18 +127,26 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.2),
-          child: Container(color: Color(0xFFB8B8B8), height: 1.0),
+          child: Container(color: Color(0xFFB8B8B8), height: 0.5),
         ),
         actions: [
-          TextButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.help_outline, size: 24),
-            label: Text(
-              'Help',
-              style: EcliniqTextStyles.headlineXMedium.copyWith(
-                color: Color(0xff424242),
+          Row(
+            children: [
+              SvgPicture.asset(
+                EcliniqIcons.questionCircleFilled.assetPath,
+                width: 24,
+                height: 24,
               ),
-            ),
+              Text(
+                ' Help',
+                style: EcliniqTextStyles.titleXBLarge.copyWith(
+                  color: Color(0xff424242),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              SizedBox(width: 20),
+            ],
           ),
         ],
       ),
@@ -243,42 +254,49 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
   }
 
   Widget _buildContent() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          StatusHeader(
-            status: _appointment!.status,
-            currentTokenNumber: _appointment!.currentTokenNumber,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DoctorInfoCard(
-                  doctor: _appointment!.doctor,
-                  clinic: _appointment!.clinic,
-                  currentTokenNumber: _appointment!.currentTokenNumber,
-                ),
+    return Column(
+      children: [
+        // Fixed StatusHeader
+        StatusHeader(
+          status: _appointment!.status,
+          currentTokenNumber: _appointment!.currentTokenNumber,
+        ),
+        // Scrollable content starting from DoctorInfoCard
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DoctorInfoCard(
+                    doctor: _appointment!.doctor,
+                    clinic: _appointment!.clinic,
+                    currentTokenNumber: _appointment!.currentTokenNumber,
+                  ),
 
-                const SizedBox(height: 24),
-                _buildRequestNote(),
-                const SizedBox(height: 24),
-                AppointmentDetailsSection(
-                  patient: _appointment!.patient,
-                  timeInfo: _appointment!.timeInfo,
-                ),
-                const SizedBox(height: 24),
-                ClinicLocationCard(clinic: _appointment!.clinic),
-                const SizedBox(height: 24),
-                PaymentDetailsCard(payment: _appointment!.payment),
-                const SizedBox(height: 24),
-                _buildBottomButtons(context),
-              ],
+                  const SizedBox(height: 24),
+                  _buildRequestNote(),
+                  const SizedBox(height: 24),
+                  AppointmentDetailsSection(
+                    patient: _appointment!.patient,
+                    timeInfo: _appointment!.timeInfo,
+                  ),
+                  const SizedBox(height: 24),
+                  ClinicLocationCard(clinic: _appointment!.clinic),
+                  const SizedBox(height: 16),
+                  Divider(color: Color(0xffB8B8B8), thickness: 0.5, height: 1),
+                  const SizedBox(height: 24),
+                  PaymentDetailsCard(payment: _appointment!.payment),
+                  const SizedBox(height: 48),
+                  _buildBottomButtons(context),
+                  const SizedBox(height: 60),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -330,7 +348,8 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                   CustomErrorSnackBar(
                     context: context,
                     title: 'Cannot Reschedule',
-                    subtitle: 'This appointment has already been rescheduled. You cannot reschedule it again.',
+                    subtitle:
+                        'This appointment has already been rescheduled. You cannot reschedule it again.',
                     duration: const Duration(seconds: 3),
                   ),
                 );
@@ -339,16 +358,15 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
 
               final result = await EcliniqBottomSheet.show<bool>(
                 context: context,
-                child: RescheduleBottomSheet(
-                  appointment: _appointment!,
-                ),
+                child: RescheduleBottomSheet(appointment: _appointment!),
               );
-              
+
               if (result == true && mounted && _appointment != null) {
                 // Navigate to slot screen for reschedule
                 final appointment = _appointment!;
-                if (appointment.doctorId != null && 
-                    (appointment.hospitalId != null || appointment.clinicId != null)) {
+                if (appointment.doctorId != null &&
+                    (appointment.hospitalId != null ||
+                        appointment.clinicId != null)) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -418,10 +436,25 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                 child: const CancellationPolicyBottomSheet(),
               );
             },
-            child: Text(
-              'View Cancellation Policy',
-              style: TextStyle(fontSize: 14, color: Color(0xff424242), fontWeight: FontWeight.w400),
-              textAlign: TextAlign.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'View Cancellation Policy',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xff424242),
+                    fontWeight: FontWeight.w400,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                SvgPicture.asset(
+                  EcliniqIcons.infoCircleBlack.assetPath,
+                  width: 16,
+                  height: 16,
+                ),
+              ],
             ),
           ),
         ],

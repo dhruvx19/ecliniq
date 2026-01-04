@@ -121,14 +121,11 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      child: const Text(
-        'eClinic-Q',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-        ),
+      padding: const EdgeInsets.all(16),
+      child: SvgPicture.asset(
+        EcliniqIcons.nameLogo.assetPath,
+        // width: 187,
+        height: 44,
       ),
     );
   }
@@ -139,37 +136,39 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
       child: Column(
         children: [
           // Optimize: Use cacheWidth/cacheHeight for better performance
-          Image.asset(
-            EcliniqIcons.main.assetPath,
+          SvgPicture.asset(
+            EcliniqIcons.homeLogo.assetPath,
             width: 280,
-            height: 280,
-            cacheWidth: 560,
-            cacheHeight: 560,
-            filterQuality: FilterQuality.medium,
+            height: 270,
           ),
+          SizedBox(height: 32),
           const Text(
-            'Welcome To eClinic-Q',
+            'Welcome To Upchar-Q',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Your Turn, Your Time',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Track Appointments in Real-Time!',
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+            'Your Turn, Your Time',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
           ),
-          const SizedBox(height: 20),
+
+          const Text(
+            'Track Appointments in Real-Time!',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 32),
 
           // Optimize: Pre-build list items instead of generating on each build
           Row(
@@ -204,7 +203,12 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
         top: false,
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(
+              top: 24,
+              left: 16,
+              right: 16,
+              bottom: 24,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -215,7 +219,7 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
                     color: Color(0xff626060),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
 
                 GestureDetector(
                   onTap: _openFullScreenInput,
@@ -228,12 +232,15 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
+                            horizontal: 12,
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
                             border: Border(
-                              right: BorderSide(color: Colors.grey.shade300),
+                              right: BorderSide(
+                                color: Color(0xffD6D6D6),
+                                width: 0.5,
+                              ),
                             ),
                           ),
                           child: Row(
@@ -246,12 +253,11 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
                                   color: Color(0xff424242),
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 8),
                               SvgPicture.asset(
                                 EcliniqIcons.arrowDown.assetPath,
                                 width: 20,
                                 height: 20,
-                             
                               ),
                             ],
                           ),
@@ -268,9 +274,10 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
                                   ? 'Mobile Number'
                                   : _phoneController.text,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
                                 color: _phoneController.text.isEmpty
-                                    ? Colors.grey
+                                    ? Color(0xffD6D6D6)
                                     : Colors.black,
                               ),
                             ),
@@ -280,8 +287,14 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
                     ),
                   ),
                 ),
-
+                const SizedBox(height: 24),
                 TextButton(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero, // Remove default padding
+                    minimumSize: Size.zero, // Remove minimum size constraint
+                    tapTargetSize:
+                        MaterialTapTargetSize.shrinkWrap, // Shrink tap target
+                  ),
                   onPressed: () {
                     EcliniqRouter.push(LoginTroublePage());
                   },
@@ -292,8 +305,6 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 10),
               ],
             ),
           ),

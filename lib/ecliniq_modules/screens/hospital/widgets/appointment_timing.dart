@@ -51,7 +51,7 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
           ),
 
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -91,8 +91,8 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                   onPressed: () {},
 
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[50],
-                    foregroundColor: Colors.blue[700],
+                    backgroundColor: Color(0xffF2F7FF),
+                    foregroundColor: Color(0xffF2F7FF),
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,

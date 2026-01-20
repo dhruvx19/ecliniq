@@ -7,6 +7,7 @@ import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/cancel
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/completed.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/confirmed.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/requested.dart';
+import 'package:ecliniq/ecliniq_icons/assets/home/widgets/quick_actions.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_modules/screens/notifications/notification_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/notifications/provider/notification_provider.dart';
@@ -111,10 +112,19 @@ class _MyVisitsState extends State<MyVisits>
     });
 
     try {
+      // Determine type based on filter index (Default is Doctor at index 0)
+      final type = _selectedFilterIndex == 0 ? 'doctor' : 'hospital';
+
       // Load both scheduled and history appointments
       final results = await Future.wait([
-        _appointmentService.getScheduledAppointments(authToken: authToken),
-        _appointmentService.getAppointmentHistory(authToken: authToken),
+        _appointmentService.getScheduledAppointments(
+          authToken: authToken,
+          type: type,
+        ),
+        _appointmentService.getAppointmentHistory(
+          authToken: authToken,
+          type: type,
+        ),
       ]);
 
       if (!mounted) return;
@@ -361,6 +371,7 @@ class _MyVisitsState extends State<MyVisits>
               setState(() {
                 _selectedFilterIndex = index;
               });
+              _loadAppointments();
             },
             child: Container(
               margin: EdgeInsets.only(right: screenWidth * 0.03),
@@ -934,14 +945,30 @@ class _MyVisitsState extends State<MyVisits>
                                     )
                                   : currentAppointments.isEmpty
                                   ? Center(
-                                      child: Text(
-                                        'No appointments found',
-                                        style:
-                                            EcliniqTextStyles.responsiveTitleXLarge(
-                                              context,
-                                            ).copyWith(
-                                              color: Color(0xFF666666),
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              'No appointments found',
+                                              style: EcliniqTextStyles
+                                                  .responsiveTitleXLarge(
+                                                    context,
+                                                  )
+                                                  .copyWith(
+                                                    color: Color(0xFF666666),
+                                                  ),
                                             ),
+                                            const SizedBox(height: 24),
+                                            const Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 16.0,
+                                              ),
+                                              child: QuickActionsWidget(),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     )
                                   : ListView.builder(

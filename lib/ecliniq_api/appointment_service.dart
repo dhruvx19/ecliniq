@@ -55,9 +55,16 @@ class AppointmentService {
 
   Future<AppointmentListResponse> getScheduledAppointments({
     required String authToken,
+    String? type,
   }) async {
     try {
-      final url = Uri.parse(Endpoints.scheduledAppointments);
+      final uri = Uri.parse(Endpoints.scheduledAppointments);
+      final url = uri.replace(
+        queryParameters: {
+          ...uri.queryParameters,
+          if (type != null) 'type': type,
+        },
+      );
 
       final headers = <String, String>{
         'Content-Type': 'application/json',
@@ -97,9 +104,16 @@ class AppointmentService {
 
   Future<AppointmentListResponse> getAppointmentHistory({
     required String authToken,
+    String? type,
   }) async {
     try {
-      final url = Uri.parse(Endpoints.appointmentHistory);
+      final uri = Uri.parse(Endpoints.appointmentHistory);
+      final url = uri.replace(
+        queryParameters: {
+          ...uri.queryParameters,
+          if (type != null) 'type': type,
+        },
+      );
 
       final headers = <String, String>{
         'Content-Type': 'application/json',

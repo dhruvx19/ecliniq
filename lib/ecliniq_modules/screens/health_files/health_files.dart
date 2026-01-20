@@ -813,7 +813,12 @@ class _HealthFilesState extends State<HealthFiles> {
             child: Column(
               children: [
                 const MyFilesWidget(),
-                if (provider.allFiles.isEmpty) _buildEmptyState(),
+                if (provider.allFiles.isEmpty) ...[
+                  SizedBox(
+                    height: EcliniqTextStyles.getResponsiveSpacing(context, 40),
+                  ),
+                  _buildEmptyState(),
+                ],
                 const RecentlyUploadedWidget(),
                 const UploadTimeline(),
                 SizedBox(
@@ -951,7 +956,7 @@ class _HealthFilesState extends State<HealthFiles> {
 
         Positioned(
           right: EcliniqTextStyles.getResponsiveWidth(context, 20),
-          bottom: EcliniqTextStyles.getResponsiveHeight(context, 86),
+          bottom: EcliniqTextStyles.getResponsiveHeight(context, 120),
           child: GestureDetector(
             onTap: () => _showUploadBottomSheet(context),
             behavior: HitTestBehavior.opaque,

@@ -127,7 +127,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       ),
       height: EcliniqTextStyles.getResponsiveButtonHeight(
         context,
-        baseHeight: 48.0,
+        baseHeight: 52.0,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -229,8 +229,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                   //     : null,
                   child: SvgPicture.asset(
                     EcliniqIcons.microphone.assetPath,
-                    width: 32,
-                    height: 32,
+                    width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                    height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
                     colorFilter: widget.isListening
                         ? const ColorFilter.mode(
                             Color(0xFF2372EC),

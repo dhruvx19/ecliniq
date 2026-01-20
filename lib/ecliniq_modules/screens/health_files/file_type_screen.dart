@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:ecliniq/ecliniq_api/health_file_model.dart';
 import 'package:ecliniq/ecliniq_core/notifications/local_notifications.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/edit_doc_details.dart';
-import 'package:ecliniq/ecliniq_api/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/action_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/permission_request_dialog.dart';
@@ -20,7 +20,6 @@ import 'package:ecliniq/ecliniq_utils/bottom_sheets/health_files/delete_file_bot
 import 'package:ecliniq/ecliniq_utils/bottom_sheets/health_files/health_files_filter.dart';
 import 'package:ecliniq/ecliniq_utils/snackbar_helper.dart';
 import 'package:ecliniq/ecliniq_utils/widgets/ecliniq_loader.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path/path.dart' as path;
@@ -1168,7 +1167,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               // Reset filters - clear all selections
               _selectedNames.clear();
               _selectedRecordFor = null;
-            } else if (selectedNames != null && selectedNames.isNotEmpty) {
+            } else if (selectedNames.isNotEmpty) {
               _selectedNames.clear();
               _selectedNames.addAll(
                 selectedNames.map((name) => name.toString()),
@@ -1255,7 +1254,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
                   onTap: () => _onFileTypeSelected(fileType),
                   child: Container(
                     margin: EdgeInsets.only(
-                      right: index < allTabs.length - 1 ? 16.0 : 0,
+                      right: index < allTabs.length - 1 ? 6.0 : 0,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -1285,7 +1284,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
                             context,
                             3,
                           ),
-                          width: displayName.length * 10.0 + 16,
+                          width: displayName.length * 10.0 + 12,
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? const Color(0xFF2372EC)
@@ -1429,8 +1428,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
                 hasSelection
                     ? EcliniqIcons.delete.assetPath
                     : EcliniqIcons.trashBin.assetPath,
-                width: 20,
-                height: 20,
+                width: EcliniqTextStyles.getResponsiveIconSize(context, 20),
+                height: EcliniqTextStyles.getResponsiveIconSize(context, 20),
               ),
             ),
             const SizedBox(width: 2),
@@ -1465,8 +1464,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.backArrow.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
           ),
           onPressed: () => Navigator.pop(context),
         ),

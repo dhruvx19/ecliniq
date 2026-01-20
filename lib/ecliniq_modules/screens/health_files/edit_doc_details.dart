@@ -299,7 +299,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                           SizedBox(
                             width: EcliniqTextStyles.getResponsiveWidth(
                               context,
-                              120.0,
+                              124.0,
                             ),
                             child: Row(
                               children: [

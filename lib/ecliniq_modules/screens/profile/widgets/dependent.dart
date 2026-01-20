@@ -1,5 +1,6 @@
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -93,19 +94,22 @@ class _DependentCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: isAdded ? Color(0xffF2F7FF) : Color(0xffF9F9F9),
+              color: isAdded ? Color(0xffFFF7F0) : Color(0xffF9F9F9),
               shape: BoxShape.circle,
               border: Border.all(
-                color: isAdded ? Color(0xffffFfFF) : Color(0xff96BFFF),
-                width: 1,
+                color: isAdded ? Color(0xffEC7600) : Color(0xff96BFFF),
+                width: 0.5,
               ),
             ),
             child: Center(
               child: isAdded
-                  ? Icon(
-                      Icons.person,
-                      size: EcliniqTextStyles.getResponsiveIconSize(context, 35),
-                      color: Colors.orange[700],
+                  ? EcliniqText(
+                       label.substring(0, 1).toUpperCase(),
+                      style: EcliniqTextStyles.responsiveHeadlineLargeBold(context).copyWith(
+                    
+                        color: Color(0xffEC7600),
+                        fontWeight: FontWeight.w400,
+                      ),
                     )
                   : SvgPicture.asset(
                       EcliniqIcons.add.assetPath,

@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:ecliniq/ecliniq_api/health_file_model.dart';
 import 'package:ecliniq/ecliniq_core/notifications/local_notifications.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/file_type_screen.dart';
-import 'package:ecliniq/ecliniq_api/health_file_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/providers/health_files_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/utils/date_formatter.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/action_bottom_sheet.dart';
@@ -34,25 +34,25 @@ class RecentlyUploadedWidget extends StatelessWidget {
         }
 
         return Container(
-          padding: const EdgeInsets.only(left: 16.0, top: 2.0, bottom: 8.0),
+          padding: const EdgeInsets.only(top: 2.0, bottom: 8.0, left: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               Padding(
+              Padding(
                 padding: EdgeInsets.only(right: 16.0),
                 child: Text(
                   'Recently Uploaded',
-                  style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
-                
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff424242),
-                  ),
+                  style: EcliniqTextStyles.responsiveHeadlineLarge(context)
+                      .copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xff424242),
+                      ),
                 ),
               ),
               const SizedBox(height: 16),
 
               SizedBox(
-                height: 280,
+                height: 215,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.only(right: 16.0),
@@ -116,8 +116,13 @@ class _RecentFileCardState extends State<RecentFileCard> {
     return EcliniqIcons.pdffile.assetPath;
   }
 
-  Future<void> _handleDownloadFile(BuildContext context, HealthFile file) async {
-    debugPrint('_handleDownloadFile called for file: ${file.fileName}, id: ${file.id}');
+  Future<void> _handleDownloadFile(
+    BuildContext context,
+    HealthFile file,
+  ) async {
+    debugPrint(
+      '_handleDownloadFile called for file: ${file.fileName}, id: ${file.id}',
+    );
 
     // Check storage permissions for Android - use default Android dialog like location
     if (Platform.isAndroid) {
@@ -129,7 +134,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
         // Determine which permission to request
         Permission storagePermission = Permission.storage;
-        
+
         // For Android 11+, try manageExternalStorage first if not permanently denied
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
@@ -137,7 +142,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
 
         // Request permission directly (shows default Android dialog)
         final result = await storagePermission.request();
-        
+
         if (!result.isGranted) {
           if (context.mounted) {
             if (result.isPermanentlyDenied) {
@@ -184,7 +189,10 @@ class _RecentFileCardState extends State<RecentFileCard> {
     await _proceedWithDownload(context, file);
   }
 
-  Future<void> _proceedWithDownload(BuildContext context, HealthFile file) async {
+  Future<void> _proceedWithDownload(
+    BuildContext context,
+    HealthFile file,
+  ) async {
     BuildContext? dialogContext;
 
     try {
@@ -233,7 +241,9 @@ class _RecentFileCardState extends State<RecentFileCard> {
         } else {
           final externalDir = await getExternalStorageDirectory();
           if (externalDir == null) {
-            throw Exception('Unable to access storage directory. Please check storage permissions.');
+            throw Exception(
+              'Unable to access storage directory. Please check storage permissions.',
+            );
           }
           targetDir = Directory(path.join(externalDir.path, 'Download'));
           if (!await targetDir.exists()) {
@@ -256,7 +266,9 @@ class _RecentFileCardState extends State<RecentFileCard> {
         await sourceFile.copy(destFile.path);
 
         if (!await destFile.exists()) {
-          throw Exception('File copy failed - destination file does not exist.');
+          throw Exception(
+            'File copy failed - destination file does not exist.',
+          );
         }
 
         if (dialogContext != null && context.mounted) {
@@ -278,7 +290,9 @@ class _RecentFileCardState extends State<RecentFileCard> {
 
       if (Platform.isIOS) {
         final documentsDir = await getApplicationDocumentsDirectory();
-        final downloadsDir = Directory(path.join(documentsDir.path, 'Downloads'));
+        final downloadsDir = Directory(
+          path.join(documentsDir.path, 'Downloads'),
+        );
 
         if (!await downloadsDir.exists()) {
           await downloadsDir.create(recursive: true);
@@ -299,7 +313,9 @@ class _RecentFileCardState extends State<RecentFileCard> {
         await sourceFile.copy(destFile.path);
 
         if (!await destFile.exists()) {
-          throw Exception('File copy failed - destination file does not exist.');
+          throw Exception(
+            'File copy failed - destination file does not exist.',
+          );
         }
 
         if (dialogContext != null && context.mounted) {
@@ -334,7 +350,9 @@ class _RecentFileCardState extends State<RecentFileCard> {
   }
 
   Future<void> _handleDeleteFile(BuildContext context, HealthFile file) async {
-    debugPrint('_handleDeleteFile called for file: ${file.fileName}, id: ${file.id}');
+    debugPrint(
+      '_handleDeleteFile called for file: ${file.fileName}, id: ${file.id}',
+    );
     BuildContext? dialogContext;
 
     try {
@@ -421,6 +439,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
       },
       child: Container(
         width: 250,
+        height: 215,
 
         decoration: BoxDecoration(
           color: Colors.white,
@@ -434,6 +453,8 @@ class _RecentFileCardState extends State<RecentFileCard> {
             children: [
               Expanded(
                 child: Container(
+                  width: 250,
+                  height: 215,
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
                     borderRadius: const BorderRadius.only(
@@ -488,22 +509,26 @@ class _RecentFileCardState extends State<RecentFileCard> {
                         children: [
                           Text(
                             widget.file.fileName,
-                            style:  EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                             
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF424242),
-                            ),
+                            style:
+                                EcliniqTextStyles.responsiveHeadlineBMedium(
+                                  context,
+                                ).copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xFF424242),
+                                ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-               
+
                           Text(
                             _formatDate(widget.file.createdAt),
-                            style:  EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-                       
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xff8E8E8E),
-                            ),
+                            style:
+                                EcliniqTextStyles.responsiveBodySmall(
+                                  context,
+                                ).copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xff8E8E8E),
+                                ),
                           ),
                         ],
                       ),
@@ -515,8 +540,10 @@ class _RecentFileCardState extends State<RecentFileCard> {
                         child: ActionBottomSheet(
                           healthFile: widget.file,
                           parentContext: context,
-                          onDownloadDocument: () => _handleDownloadFile(context, widget.file),
-                          onDeleteDocument: () => _handleDeleteFile(context, widget.file),
+                          onDownloadDocument: () =>
+                              _handleDownloadFile(context, widget.file),
+                          onDeleteDocument: () =>
+                              _handleDeleteFile(context, widget.file),
                         ),
                       ),
                       child: SvgPicture.asset(

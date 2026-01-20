@@ -28,35 +28,28 @@ class UserInfoSection extends StatelessWidget {
         : EcliniqColors.dark;
 
     return Column(
+     
       children: [
         Text(
           name,
-          style: EcliniqTextStyles.responsiveHeadlineXLarge(context).copyWith(
-         
-            fontWeight: FontWeight.w600,
-            color: Color(0xff424242),
-          ),
+          style: EcliniqTextStyles.responsiveHeadlineXLarge(
+            context,
+          ).copyWith(fontWeight: FontWeight.w600, color: Color(0xff424242)),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               phone,
-              style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                
-                fontWeight: FontWeight.w400,
-                color: Color(0xff626060),
-              ),
+              style: EcliniqTextStyles.responsiveTitleXLarge(
+                context,
+              ).copyWith(fontWeight: FontWeight.w400, color: Color(0xff626060)),
             ),
             if (isPhoneVerified) ...[
               SizedBox(
-                width: screenSize.getResponsiveValue(
-                  mobile: 5,
-                  mobileSmall: 4,
-                  mobileMedium: 5,
-                  mobileLarge: 6,
-                ),
+                width: EcliniqTextStyles.getResponsiveWidth(context, 4)
+                
               ),
               SvgPicture.asset(
                 EcliniqIcons.verifiedGreen.assetPath,
@@ -70,11 +63,9 @@ class UserInfoSection extends StatelessWidget {
           SizedBox(height: 4),
           Text(
             email,
-            style:EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-    
-              fontWeight: FontWeight.w400,
-              color: Color(0xff626060),
-            ),
+            style: EcliniqTextStyles.responsiveTitleXLarge(
+              context,
+            ).copyWith(fontWeight: FontWeight.w400, color: Color(0xff626060)),
           ),
         ],
       ],
@@ -204,10 +195,9 @@ class _InfoCard extends StatelessWidget {
         SizedBox(height: spacing),
         Text(
           label,
-          style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-            color: colors.textSecondary,
-            fontSize: 62,
-          ),
+          style: EcliniqTextStyles.responsiveBodySmall(
+            context,
+          ).copyWith(color: colors.textSecondary, fontSize: 62),
         ),
         SizedBox(height: spacing / 2),
         Text(

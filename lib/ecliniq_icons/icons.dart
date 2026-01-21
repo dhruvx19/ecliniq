@@ -257,7 +257,7 @@ enum EcliniqIcons {
   stomachPain('$_base/Stomach pain 1.svg'),
   headache('$_base/Headache 1.svg'),
   fever('$_base/Fever 1.svg'),
-
+  noSchedule('$_base/no_schedule.svg'),
   noNotifications('$_base/no_notif.svg');
 
   //speciality

@@ -798,23 +798,14 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   EcliniqIcons.questionCircleFilled.assetPath,
                   width: 24,
                   height: 24,
-                  colorFilter: const ColorFilter.mode(
-                    Color(0xFF2372EC),
-                    BlendMode.srcIn,
-                  ),
+                  
                 ),
                 const SizedBox(width: 4),
                 Text(
                   'Help',
-<<<<<<< HEAD
                   style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                    color: const Color(0xFF2372EC),
+                    color: const Color(0xFF424242),
                   ),
-=======
-                  style: EcliniqTextStyles.responsiveHeadlineXMedium(
-                    context,
-                  ).copyWith(color: Color(0xff424242)),
->>>>>>> 24acf1f64644cad80bd258ef7d5e73aba9bed605
                 ),
                 const SizedBox(width: 16),
               ],

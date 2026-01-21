@@ -101,7 +101,6 @@ class DoctorInfoCard extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(color: _borderColor, width: 1),
                         ),
-<<<<<<< HEAD
                         child: doctor != null
                             ? FutureBuilder<String?>(
                                 future: doctor!.getProfilePhotoUrl(_storageService),
@@ -145,17 +144,6 @@ class DoctorInfoCard extends StatelessWidget {
                                   ),
                                 ),
                               ),
-=======
-                        child: Center(
-                          child: Text(
-                            _getInitials(doctor?.name ?? doctorName ?? 'M'),
-                            style:
-                                EcliniqTextStyles.responsiveHeadlineXXLargeBold(
-                                  context,
-                                ).copyWith(color: Color(0xFF1565C0)),
-                          ),
-                        ),
->>>>>>> 24acf1f64644cad80bd258ef7d5e73aba9bed605
                       ),
                       Positioned(
                         right: -2,
@@ -182,21 +170,10 @@ class DoctorInfoCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-<<<<<<< HEAD
                           displayName,
                           style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
                             color: Color(0xff424242),
                           ),
-=======
-                          'Dr. ${doctor?.name ?? doctorName}',
-                          style:
-                              EcliniqTextStyles.responsiveHeadlineLarge(
-                                context,
-                              ).copyWith(
-                                color: Color(0xff424242),
-                                fontWeight: FontWeight.w600,
-                              ),
->>>>>>> 24acf1f64644cad80bd258ef7d5e73aba9bed605
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -370,7 +347,6 @@ class DoctorInfoCard extends StatelessWidget {
                     height: EcliniqTextStyles.getResponsiveHeight(context, 20),
                     color: Color(0xffD6D6D6),
                   ),
-<<<<<<< HEAD
                   if (shouldShowChange) ...[
                     SizedBox(
                       width: EcliniqTextStyles.getResponsiveSpacing(context, 8),
@@ -399,43 +375,6 @@ class DoctorInfoCard extends StatelessWidget {
                       ],
                     ),
                   ],
-=======
-                  SizedBox(
-                    width: EcliniqTextStyles.getResponsiveSpacing(context, 8),
-                  ),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: onChangeLocation,
-                        child: Text(
-                          'Change',
-                          style: EcliniqTextStyles.responsiveBodySmall(context)
-                              .copyWith(
-                                color: Color(0xFF2372EC),
-                                fontWeight: FontWeight.w400,
-                              ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: EcliniqTextStyles.getResponsiveSpacing(
-                          context,
-                          4,
-                        ),
-                      ),
-                      SvgPicture.asset(
-                        EcliniqIcons.shuffle.assetPath,
-                        width: EcliniqTextStyles.getResponsiveIconSize(
-                          context,
-                          16,
-                        ),
-                        height: EcliniqTextStyles.getResponsiveIconSize(
-                          context,
-                          16,
-                        ),
-                      ),
-                    ],
-                  ),
->>>>>>> 24acf1f64644cad80bd258ef7d5e73aba9bed605
                 ],
               ),
               SizedBox(
@@ -513,43 +452,6 @@ class DoctorInfoCard extends StatelessWidget {
             ],
           ),
         ),
-<<<<<<< HEAD
-=======
-
-        // Container(
-        //   width: double.infinity,
-        //   color: const Color(0xffF8FAFF),
-        //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        //   child: Row(
-        //     children: [
-        //       Container(
-        //         width: 16,
-        //         height: 16,
-        //         decoration: const BoxDecoration(
-        //           color: Colors.green,
-        //           shape: BoxShape.circle,
-        //         ),
-        //       ),
-        //       const SizedBox(width: 8),
-        //       Text(
-        //         '69',
-        //         style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
-        //           fontWeight: FontWeight.w700,
-        //           color: Colors.green,
-        //         ),
-        //       ),
-        //       const SizedBox(width: 8),
-        //       Text(
-        //         'Token Number Currently Running',
-        //         style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-        //           color: Colors.grey[600],
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        // const Divider(height: 2, thickness: 0.3, color: Colors.grey),
->>>>>>> 24acf1f64644cad80bd258ef7d5e73aba9bed605
       ],
     );
   }

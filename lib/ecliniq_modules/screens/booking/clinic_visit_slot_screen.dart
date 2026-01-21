@@ -4,12 +4,14 @@ import 'package:ecliniq/ecliniq_api/models/patient.dart';
 import 'package:ecliniq/ecliniq_api/models/slot.dart';
 import 'package:ecliniq/ecliniq_api/patient_service.dart';
 import 'package:ecliniq/ecliniq_api/slot_service.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/review_details_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/date_selector.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/doctor_info_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/widgets/time_slot_card.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_location_change_sheet.dart';
+import 'package:ecliniq/ecliniq_modules/screens/login/profile_help.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart'
     hide DoctorInfoCard;
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
@@ -92,18 +94,18 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     _selectedHospitalId = widget.hospitalId;
     _selectedClinicId = widget.clinicId;
     _initializeDates();
-    
+
     // Use passed doctor data if available, otherwise fetch
     if (widget.doctor != null) {
       _doctor = widget.doctor;
       _updateCurrentLocationDetails();
       _isLoadingDoctorDetails = false;
     }
-    
+
     // Load slots immediately - don't wait for doctor details
     _fetchWeeklySlots();
     _fetchSlots();
-    
+
     // Load doctor details and user details in parallel (non-blocking)
     // Only fetch if doctor data wasn't passed
     if (widget.doctor == null) {
@@ -477,12 +479,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
     try {
       // Use cached SharedPreferences and auth token
-      if (_cachedPrefs == null) {
-        _cachedPrefs = await SharedPreferences.getInstance();
-      }
-      if (_cachedAuthToken == null) {
-        _cachedAuthToken = _cachedPrefs!.getString('auth_token');
-      }
+      _cachedPrefs ??= await SharedPreferences.getInstance();
+      _cachedAuthToken ??= _cachedPrefs!.getString('auth_token');
 
       if (_cachedAuthToken == null || _cachedAuthToken!.isEmpty) {
         if (mounted) {
@@ -582,12 +580,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
     try {
       // Cache SharedPreferences and auth token to avoid multiple reads
-      if (_cachedPrefs == null) {
-        _cachedPrefs = await SharedPreferences.getInstance();
-      }
-      if (_cachedAuthToken == null) {
-        _cachedAuthToken = _cachedPrefs!.getString('auth_token');
-      }
+      _cachedPrefs ??= await SharedPreferences.getInstance();
+      _cachedAuthToken ??= _cachedPrefs!.getString('auth_token');
 
       final response = await _doctorService.getDoctorDetailsForBooking(
         doctorId: widget.doctorId,
@@ -619,21 +613,15 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   }
 
   Future<void> _fetchCurrentUserDetails() async {
-    setState(() {
-    });
+    setState(() {});
 
     try {
       // Use cached SharedPreferences and auth token
-      if (_cachedPrefs == null) {
-        _cachedPrefs = await SharedPreferences.getInstance();
-      }
-      if (_cachedAuthToken == null) {
-        _cachedAuthToken = _cachedPrefs!.getString('auth_token');
-      }
+      _cachedPrefs ??= await SharedPreferences.getInstance();
+      _cachedAuthToken ??= _cachedPrefs!.getString('auth_token');
 
       if (_cachedAuthToken == null || _cachedAuthToken!.isEmpty) {
-        setState(() {
-        });
+        setState(() {});
         return;
       }
 
@@ -650,8 +638,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-        });
+        setState(() {});
       }
       debugPrint('Failed to fetch current user details: $e');
     }
@@ -944,9 +931,9 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             const SizedBox(height: 16),
             Text(
               _errorMessage ?? 'Failed to load slots',
-              style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                color: Colors.grey[600],
-              ),
+              style: EcliniqTextStyles.responsiveTitleXLarge(
+                context,
+              ).copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -979,18 +966,19 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             const SizedBox(height: 24),
             Text(
               'No slots available for this date',
-              style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
-                color: const Color(0xff424242),
-                fontWeight: FontWeight.w600,
-              ),
+              style: EcliniqTextStyles.responsiveHeadlineLarge(context)
+                  .copyWith(
+                    color: const Color(0xff424242),
+                    fontWeight: FontWeight.w600,
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
               'Please choose another day',
-              style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                color: Colors.grey[600],
-              ),
+              style: EcliniqTextStyles.responsiveTitleXLarge(
+                context,
+              ).copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -1015,10 +1003,11 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'Select a different date above',
-                    style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                      color: const Color(0xFF1565C0),
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                        .copyWith(
+                          color: const Color(0xFF1565C0),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ],
               ),
@@ -1249,19 +1238,15 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
               children: [
                 Text(
                   dateLabel,
-                  style: EcliniqTextStyles.responsiveBody2xSmallRegular(context).copyWith (
-              
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
-                  ),
+                  style: EcliniqTextStyles.responsiveBody2xSmallRegular(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w400, color: Colors.white),
                 ),
                 Text(
                   dateDisplay,
-                  style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
-                 
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: EcliniqTextStyles.responsiveHeadlineLarge(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w700, color: Colors.white),
                 ),
               ],
             ),
@@ -1275,22 +1260,22 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 FittedBox(
                   child: Text(
                     'You already have a confirmed booking',
-                    style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                      
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xff424242),
-                    ),
+                    style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                        .copyWith(
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff424242),
+                        ),
 
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Text(
                   '$tokenText$timeText',
-                  style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                    
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xff424242),
-                  ),
+                  style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                      .copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xff424242),
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1367,9 +1352,9 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-            color: const Color(0xFF626060),
-          ),
+          style: EcliniqTextStyles.responsiveTitleXLarge(
+            context,
+          ).copyWith(color: const Color(0xFF626060)),
         ),
         Text(
           value,
@@ -1432,19 +1417,20 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 SizedBox(
                   width: EcliniqTextStyles.getResponsiveSpacing(context, 20),
                   height: EcliniqTextStyles.getResponsiveSpacing(context, 20),
-                  
+
                   child: EcliniqLoader(size: 20, color: Colors.white),
                 )
               else
                 Text(
                   'Review Visit',
-                  style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-                    color: _isButtonPressed
-                        ? Colors.white
-                        : isButtonEnabled
-                        ? Colors.white
-                        : Colors.grey,
-                  ),
+                  style: EcliniqTextStyles.responsiveHeadlineMedium(context)
+                      .copyWith(
+                        color: _isButtonPressed
+                            ? Colors.white
+                            : isButtonEnabled
+                            ? Colors.white
+                            : Colors.grey,
+                      ),
                 ),
             ],
           ),
@@ -1475,11 +1461,35 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           alignment: Alignment.centerLeft,
           child: Text(
             widget.isReschedule ? 'Reschedule Visit Slot' : 'Clinic Visit Slot',
-            style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-              color: Color(0xff424242),
-            ),
+            style: EcliniqTextStyles.responsiveHeadlineMedium(
+              context,
+            ).copyWith(color: Color(0xff424242)),
           ),
         ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              EcliniqRouter.push(ProfileHelpPage());
+            },
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  EcliniqIcons.questionCircleFilled.assetPath,
+                  width: 24,
+                  height: 24,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Help',
+                  style: EcliniqTextStyles.responsiveHeadlineXMedium(
+                    context,
+                  ).copyWith(color: const Color(0xFF424242)),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.2),
           child: Container(color: Color(0xFFB8B8B8), height: 1.0),
@@ -1527,9 +1537,9 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Select Below Slots',
-                      style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
-                        color: Color(0xff424242),
-                      ),
+                      style: EcliniqTextStyles.responsiveHeadlineLarge(
+                        context,
+                      ).copyWith(color: Color(0xff424242)),
                     ),
                   ),
                   const SizedBox(height: 16),

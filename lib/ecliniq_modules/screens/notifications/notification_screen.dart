@@ -474,7 +474,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFF8FAFF) : Colors.white,
           borderRadius: BorderRadius.circular(8),

@@ -121,14 +121,17 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
             ),
           ),
           SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
-          SizedBox(
-            width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
-            height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+          // Fixed size container to prevent icon enlargement when selected
+          Container(
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
+            alignment: Alignment.center,
             child: SvgPicture.asset(
               isSelected ? selectedIconPath : iconPath,
-              width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
-              height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+              width: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
+              height: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
               fit: BoxFit.contain,
+              clipBehavior: Clip.hardEdge,
             ),
           ),
           Text(

@@ -88,10 +88,10 @@ class EcliniqRouter {
     return PageTransition(
       type: transition,
       child: page,
-      curve: Curves.easeInOut,
+      curve: Curves.fastOutSlowIn, // Smoother curve for better animation feel
       isIos: false,
       fullscreenDialog: fullscreenDialog,
-      duration: duration ?? const Duration(milliseconds: 300),
+      duration: duration ?? const Duration(milliseconds: 350), // Slightly longer for smoother transition
     );
   }
   

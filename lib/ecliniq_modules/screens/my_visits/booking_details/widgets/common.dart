@@ -576,7 +576,7 @@ class StatusHeader extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             color: config.backgroundColor,
             borderRadius: const BorderRadius.only(
@@ -643,11 +643,12 @@ class StatusHeader extends StatelessWidget {
                 color: Color(0xff424242),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               tokenNumber!,
               style: EcliniqTextStyles.responsiveHeadlineXXLarge(context).copyWith(
                 color: config.textColor,
+                 fontWeight: FontWeight.w700,
               ),
             ),
             if (expectedTime != null) ...[

@@ -9,9 +9,10 @@ import 'package:page_transition/page_transition.dart';
 /// Helper class for managing main navigation between bottom tab screens
 /// with direction-based transitions
 class NavigationHelper {
-  /// Navigate to a specific tab index with left-to-right transition
+  /// Navigate to a specific tab index with direction-based transitions
   /// 
-  /// All transitions use leftToRight for consistent smooth navigation experience
+  /// Transitions are direction-aware: forward navigation (higher index) slides left to right,
+  /// backward navigation (lower index) slides right to left for smooth, intuitive navigation
   static Future<void> navigateToTab(
     BuildContext context,
     int newIndex,
@@ -44,14 +45,16 @@ class NavigationHelper {
     // Use pushReplacement to avoid stacking pages in navigation stack
     // This maintains a clean navigation history for tab switching
     // Determine transition direction based on tab index
+    // When moving forward (newIndex > currentIndex): slide left to right (rightToLeft transition)
+    // When moving backward (newIndex < currentIndex): slide right to left (leftToRight transition)
     final transitionType = newIndex > currentIndex
-        ? PageTransitionType.rightToLeft
-        : PageTransitionType.leftToRight;
+        ? PageTransitionType.rightToLeft  // Forward: new tab slides in from right
+        : PageTransitionType.leftToRight; // Backward: new tab slides in from left
 
     await EcliniqRouter.pushReplacement(
       targetPage,
       transition: transitionType,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350), // Smooth transition duration
     );
   }
 }

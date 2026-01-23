@@ -1,5 +1,6 @@
 import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
+import 'package:ecliniq/ecliniq_api/storage_service.dart';
 import 'package:ecliniq/ecliniq_core/router/navigation_helper.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
@@ -30,6 +31,7 @@ import 'package:shimmer/shimmer.dart';
 class AppointmentData {
   final String id;
   final String doctorName;
+  final String? doctorPhoto;
   final String specialization;
   final String qualification;
   final String date;
@@ -42,6 +44,7 @@ class AppointmentData {
   AppointmentData({
     required this.id,
     required this.doctorName,
+    this.doctorPhoto,
     required this.specialization,
     required this.qualification,
     required this.date,
@@ -68,6 +71,7 @@ class _MyVisitsState extends State<MyVisits>
   int _selectedTabIndex = 0;
   int _selectedFilterIndex = 0;
   final _appointmentService = AppointmentService();
+  final _storageService = StorageService();
   bool _isLoadingAppointments = false;
   // Key counter for hot reload
 
@@ -221,6 +225,7 @@ class _MyVisitsState extends State<MyVisits>
     return AppointmentData(
       id: item.appointmentId,
       doctorName: item.doctorName,
+      doctorPhoto: item.doctorPhoto,
       specialization: specialization,
       qualification: qualification,
       date: date,
@@ -569,6 +574,11 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Widget _buildDoctorInfo(AppointmentData appointment) {
+    // Get the first letter of doctor's name for fallback
+    final doctorInitial = appointment.doctorName.isNotEmpty
+        ? appointment.doctorName[0].toUpperCase()
+        : 'D';
+
     return Row(
       children: [
         Row(
@@ -584,14 +594,91 @@ class _MyVisitsState extends State<MyVisits>
                     shape: BoxShape.circle,
                     border: Border.all(color: Color(0xFF96BFFF), width: 0.5),
                   ),
-                  child: Center(
-                    child: Text(
-                      'D',
-                      style: EcliniqTextStyles.responsiveHeadlineXXLargeBold(
-                        context,
-                      ).copyWith(color: Color(0xFF2196F3)),
-                    ),
-                  ),
+                  child: appointment.doctorPhoto != null &&
+                          appointment.doctorPhoto!.isNotEmpty
+                      ? FutureBuilder<String>(
+                          future: _storageService.getImageUrl(
+                            appointment.doctorPhoto,
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF2196F3),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final imageUrl = snapshot.data;
+                            if (imageUrl != null && imageUrl.isNotEmpty) {
+                              return ClipOval(
+                                child: Image.network(
+                                  imageUrl,
+                                  width: 70,
+                                  height: 70,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Fallback to initial if image fails to load
+                                    return Center(
+                                      child: Text(
+                                        doctorInitial,
+                                        style: EcliniqTextStyles
+                                            .responsiveHeadlineXXLargeBold(
+                                          context,
+                                        ).copyWith(color: Color(0xFF2196F3)),
+                                      ),
+                                    );
+                                  },
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                            : null,
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF2196F3),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            }
+
+                            // Fallback to initial if no URL
+                            return Center(
+                              child: Text(
+                                doctorInitial,
+                                style: EcliniqTextStyles
+                                    .responsiveHeadlineXXLargeBold(
+                                  context,
+                                ).copyWith(color: Color(0xFF2196F3)),
+                              ),
+                            );
+                          },
+                        )
+                      : Center(
+                          child: Text(
+                            doctorInitial,
+                            style: EcliniqTextStyles
+                                .responsiveHeadlineXXLargeBold(
+                              context,
+                            ).copyWith(color: Color(0xFF2196F3)),
+                          ),
+                        ),
                 ),
                 Positioned(
                   top: -2,
@@ -692,48 +779,53 @@ class _MyVisitsState extends State<MyVisits>
     switch (appointment.status) {
       case AppointmentStatus.confirmed:
       case AppointmentStatus.requested:
-        return SizedBox(
-          width: double.infinity,
-          height: EcliniqTextStyles.getResponsiveButtonHeight(
-            context,
-            baseHeight: 52.0,
-          ),
-
-          child: ElevatedButton(
-            onPressed: () => _navigateToDetailPage(appointment),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.white,
-              side: BorderSide(color: Color(0xFF8E8E8E), width: 0.5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-              padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
-                context,
-                horizontal: 0,
-                vertical: 12,
-              ),
+        return GestureDetector(
+          onTap: () => _navigateToDetailPage(appointment),
+          child: Container(
+            width: double.infinity,
+            height: EcliniqTextStyles.getResponsiveButtonHeight(
+              context,
+              baseHeight: 52.0,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'View Details',
-                  style: EcliniqTextStyles.responsiveHeadlineBMedium(context)
-                      .copyWith(
-                        color: Color(0xFF424242),
-
-                        fontWeight: FontWeight.w500,
-                      ),
-                ),
-                const SizedBox(width: 4),
-                SvgPicture.asset(
-                  EcliniqIcons.arrowRight.assetPath,
-                  width: 24,
-                  height: 24,
-                  color: Color(0xFF424242),
-                ),
-              ],
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Color(0xFF8E8E8E), width: 0.5),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+              context,
+              horizontal: 0,
+              vertical: 12,
+            ),
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'View Details',
+                    style: EcliniqTextStyles.responsiveHeadlineBMedium(context)
+                        .copyWith(
+                          color: Color(0xFF424242),
+                          fontWeight: FontWeight.w500,
+                          height: 1.0, // Set line height to 1 for better alignment
+                        ),
+                  ),
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: SvgPicture.asset(
+                      EcliniqIcons.arrowRight.assetPath,
+                      width: 24,
+                      height: 24,
+                      color: Color(0xFF424242),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -743,17 +835,22 @@ class _MyVisitsState extends State<MyVisits>
         return Row(
           children: [
             Expanded(
-              child: OutlinedButton(
-                onPressed: () => _navigateToDetailPage(appointment),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.white),
+              child: GestureDetector(
+                onTap: () => _navigateToDetailPage(appointment),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: Text(
-                  'View Details',
-                  style: EcliniqTextStyles.responsiveHeadlineXMedium(
-                    context,
-                  ).copyWith(color: Color(0xFF2372EC)),
+                  child: Center(
+                    child: Text(
+                      'View Details',
+                      style: EcliniqTextStyles.responsiveHeadlineXMedium(
+                        context,
+                      ).copyWith(color: Color(0xFF2372EC)),
+                    ),
+                  ),
                 ),
               ),
             ),

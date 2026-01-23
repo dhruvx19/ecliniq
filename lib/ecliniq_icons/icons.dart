@@ -210,7 +210,7 @@ enum EcliniqIcons {
   close('$_base/Close.svg'),
   checkRounded('$_base/Check Round.svg'),
   myVisitsFilled('$_base/Appointment RemindarSelected.svg'),
-  homeFilled('$_base/HomeSelected.svg'),
+  homeFilled('$_base/HomeFilled.svg'),
   filesFilled('$_base/LibrarySelected.svg'),
   userSelected('$_base/UserSelected.svg'),
   arrowRightCoin('$_base/Angle Right Coin.svg'),

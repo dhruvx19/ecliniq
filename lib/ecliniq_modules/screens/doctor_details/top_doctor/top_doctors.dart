@@ -390,24 +390,24 @@ class _DoctorInfo extends StatelessWidget {
           ).copyWith(color: Color(0xff424242), fontWeight: FontWeight.w600),
         ),
 
-        SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+       
         Text(
           doctor.primarySpecialization,
           style: EcliniqTextStyles.responsiveTitleXLarge(
             context,
           ).copyWith(color: Color(0xff424242)),
         ),
-        if (doctor.educationText.isNotEmpty) ...[
+        //if (doctor.educationText.isNotEmpty) ...[
           SizedBox(
-            height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0),
+            height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0),
           ),
           Text(
-            doctor.educationText,
+            'MBBS',
             style: EcliniqTextStyles.responsiveTitleXLarge(
               context,
             ).copyWith(color: Color(0xff424242)),
           ),
-        ],
+        //],
       ],
     );
   }

@@ -102,6 +102,7 @@ class MostSearchedSpecialities extends StatelessWidget {
                     'Near you',
                     style: EcliniqTextStyles.responsiveBodyMediumProminent(context).copyWith(
                       color: Color(0xff8E8E8E),
+                        fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),

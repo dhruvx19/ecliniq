@@ -122,9 +122,13 @@ class NotFeelingWell extends StatelessWidget {
                   ),
                   child: EcliniqText(
                     'Select the symptom you are experiencing',
-                    style: EcliniqTextStyles.responsiveBodyMediumProminent(
-                      context,
-                    ).copyWith(color: Color(0xff8E8E8E)),
+                    style:
+                        EcliniqTextStyles.responsiveBodyMediumProminent(
+                          context,
+                        ).copyWith(
+                          color: Color(0xff8E8E8E),
+                          fontWeight: FontWeight.w400,
+                        ),
                   ),
                 ),
               ],
@@ -333,10 +337,11 @@ class NotFeelingWell extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: EcliniqTextStyles.responsiveTitleXLarge(
-                      context,
-                      
-                    ).copyWith(color: Color(0xff424242), fontWeight: FontWeight.w400),
+                    style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                        .copyWith(
+                          color: Color(0xff424242),
+                          fontWeight: FontWeight.w400,
+                        ),
                   ),
                 ),
               ],

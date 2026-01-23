@@ -439,22 +439,32 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SvgPicture.asset(
-                              EcliniqIcons.delete.assetPath,
+                            SizedBox(
                               width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
                               height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  EcliniqIcons.delete.assetPath,
+                                  width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
+                                  height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
                             ),
                             SizedBox(
                               width: EcliniqTextStyles.getResponsiveSpacing(context, 8),
                             ),
                             Text(
                               'Delete Account',
-                              style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                                color: Color(0xffF04248),
-
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: EcliniqTextStyles
+                                  .responsiveHeadlineBMedium(context)
+                                  .copyWith(
+                                    color: Color(0xffF04248),
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.0,
+                                  ),
                             ),
                           ],
                         ),

@@ -757,7 +757,7 @@ class _MyVisitsState extends State<MyVisits>
           ),
           child: Center(
             child: Text(
-              'DB',
+              _getInitial(appointment.patientName),
               style: EcliniqTextStyles.responsiveBody2xSmallRegular(
                 context,
               ).copyWith(color: Color(0xffEC7600), fontWeight: FontWeight.w500),
@@ -773,6 +773,12 @@ class _MyVisitsState extends State<MyVisits>
         ),
       ],
     );
+  }
+
+  String _getInitial(String name) {
+    final cleaned = name.replaceAll(RegExp(r"\s*\(You\)", caseSensitive: false), '').trim();
+    if (cleaned.isEmpty) return '?';
+    return cleaned.substring(0, 1).toUpperCase();
   }
 
   Widget _buildActionButtons(AppointmentData appointment) {

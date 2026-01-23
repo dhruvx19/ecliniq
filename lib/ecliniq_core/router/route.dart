@@ -89,7 +89,7 @@ class EcliniqRouter {
       type: transition,
       child: page,
       curve: Curves.easeInOut,
-      isIos: transition == PageTransitionType.rightToLeft,
+      isIos: false,
       fullscreenDialog: fullscreenDialog,
       duration: duration ?? const Duration(milliseconds: 300),
     );

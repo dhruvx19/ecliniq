@@ -3,15 +3,14 @@ import 'dart:math';
 
 import 'package:ecliniq/ecliniq_core/auth/secure_storage.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
+import 'package:ecliniq/ecliniq_icons/assets/home/home_screen.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/main_flow/phone_input.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
-import 'package:ecliniq/ecliniq_icons/assets/home/home_screen.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/action_snackbar.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -652,7 +651,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   CustomActionSnackBar.show(
                     context: context,
                     title: 'Navigation Error',
-                    subtitle: 'Login successful but navigation failed. Please restart the app.',
+                    subtitle:
+                        'Login successful but navigation failed. Please restart the app.',
                     duration: const Duration(seconds: 5),
                   );
                 }
@@ -857,13 +857,12 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         // Check if it's a timeout exception
         if (e.toString().toLowerCase().contains('timeout')) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      
-CustomErrorSnackBar.show(
-              context: context,
-              title: 'Timeout',
-              subtitle: 'Biometric authentication timed out. Please try again.',
-              duration: const Duration(seconds: 3),
-        
+
+          CustomErrorSnackBar.show(
+            context: context,
+            title: 'Timeout',
+            subtitle: 'Biometric authentication timed out. Please try again.',
+            duration: const Duration(seconds: 3),
           );
         } else {
           // Only show error for unexpected exceptions
@@ -897,7 +896,7 @@ CustomErrorSnackBar.show(
         const SizedBox(height: 24),
         // Phone input field
         Container(
-        width: double.infinity,
+          width: double.infinity,
           height: EcliniqTextStyles.getResponsiveButtonHeight(
             context,
             baseHeight: 56.0,
@@ -923,10 +922,13 @@ CustomErrorSnackBar.show(
                   children: [
                     Text(
                       '+91',
-                      style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xff424242),
-                      ),
+                      style:
+                          EcliniqTextStyles.responsiveHeadlineBMedium(
+                            context,
+                          ).copyWith(
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xff424242),
+                          ),
                     ),
                     const SizedBox(width: 4),
                     SvgPicture.asset(
@@ -943,19 +945,23 @@ CustomErrorSnackBar.show(
                   keyboardType: TextInputType.phone,
                   autofocus: true,
                   maxLength: 10,
-                  decoration:  InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Mobile Number',
-                    hintStyle: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                      color: Color(0xffD6D6D6),
-                      fontWeight: FontWeight.w400
-                    ),
+                    hintStyle:
+                        EcliniqTextStyles.responsiveHeadlineXMedium(
+                          context,
+                        ).copyWith(
+                          color: Color(0xffD6D6D6),
+                          fontWeight: FontWeight.w400,
+                        ),
                     border: InputBorder.none,
                     counterText: '',
-                    contentPadding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
-                  context,
-                  horizontal: 14,
-                  vertical: 2,
-                ),
+                    contentPadding:
+                        EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                          context,
+                          horizontal: 14,
+                          vertical: 2,
+                        ),
                   ),
                 ),
               ),
@@ -1009,13 +1015,14 @@ CustomErrorSnackBar.show(
                 children: [
                   Text(
                     'Using M-Pin',
-                    style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-                      color: _isButtonPressed
-                          ? Colors.white
-                          : isButtonEnabled
-                          ? Colors.white
-                          : Colors.grey,
-                    ),
+                    style: EcliniqTextStyles.responsiveHeadlineMedium(context)
+                        .copyWith(
+                          color: _isButtonPressed
+                              ? Colors.white
+                              : isButtonEnabled
+                              ? Colors.white
+                              : Colors.grey,
+                        ),
                   ),
                 ],
               ),
@@ -1032,7 +1039,8 @@ CustomErrorSnackBar.show(
   Widget _buildMPINScreen() {
     // Calculate responsive dimensions based on available screen width
     final screenW = MediaQuery.of(context).size.width;
-    final availableWidth = screenW - 36.0; // Account for horizontal padding (18 * 2)
+    final availableWidth =
+        screenW - 36.0; // Account for horizontal padding (18 * 2)
     final responsiveSlotWidth = EcliniqTextStyles.getResponsiveSize(
       context,
       66.0,
@@ -1045,20 +1053,20 @@ CustomErrorSnackBar.show(
       minSize: 4.0,
       maxSize: 7.0,
     );
-    
+
     // Calculate total width needed: (slotWidth + margin*2) * 4
     final totalWidthNeeded = (responsiveSlotWidth + (responsiveMargin * 2)) * 4;
-    
+
     // If total width exceeds available space, scale down proportionally
     double finalSlotWidth = responsiveSlotWidth;
     double finalMargin = responsiveMargin;
-    
+
     if (totalWidthNeeded > availableWidth) {
       final scaleFactor = availableWidth / totalWidthNeeded;
       finalSlotWidth = (responsiveSlotWidth * scaleFactor).clamp(45.0, 66.0);
       finalMargin = (responsiveMargin * scaleFactor).clamp(3.0, 7.0);
     }
-    
+
     final finalTotalWidth = (finalSlotWidth + (finalMargin * 2)) * 4;
     final responsiveLetterSpacing = finalSlotWidth + 4;
 
@@ -1073,11 +1081,12 @@ CustomErrorSnackBar.show(
           const SizedBox(height: 8),
           Text(
             'Enter Your MPIN to Sign In',
-            style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w500,
-              color: Color(0xff424242),
-            ),
+            style: EcliniqTextStyles.responsiveHeadlineBMedium(context)
+                .copyWith(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff424242),
+                ),
             textAlign: TextAlign.center,
           ),
 
@@ -1106,12 +1115,15 @@ CustomErrorSnackBar.show(
                           children: [
                             Text(
                               ch,
-                              style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                                fontWeight: FontWeight.w400,
-                                color: i < _entered.length
-                                    ? Colors.black
-                                    : Colors.grey.shade400,
-                              ),
+                              style:
+                                  EcliniqTextStyles.responsiveHeadlineBMedium(
+                                    context,
+                                  ).copyWith(
+                                    fontWeight: FontWeight.w400,
+                                    color: i < _entered.length
+                                        ? Colors.black
+                                        : Colors.grey.shade400,
+                                  ),
                             ),
                             const SizedBox(height: 8),
                             Container(
@@ -1139,11 +1151,14 @@ CustomErrorSnackBar.show(
                           LengthLimitingTextInputFormatter(4),
                         ],
                         textAlign: TextAlign.center,
-                        style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                          color: Colors.transparent,
-                          letterSpacing: responsiveLetterSpacing,
-                          fontFamily: 'Inter',
-                        ),
+                        style:
+                            EcliniqTextStyles.responsiveHeadlineBMedium(
+                              context,
+                            ).copyWith(
+                              color: Colors.transparent,
+                              letterSpacing: responsiveLetterSpacing,
+                              fontFamily: 'Inter',
+                            ),
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           counterText: '',
@@ -1170,14 +1185,15 @@ CustomErrorSnackBar.show(
                         : () {
                             _navigateToForgotPin();
                           },
-                    child:  Text(
+                    child: Text(
                       'Forgot PIN?',
-                      style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-                        color: Color(0xff424242),
-                 
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Inter',
-                      ),
+                      style: EcliniqTextStyles.responsiveBodySmall(context)
+                          .copyWith(
+                            color: Color(0xff424242),
+
+                            fontWeight: FontWeight.w400,
+                            fontFamily: 'Inter',
+                          ),
                     ),
                   ),
                 ],
@@ -1194,15 +1210,15 @@ CustomErrorSnackBar.show(
                   children: [
                     Text(
                       'Show PIN',
-                      style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-                   
-                        fontWeight: FontWeight.w400,
-                        color: _entered.isEmpty
-                            ? Color(0xffB8B8B8)
-                            : (_showPin
-                                  ? const Color(0xFF2372EC)
-                                  : Color(0xff424242)),
-                      ),
+                      style: EcliniqTextStyles.responsiveBodySmall(context)
+                          .copyWith(
+                            fontWeight: FontWeight.w400,
+                            color: _entered.isEmpty
+                                ? Color(0xffB8B8B8)
+                                : (_showPin
+                                      ? const Color(0xFF2372EC)
+                                      : Color(0xff424242)),
+                          ),
                     ),
                     SizedBox(width: 6),
                     SvgPicture.asset(
@@ -1263,11 +1279,14 @@ CustomErrorSnackBar.show(
                         _isLoading
                             ? 'Authenticating...'
                             : 'Use ${BiometricService.getBiometricTypeName()}',
-                        style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF2372EC),
-                        ),
+                        style:
+                            EcliniqTextStyles.responsiveHeadlineBMedium(
+                              context,
+                            ).copyWith(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF2372EC),
+                            ),
                       ),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(150, 48),
@@ -1307,10 +1326,13 @@ CustomErrorSnackBar.show(
                       ),
                       label: Text(
                         'Use ${BiometricService.getBiometricTypeName()}',
-                        style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF2372EC),
-                        ),
+                        style:
+                            EcliniqTextStyles.responsiveHeadlineBMedium(
+                              context,
+                            ).copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF2372EC),
+                            ),
                       ),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(150, 48),
@@ -1348,173 +1370,180 @@ CustomErrorSnackBar.show(
             minHeight: MediaQuery.of(context).size.height,
           ),
           child: IntrinsicHeight(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: headerHeight,
-                  width: double.infinity,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0xFF2372EC), Color(0xFFF8DFFF)],
-                            stops: [0.0, 0.95],
-                          ),
-                        ),
-                      ),
-                      Positioned.fill(
-                        child: Opacity(
-                          opacity: 0.45,
-                          child: Image.asset(
-                            EcliniqIcons.lottie.assetPath,
-                            fit: BoxFit.cover,
-                            cacheWidth: 800,
-                            cacheHeight: 600,
-                            filterQuality: FilterQuality.low,
-                          ),
-                        ),
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SvgPicture.asset(
-                            EcliniqIcons.nameLogo.assetPath,
-                            height: 40,
-                            width: 198,
-                          ),
-                          const SizedBox(height: 10),
-                           Text(
-                            'Welcome back!',
-                            style: EcliniqTextStyles.responsiveHeadlineXLarge(context).copyWith(
-                              color: Colors.white,
-                              fontFamily: 'Rubik',
-                        
-                              fontWeight: FontWeight.w500,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: headerHeight,
+                    width: double.infinity,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0xFF2372EC), Color(0xFFF8DFFF)],
+                              stops: [0.0, 0.95],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                           Text(
-                            'Your Healthcare Platform',
-                            style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                              color: Color(0xE5FFFFFF),
-                            
-                              
-                              fontWeight: FontWeight.w400,
+                        ),
+                        Positioned.fill(
+                          child: Opacity(
+                            opacity: 0.45,
+                            child: Image.asset(
+                              EcliniqIcons.lottie.assetPath,
+                              fit: BoxFit.cover,
+                              cacheWidth: 800,
+                              cacheHeight: 600,
+                              filterQuality: FilterQuality.low,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(
+                              EcliniqIcons.loginLogo.assetPath,
+                              height: 44,
+                              width: 198,
+                            ),
+                       
+                            Text(
+                              'Welcome back!',
+                              style:
+                                  EcliniqTextStyles.responsiveHeadlineXLarge(
+                                    context,
+                                  ).copyWith(
+                                    color: Colors.white,
+                                    fontFamily: 'Rubik',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Your Healthcare Platform',
+                              style:
+                                  EcliniqTextStyles.responsiveTitleXLarge(
+                                    context,
+                                  ).copyWith(
+                                    color: Colors.white,
+                                    fontFamily: 'Rubik',
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Transform.translate(
-                    offset: const Offset(0, -65),
-                    child: Padding(
-                      padding: EdgeInsets.zero,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned.fill(
-                            child: Stack(
-                              children: [
-                                PhysicalShape(
-                                  clipper: CardHoleClipper(
-                                    radius: 52.0,
-                                    centerYOffset: 14.0,
+                  Expanded(
+                    child: Transform.translate(
+                      offset: const Offset(0, -65),
+                      child: Padding(
+                        padding: EdgeInsets.zero,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned.fill(
+                              child: Stack(
+                                children: [
+                                  PhysicalShape(
+                                    clipper: CardHoleClipper(
+                                      radius: 52.0,
+                                      centerYOffset: 14.0,
+                                    ),
+                                    color: Colors.white,
+                                    elevation: 0,
+                                    child: const SizedBox.expand(),
                                   ),
-                                  color: Colors.white,
-                                  elevation: 0,
-                                  child: const SizedBox.expand(),
-                                ),
-                                Positioned.fill(
-                                  child: CustomPaint(
-                                    painter: TopEdgePainter(
-                                      leftColor: const Color(
-                                        0xFFBF50FF,
-                                      ).withOpacity(0.3),
-                                      rightColor: const Color(
-                                        0xFF0064FF,
-                                      ).withOpacity(0.4),
-                                      holeRadius: 52.0,
-                                      holeCenterYOffset: 14.0,
-                                      cornerRadius: 18.0,
-                                      bandHeight: 36.0,
+                                  Positioned.fill(
+                                    child: CustomPaint(
+                                      painter: TopEdgePainter(
+                                        leftColor: const Color(
+                                          0xFFBF50FF,
+                                        ).withOpacity(0.3),
+                                        rightColor: const Color(
+                                          0xFF0064FF,
+                                        ).withOpacity(0.4),
+                                        holeRadius: 52.0,
+                                        holeCenterYOffset: 14.0,
+                                        cornerRadius: 18.0,
+                                        bandHeight: 36.0,
+                                      ),
                                     ),
                                   ),
-                                ),
-
-                                Positioned.fill(
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      18.0,
-                                      56.0,
-                                      18.0,
-                                      0.0,
+              
+                                  Positioned.fill(
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        18.0,
+                                        56.0,
+                                        18.0,
+                                        0.0,
+                                      ),
+                                      child: _showMPINScreen
+                                          ? _buildMPINScreen()
+                                          : _buildPhoneInputScreen(),
                                     ),
-                                    child: _showMPINScreen
-                                        ? _buildMPINScreen()
-                                        : _buildPhoneInputScreen(),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          // if (_showMPINScreen)
-                          Positioned(
-                            top: -35,
-                            left: 18,
-                            right: 18,
-                            child: Center(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                                width: 94,
-                                height: 94,
-                                child: Center(
-                                  child: ClipOval(
-                                    child: SvgPicture.asset(
-                                      'lib/ecliniq_icons/assets/Group.svg',
-
-                                      width: 80,
-                                      fit: BoxFit.contain,
-
-                                      errorBuilder:
-                                          (
-                                            context,
-                                            error,
-                                            stackTrace,
-                                          ) => Image.asset(
-                                            EcliniqIcons.userCircle.assetPath,
-                                            width: 72,
-                                            height: 72,
-                                            fit: BoxFit.cover,
-                                          ),
+                            // if (_showMPINScreen)
+                            Positioned(
+                              top: -35,
+                              left: 18,
+                              right: 18,
+                              child: Center(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 5),
+                                      ),
+                                    ],
+                                  ),
+                                  width: 94,
+                                  height: 94,
+                                  child: Center(
+                                    child: ClipOval(
+                                      child: SvgPicture.asset(
+                                        'lib/ecliniq_icons/assets/Group.svg',
+              
+                                        width: 80,
+                                        fit: BoxFit.contain,
+              
+                                        errorBuilder:
+                                            (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) => Image.asset(
+                                              EcliniqIcons.userCircle.assetPath,
+                                              width: 72,
+                                              height: 72,
+                                              fit: BoxFit.cover,
+                                            ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

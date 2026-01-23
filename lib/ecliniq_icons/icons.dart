@@ -266,6 +266,7 @@ enum EcliniqIcons {
   five('$_base/five.svg'),
   six('$_base/six.svg'),
   seven('$_base/seven.svg'),
+  loginLogo('$_base/UpcharQ_horizontal 1.svg'),
   noNotifications('$_base/no_notif.svg');
 
   //speciality

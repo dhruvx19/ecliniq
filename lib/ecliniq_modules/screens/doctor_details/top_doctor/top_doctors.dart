@@ -288,142 +288,7 @@ class _DoctorCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _DoctorAvatar(doctor: doctor),
-                  // Container(
-                  //   padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
-                  //     context,
-                  //     horizontal: 8.0,
-                  //     vertical: 4.0,
-                  //   ),
-                  //   decoration: BoxDecoration(
-                  //     color: Color(0xffF2FFF3),
-                  //     borderRadius: BorderRadius.circular(
-                  //       EcliniqTextStyles.getResponsiveBorderRadius(
-                  //         context,
-                  //         4.0,
-                  //       ),
-                  //     ),
-                  //   ),
-                  //   child: Row(
-                  //     children: [
-                  //       Container(
-                  //         width: EcliniqTextStyles.getResponsiveSize(
-                  //           context,
-                  //           16.0,
-                  //         ),
-                  //         height: EcliniqTextStyles.getResponsiveSize(
-                  //           context,
-                  //           16.0,
-                  //         ),
-                  //         decoration: BoxDecoration(
-                  //           color: Color(0xFF3EAF3F),
-                  //           shape: BoxShape.circle,
-                  //         ),
-                  //       ),
-                  //     SizedBox(
-                  //         width: EcliniqTextStyles.getResponsiveSpacing(
-                  //           context,
-                  //           4.0,
-                  //         ),
-                  //       ),
-                  //       Text(
-                  //         'Queue Started',
-                  //         style:
-                  //             EcliniqTextStyles.responsiveButtonXLargeProminent(
-                  //               context,
-                  //             ).copyWith(
-                  //               color: Color(0xFF3EAF3F),
-                  //               fontWeight: FontWeight.w400,
-                  //             ),
-                  //       ),
-                  //       SizedBox(
-                  //         width: EcliniqTextStyles.getResponsiveSpacing(
-                  //           context,
-                  //           8.0,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                  // Container(
-                  //   padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
-                  //     context,
-                  //     horizontal: 8.0,
-                  //     vertical: 4.0,
-                  //   ),
-                  //   decoration: BoxDecoration(
-                  //     color: Color(0xffF9F9F9),
-                  //     borderRadius: BorderRadius.circular(
-                  //       EcliniqTextStyles.getResponsiveBorderRadius(
-                  //         context,
-                  //         4.0,
-                  //       ),
-                  //     ),
-                  //   ),
-                  //   child: Column(
-                  //     children: [
-                  //       Text(
-                  //         'Next Available',
-                  //         style:
-                  //             EcliniqTextStyles.responsiveButtonXLargeProminent(
-                  //               context,
-                  //             ).copyWith(
-                  //               color: Color(0xFF2372EC),
-                  //               fontWeight: FontWeight.w400,
-                  //             ),
-                  //       ),
-                  //       Text(
-                  //         'Tomorrow, 10:00AM',
-                  //         style:
-                  //             EcliniqTextStyles.responsiveButtonXLargeProminent(
-                  //               context,
-                  //             ).copyWith(
-                  //               color: Color(0xFF626060),
-                  //               fontWeight: FontWeight.w400,
-                  //             ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                   Container(
-                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
-                      context,
-                      horizontal: 6.0,
-                      vertical: 4.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Color(0xffFEF9E6),
-                      borderRadius: BorderRadius.circular(
-                        EcliniqTextStyles.getResponsiveBorderRadius(
-                          context,
-                          4.0,
-                        ),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Queue Not Started',
-                          style:
-                              EcliniqTextStyles.responsiveButtonXLargeProminent(
-                                context,
-                              ).copyWith(
-                                color: Color(0xFFBE8B00),
-                                fontWeight: FontWeight.w400,
-                              ),
-                        ),
-                        Text(
-                          'Tomorrow, 10:00AM',
-                          style:
-                              EcliniqTextStyles.responsiveButtonXLargeProminent(
-                                context,
-                              ).copyWith(
-                                color: Color(0xFF626060),
-                                fontWeight: FontWeight.w400,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _AvailabilityBadge(doctor: doctor),
                 ],
               ),
               SizedBox(
@@ -441,6 +306,145 @@ class _DoctorCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AvailabilityBadge extends StatelessWidget {
+  final Doctor doctor;
+
+  const _AvailabilityBadge({required this.doctor});
+
+  @override
+  Widget build(BuildContext context) {
+    final availability = doctor.availability;
+
+    if (availability == null) {
+      return Container(
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+          context,
+          horizontal: 6.0,
+          vertical: 4.0,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xffFEF9E6),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+          ),
+        ),
+        child: Text(
+          'Queue Not Started',
+          style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
+              .copyWith(color: const Color(0xFFBE8B00), fontWeight: FontWeight.w400),
+        ),
+      );
+    }
+
+    final status = availability.status.toUpperCase();
+
+    if (status == 'QUEUE_STARTED') {
+      return Container(
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+          context,
+          horizontal: 8.0,
+          vertical: 4.0,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2FFF3),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              'Queue Started',
+              style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
+                  .copyWith(color: const Color(0xFF3EAF3F), fontWeight: FontWeight.w400),
+            ),
+            if (availability.availableTokens != null)
+              Text(
+                '${availability.availableTokens} tokens left',
+                style: EcliniqTextStyles.responsiveLabelMedium(context)
+                    .copyWith(color: const Color(0xFF3EAF3F)),
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (status == 'QUEUE_NOT_STARTED') {
+      final timeText = (availability.startTime != null && availability.endTime != null)
+          ? '${availability.startTime} - ${availability.endTime}'
+          : null;
+      return Container(
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+          context,
+          horizontal: 6.0,
+          vertical: 4.0,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xffFEF9E6),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              'Queue Not Started',
+              style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
+                  .copyWith(color: const Color(0xFFBE8B00), fontWeight: FontWeight.w400),
+            ),
+            if (timeText != null)
+              Text(
+                timeText,
+                style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
+                    .copyWith(color: const Color(0xFF626060), fontWeight: FontWeight.w400),
+              ),
+          ],
+        ),
+      );
+    }
+
+    // Default: show message (e.g., Next available ...)
+    final message = availability.message;
+    String prefix = '';
+    String details = message;
+    if (message.toLowerCase().startsWith('next available')) {
+      prefix = 'Next available';
+      details = message.substring('Next available'.length).trim();
+    }
+    return Container(
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+        context,
+        horizontal: 8.0,
+        vertical: 4.0,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xffF9F9F9),
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (prefix.isNotEmpty)
+            Text(
+              prefix,
+              style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
+                  .copyWith(color: const Color(0xFF2372EC), fontWeight: FontWeight.w400),
+            ),
+          Text(
+            details.isNotEmpty ? details : message,
+            style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
+                .copyWith(color: const Color(0xFF626060), fontWeight: FontWeight.w400),
+          ),
+        ],
       ),
     );
   }

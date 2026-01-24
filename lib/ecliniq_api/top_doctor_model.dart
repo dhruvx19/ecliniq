@@ -11,6 +11,7 @@ class Doctor {
   final double? distanceKm;
   final Hospital? hospital;
   final Clinic? clinic;
+  final DoctorAvailability? availability;
 
   Doctor({
     required this.id,
@@ -23,6 +24,7 @@ class Doctor {
     this.distanceKm,
     this.hospital,
     this.clinic,
+    this.availability,
   });
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
@@ -109,6 +111,9 @@ class Doctor {
       distanceKm: parseDistanceKm(json['distance']) ?? (json['distanceKm'] != null ? (json['distanceKm'] as num).toDouble() : null),
       hospital: parseHospital(),
       clinic: parseClinic(),
+      availability: json['availability'] != null
+          ? DoctorAvailability.fromJson(json['availability'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -124,6 +129,7 @@ class Doctor {
       if (distanceKm != null) 'distanceKm': distanceKm,
       if (hospital != null) 'hospital': hospital!.toJson(),
       if (clinic != null) 'clinic': clinic!.toJson(),
+      if (availability != null) 'availability': availability!.toJson(),
     };
   }
 
@@ -177,6 +183,104 @@ class Doctor {
 
     // Return null if we couldn't get a valid URL
     return null;
+  }
+}
+
+class DoctorAvailability {
+  final String status;
+  final String message;
+  final String? slotId;
+  final String? startTime;
+  final String? endTime;
+  final int? availableTokens;
+  final int? totalTokens;
+  final RawSlot? rawSlot;
+
+  DoctorAvailability({
+    required this.status,
+    required this.message,
+    this.slotId,
+    this.startTime,
+    this.endTime,
+    this.availableTokens,
+    this.totalTokens,
+    this.rawSlot,
+  });
+
+  factory DoctorAvailability.fromJson(Map<String, dynamic> json) {
+    return DoctorAvailability(
+      status: json['status']?.toString() ?? '',
+      message: json['message']?.toString() ?? '',
+      slotId: json['slotId']?.toString(),
+      startTime: json['startTime']?.toString(),
+      endTime: json['endTime']?.toString(),
+      availableTokens: json['availableTokens'] is num
+          ? (json['availableTokens'] as num).toInt()
+          : int.tryParse(json['availableTokens']?.toString() ?? ''),
+      totalTokens: json['totalTokens'] is num
+          ? (json['totalTokens'] as num).toInt()
+          : int.tryParse(json['totalTokens']?.toString() ?? ''),
+      rawSlot: json['rawSlot'] != null
+          ? RawSlot.fromJson(json['rawSlot'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status,
+      'message': message,
+      if (slotId != null) 'slotId': slotId,
+      if (startTime != null) 'startTime': startTime,
+      if (endTime != null) 'endTime': endTime,
+      if (availableTokens != null) 'availableTokens': availableTokens,
+      if (totalTokens != null) 'totalTokens': totalTokens,
+      if (rawSlot != null) 'rawSlot': rawSlot!.toJson(),
+    };
+  }
+}
+
+class RawSlot {
+  final String id;
+  final String startTime;
+  final String endTime;
+  final int? maxTokens;
+  final int? availableTokens;
+  final String? slotStatus;
+
+  RawSlot({
+    required this.id,
+    required this.startTime,
+    required this.endTime,
+    this.maxTokens,
+    this.availableTokens,
+    this.slotStatus,
+  });
+
+  factory RawSlot.fromJson(Map<String, dynamic> json) {
+    return RawSlot(
+      id: json['id']?.toString() ?? '',
+      startTime: json['startTime']?.toString() ?? '',
+      endTime: json['endTime']?.toString() ?? '',
+      maxTokens: json['maxTokens'] is num
+          ? (json['maxTokens'] as num).toInt()
+          : int.tryParse(json['maxTokens']?.toString() ?? ''),
+      availableTokens: json['availableTokens'] is num
+          ? (json['availableTokens'] as num).toInt()
+          : int.tryParse(json['availableTokens']?.toString() ?? ''),
+      slotStatus: json['slotStatus']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'startTime': startTime,
+      'endTime': endTime,
+      if (maxTokens != null) 'maxTokens': maxTokens,
+      if (availableTokens != null) 'availableTokens': availableTokens,
+      if (slotStatus != null) 'slotStatus': slotStatus,
+    };
   }
 }
 

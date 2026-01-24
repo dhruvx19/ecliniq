@@ -604,16 +604,13 @@ class StatusHeader extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 14),
-                SvgPicture.asset(
-                  EcliniqIcons.greenDot.assetPath,
-                  width: 16,
-                  height: 16,
-                ),
+                _AnimatedDot(),
                 SizedBox(width: 4),
                 Text(
                   currentTokenNumber!,
                   style: EcliniqTextStyles.responsiveHeadlineLargeBold(context).copyWith(
                     color: Color(0xFF3EAF3F),
+                    fontWeight: FontWeight.w700
                   ),
                 ),
               ],
@@ -683,7 +680,7 @@ class StatusHeader extends StatelessWidget {
               ),
             ],
           ],
-      //  ],
+     ],
       );
     } else if (status == 'requested') {
       return Column(
@@ -1800,6 +1797,54 @@ class _BookingActionButtonState extends State<BookingActionButton> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Animated dot widget that shows and disappears in a loop
+class _AnimatedDot extends StatefulWidget {
+  const _AnimatedDot();
+
+  @override
+  State<_AnimatedDot> createState() => _AnimatedDotState();
+}
+
+class _AnimatedDotState extends State<_AnimatedDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _animation,
+      child: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: Color(0xff3EAF3F),
+          shape: BoxShape.circle,
         ),
       ),
     );

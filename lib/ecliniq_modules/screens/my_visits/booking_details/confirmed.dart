@@ -144,13 +144,44 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
       if (!mounted) return;
 
       if (eta != null) {
-        setState(() {
-          // API returns tokenNo (current running token)
-          final tokenNo = eta['tokenNo'];
-          _currentTokenNumber = tokenNo?.toString() ?? _currentTokenNumber;
-          // If appointmentStatus/slotStatus indicates completion, we could stop polling
-          _isLoadingETA = false;
-        });
+        // API returns tokenNo (current running token)
+        final tokenNo = eta['tokenNo'] as int?;
+        final appointmentStatus = eta['appointmentStatus'] as String?;
+        final timestamp = eta['timestamp'] as String?;
+        
+        // Only update ETA if appointment is confirmed
+        if (appointmentStatus == 'CONFIRMED' && tokenNo != null && _appointment != null) {
+          String? formattedEta;
+          
+          // Use timestamp from API if available
+          if (timestamp != null && timestamp.isNotEmpty) {
+            try {
+              // Parse ISO 8601 timestamp from API
+              final dateTime = DateTime.parse(timestamp);
+              // Format as "hh:mm a" (e.g., "2:30 PM")
+              final timeFormat = DateFormat('hh:mm a');
+              formattedEta = timeFormat.format(dateTime);
+            } catch (e) {
+              // If parsing fails, don't set expected time
+            }
+          }
+          
+          setState(() {
+            _currentTokenNumber = tokenNo.toString();
+            if (formattedEta != null) {
+              _expectedTime = formattedEta;
+            }
+            _isLoadingETA = false;
+          });
+        } else {
+          // Not confirmed or no token, just update current token if available
+          setState(() {
+            if (tokenNo != null) {
+              _currentTokenNumber = tokenNo.toString();
+            }
+            _isLoadingETA = false;
+          });
+        }
       } else {
         setState(() {
           _isLoadingETA = false;
@@ -333,54 +364,30 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
               _currentTokenNumber ?? _appointment!.currentTokenNumber,
         ),
         // Current Running Token info (just after green area)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: _isLoadingETA
-              ? SizedBox(
-                  height: 48,
-                  child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                )
-              : (_currentTokenNumber != null)
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF2FFF3),
-                        border: Border.all(color: const Color(0xFF3EAF3F), width: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          SvgPicture.asset(
-                            EcliniqIcons.queue.assetPath,
-                            width: 20,
-                            height: 20,
-                            colorFilter: const ColorFilter.mode(Color(0xFF3EAF3F), BlendMode.srcIn),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Current token running: ',
-                            style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-                              color: const Color(0xFF3EAF3F),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            _currentTokenNumber ?? '-',
-                            style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                              color: const Color(0xFF3EAF3F),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-        ),
+        // Padding(
+        //   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        //   child: _isLoadingETA
+        //       ? SizedBox(
+        //           height: 48,
+        //           child: ShimmerLoading(
+        //             borderRadius: BorderRadius.circular(8),
+        //           ),
+        //         )
+        //       : (_currentTokenNumber != null)
+        //           ? Container(
+        //               padding: const EdgeInsets.symmetric(
+        //                 horizontal: 12,
+        //                 vertical: 10,
+        //               ),
+        //               decoration: BoxDecoration(
+        //                 color: const Color(0xFFF2FFF3),
+        //                 border: Border.all(color: const Color(0xFF3EAF3F), width: 0.5),
+        //                 borderRadius: BorderRadius.circular(8),
+        //               ),
+        //               child: 
+        //             )
+        //           : const SizedBox.shrink(),
+        // ),
         // Scrollable content starting from DoctorInfoCard
         Expanded(
           child: RefreshIndicator(

@@ -453,6 +453,7 @@ extension AppointmentEtaExtension on AppointmentService {
           'appointmentStatus': msg['appointmentStatus'],
           'tokenNo': msg['tokenNo'],
           'slotStatus': msg['slotStatus'],
+          'timestamp': body['timestamp'], // Include timestamp from API response
         };
       }
 

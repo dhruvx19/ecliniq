@@ -577,7 +577,7 @@ class _DoctorInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          doctor.name,
+          'Dr. ${doctor.name}',
           style: EcliniqTextStyles.responsiveHeadlineLarge(
             context,
           ).copyWith(color: Color(0xff424242), fontWeight: FontWeight.w600),

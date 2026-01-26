@@ -708,8 +708,8 @@ extension _ProfilePageContent on _ProfilePageState {
           ),
           const SizedBox(height: 24),
           
-          const TestNotificationWidget(),
-          const SizedBox(height: 24),
+          // const TestNotificationWidget(),
+          // const SizedBox(height: 24),
         ],
       ),
     );

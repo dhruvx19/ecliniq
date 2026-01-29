@@ -1,14 +1,12 @@
 import 'package:ecliniq/ecliniq_api/storage_service.dart';
+import 'package:ecliniq/ecliniq_api/top_doctor_model.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/doctor_details.dart';
-import 'package:ecliniq/ecliniq_api/top_doctor_model.dart';
 import 'package:ecliniq/ecliniq_modules/screens/doctor_details/widgets/doctor_hospital_select_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/search_specialities/speciality_doctors_list.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/button/button.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/widgets.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:flutter/material.dart';
@@ -362,7 +360,8 @@ class _AvailabilityBadgeState extends State<_AvailabilityBadge>
 
     final status = availability.status.toUpperCase();
     // Do not show the container if explicitly no slots available
-    if ((availability.availableTokens != null && availability.availableTokens == 0) ||
+    if ((availability.availableTokens != null &&
+            availability.availableTokens == 0) ||
         status == 'NO_SLOT' ||
         status == 'NO_SLOTS' ||
         status == 'UNAVAILABLE' ||
@@ -375,36 +374,32 @@ class _AvailabilityBadgeState extends State<_AvailabilityBadge>
       if (!_controller.isAnimating) {
         _controller.forward();
       }
-      return FadeTransition(
-        opacity: _fade,
-        child: Container(
-          padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
-            context,
-            horizontal: 8.0,
-            vertical: 4.0,
+      return Container(
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+          context,
+          horizontal: 8.0,
+          vertical: 4.0,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2FFF3),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
           ),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF2FFF3),
-            borderRadius: BorderRadius.circular(
-              EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+        ),
+        child: Row(
+          children: [
+            _AnimatedDot(),
+            SizedBox(width: 4),
+
+            Text(
+              'Queue Started',
+              style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
+                  .copyWith(
+                    color: const Color(0xFF3EAF3F),
+                    fontWeight: FontWeight.w400,
+                  ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'Queue Started',
-                style: EcliniqTextStyles.responsiveButtonXLargeProminent(context)
-                    .copyWith(color: const Color(0xFF3EAF3F), fontWeight: FontWeight.w400),
-              ),
-              if (availability.availableTokens != null)
-                Text(
-                  '${availability.availableTokens} tokens left',
-                  style: EcliniqTextStyles.responsiveLabelMedium(context)
-                      .copyWith(color: const Color(0xFF3EAF3F)),
-                ),
-            ],
-          ),
+          ],
         ),
       );
     }
@@ -962,6 +957,54 @@ class _DoctorCardShimmer extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedDot extends StatefulWidget {
+  const _AnimatedDot();
+
+  @override
+  State<_AnimatedDot> createState() => _AnimatedDotState();
+}
+
+class _AnimatedDotState extends State<_AnimatedDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _animation,
+      child: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: Color(0xff3EAF3F),
+          shape: BoxShape.circle,
         ),
       ),
     );

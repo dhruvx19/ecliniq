@@ -1919,7 +1919,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                       height: headerHeight,
                       width: double.infinity,
                       child: Stack(
-                        alignment: const Alignment(0, -0.3),
+                        alignment: Alignment.bottomCenter,
                         children: [
                           Container(
                             decoration: const BoxDecoration(
@@ -1946,39 +1946,42 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                               ),
                             ),
                           ),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SvgPicture.asset(
-                                EcliniqIcons.loginLogo.assetPath,
-                                height: 44,
-                                width: 198,
-                              ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 116.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset(
+                                  EcliniqIcons.loginLogo.assetPath,
+                                  height: 44,
+                                  width: 198,
+                                ),
 
-                              Text(
-                                _userName != null && _userName!.isNotEmpty
-                                    ? 'Welcome back, ${_userName!}!'
-                                    : 'Welcome back!',
-                                style: EcliniqTextStyles.responsiveHeadlineXLarge(
-                                  context,
-                                ).copyWith(
-                                  color: Colors.white,
-                                  fontFamily: 'Rubik',
-                                  fontWeight: FontWeight.w500,
+                                Text(
+                                  _userName != null && _userName!.isNotEmpty
+                                      ? 'Welcome back, ${_userName!}!'
+                                      : 'Welcome back!',
+                                  style: EcliniqTextStyles.responsiveHeadlineXLarge(
+                                    context,
+                                  ).copyWith(
+                                    color: Colors.white,
+                                    fontFamily: 'Rubik',
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Your Healthcare Platform',
-                                style: EcliniqTextStyles.responsiveTitleXLarge(
-                                  context,
-                                ).copyWith(
-                                  color: Colors.white,
-                                  fontFamily: 'Rubik',
-                                  fontWeight: FontWeight.w400,
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Your Healthcare Platform',
+                                  style: EcliniqTextStyles.responsiveTitleXLarge(
+                                    context,
+                                  ).copyWith(
+                                    color: Colors.white,
+                                    fontFamily: 'Rubik',
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),

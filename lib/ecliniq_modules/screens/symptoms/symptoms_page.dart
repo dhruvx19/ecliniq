@@ -15,6 +15,7 @@ class SymptomsPage extends StatefulWidget {
 
 class _SymptomsPageState extends State<SymptomsPage> {
   String _searchQuery = '';
+  final Map<String, bool> _expandedCategories = {};
 
   final List<Map<String, dynamic>> _commonSymptoms = [
     {'title': 'Fever/Chills', 'icon': EcliniqIcons.fever},
@@ -311,34 +312,36 @@ class _SymptomsPageState extends State<SymptomsPage> {
     String category,
     List<String> symptoms,
   ) {
+    final isExpanded = _expandedCategories[category] ?? symptoms.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            EcliniqText(
-              category,
-              style: EcliniqTextStyles.responsiveBodyMediumProminent(context)
-                  .copyWith(
-                    color: const Color(0xff424242),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                  ),
-            ),
-            if (symptoms.isNotEmpty) ...[
-              SvgPicture.asset(
-                EcliniqIcons.arrowDown.assetPath,
-                width: 24,
-                height: 24,
-                colorFilter: ColorFilter.mode(
-                  const Color(0xff424242),
-                  BlendMode.srcIn,
+        InkWell(
+          onTap: symptoms.isNotEmpty ? () {
+            setState(() {
+              _expandedCategories[category] = !isExpanded;
+            });
+          } : null,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: EcliniqText(
+                  category,
+                  style:
+                      EcliniqTextStyles.responsiveBodyMediumProminent(
+                        context,
+                      ).copyWith(
+                        color: const Color(0xff424242),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                      ),
                 ),
               ),
-            ] else ...[
-              Transform.rotate(
-                angle: -3.14 / 2,
+              AnimatedRotation(
+                duration: const Duration(milliseconds: 200),
+                turns: isExpanded ? 0 : -0.25,
                 child: SvgPicture.asset(
                   EcliniqIcons.arrowDown.assetPath,
                   width: 24,
@@ -350,19 +353,37 @@ class _SymptomsPageState extends State<SymptomsPage> {
                 ),
               ),
             ],
-          ],
+          ),
         ),
         const SizedBox(height: 6),
-        if (symptoms.isNotEmpty)
-          ...symptoms.map((symptom) => _buildSymptomListItem(context, symptom))
-        else
-          Padding(
+        if (isExpanded && symptoms.isNotEmpty)
+          ...symptoms.asMap().entries.map((entry) {
+            final index = entry.key;
+            final symptom = entry.value;
+            final isLast = index == symptoms.length - 1;
+            return _buildSymptomListItem(context, symptom, isLast);
+          }),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildSymptomListItem(
+    BuildContext context,
+    String symptom,
+    bool isLast,
+  ) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: () {},
+          child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0.0),
             child: Row(
               children: [
                 Expanded(
                   child: EcliniqText(
-                    category,
+                    symptom,
                     style:
                         EcliniqTextStyles.responsiveBodyMediumProminent(
                           context,
@@ -376,32 +397,9 @@ class _SymptomsPageState extends State<SymptomsPage> {
               ],
             ),
           ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildSymptomListItem(BuildContext context, String symptom) {
-    return InkWell(
-      onTap: () {},
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: EcliniqText(
-                symptom,
-                style: EcliniqTextStyles.responsiveBodyMediumProminent(context)
-                    .copyWith(
-                      color: const Color(0xff424242),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 20,
-                    ),
-              ),
-            ),
-          ],
         ),
-      ),
+        if (!isLast) const HorizontalDivider(color: Color(0xffD6D6D6)),
+      ],
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/health_files/widgets/search_bar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
+import 'package:ecliniq/ecliniq_utils/horizontal_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -26,11 +27,11 @@ class _SymptomsPageState extends State<SymptomsPage> {
     {'title': 'Skin Rash /Itching', 'icon': EcliniqIcons.itchingOrSkinProblem},
     {'title': 'Periods Problem', 'icon': EcliniqIcons.periodsProblem},
     {'title': 'Sleep Problem', 'icon': EcliniqIcons.sleepProblem},
-    // {'title': 'Hair Related Problem', 'icon': EcliniqIcons.hairProblem},
-    // {'title': 'Pregnancy Related', 'icon': EcliniqIcons.pregnancyRelated},
-    // {'title': 'Dental Care', 'icon': EcliniqIcons.dentalCare},
-    // {'title': 'Joint Pain', 'icon': EcliniqIcons.jointPain},
-    // {'title': 'Joint Swelling', 'icon': EcliniqIcons.jointSwelling},
+    {'title': 'Hair Related Problem', 'icon': EcliniqIcons.hairCare},
+    {'title': 'Pregnancy Related', 'icon': EcliniqIcons.pregnancyCare},
+    {'title': 'Dental Care', 'icon': EcliniqIcons.dentalCare},
+    {'title': 'Joint Pain', 'icon': EcliniqIcons.jointCare},
+    {'title': 'Blood Pressure', 'icon': EcliniqIcons.bloodPressure},
   ];
 
   final Map<String, List<String>> _categorySymptoms = {
@@ -193,9 +194,9 @@ class _SymptomsPageState extends State<SymptomsPage> {
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
-                                  crossAxisSpacing: 16.0,
-                                  mainAxisSpacing: 16.0,
-                                  childAspectRatio: 0.85,
+                                  crossAxisSpacing: 12.0,
+                                  mainAxisSpacing: 12.0,
+                                  childAspectRatio: 0.95,
                                 ),
                             itemCount: _filteredCommonSymptoms.length,
                             itemBuilder: (context, index) {
@@ -208,7 +209,6 @@ class _SymptomsPageState extends State<SymptomsPage> {
                               );
                             },
                           ),
-                          const SizedBox(height: 24),
                         ],
 
                         // Category sections
@@ -259,7 +259,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(
-                  height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0),
+                  height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0),
                 ),
                 Container(
                   width: EcliniqTextStyles.getResponsiveSize(context, 48.0),
@@ -290,7 +290,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
                     title,
                     textAlign: TextAlign.center,
                     maxLines: 2,
-             
+
                     style: EcliniqTextStyles.responsiveTitleXLarge(context)
                         .copyWith(
                           color: Color(0xff424242),
@@ -314,21 +314,50 @@ class _SymptomsPageState extends State<SymptomsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EcliniqText(
-          category,
-          style: EcliniqTextStyles.responsiveBodyMediumProminent(context)
-              .copyWith(
-                color: const Color(0xff424242),
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            EcliniqText(
+              category,
+              style: EcliniqTextStyles.responsiveBodyMediumProminent(context)
+                  .copyWith(
+                    color: const Color(0xff424242),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                  ),
+            ),
+            if (symptoms.isNotEmpty) ...[
+              SvgPicture.asset(
+                EcliniqIcons.arrowDown.assetPath,
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  const Color(0xff424242),
+                  BlendMode.srcIn,
+                ),
               ),
+            ] else ...[
+              Transform.rotate(
+                angle: -3.14 / 2,
+                child: SvgPicture.asset(
+                  EcliniqIcons.arrowDown.assetPath,
+                  width: 24,
+                  height: 24,
+                  colorFilter: ColorFilter.mode(
+                    const Color(0xff424242),
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         if (symptoms.isNotEmpty)
           ...symptoms.map((symptom) => _buildSymptomListItem(context, symptom))
         else
           Padding(
-            padding: const EdgeInsets.only(left: 8.0, bottom: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0.0),
             child: Row(
               children: [
                 Expanded(
@@ -340,11 +369,10 @@ class _SymptomsPageState extends State<SymptomsPage> {
                         ).copyWith(
                           color: const Color(0xff424242),
                           fontWeight: FontWeight.w400,
-                          fontSize: 14,
+                          fontSize: 20,
                         ),
                   ),
                 ),
-                Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
               ],
             ),
           ),
@@ -357,7 +385,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
     return InkWell(
       onTap: () {},
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 0.0),
         child: Row(
           children: [
             Expanded(
@@ -367,11 +395,10 @@ class _SymptomsPageState extends State<SymptomsPage> {
                     .copyWith(
                       color: const Color(0xff424242),
                       fontWeight: FontWeight.w400,
-                      fontSize: 14,
+                      fontSize: 20,
                     ),
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
           ],
         ),
       ),

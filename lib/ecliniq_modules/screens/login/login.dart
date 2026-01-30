@@ -1466,7 +1466,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 8),
           _isOTPMode
               ? Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2.0),
@@ -1627,6 +1627,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
+                ),
+          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

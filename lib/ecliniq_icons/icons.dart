@@ -267,6 +267,11 @@ enum EcliniqIcons {
   six('$_base/six.svg'),
   seven('$_base/seven.svg'),
   loginLogo('$_base/UpcharQ_horizontal 1.svg'),
+  bloodPressure('$_base/Blood Pressure.svg'),
+  dentalCare('$_base/Dental Care.svg'),
+  hairCare('$_base/Hair Fall.svg'),
+  jointCare('$_base/Joint pain.svg'),
+  pregnancyCare('$_base/Pregency.svg'),
   noNotifications('$_base/no_notif.svg');
 
   

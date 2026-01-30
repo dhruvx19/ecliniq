@@ -75,50 +75,50 @@ class Hospital {
     };
   }
 
-  /// Get public URL for logo
-  /// @description Gets the public URL for the logo using StorageService.
-  /// Returns null if logo is null or empty, or if it's not a public key.
-  /// @param storageService - StorageService instance to fetch public URLs
-  /// @returns Future<String?> - Public URL if available, null otherwise
-  /// @example
-  /// ```dart
-  /// final storageService = StorageService();
-  /// final logoUrl = await hospital.getLogoUrl(storageService);
-  /// ```
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<String?> getLogoUrl(StorageService storageService) async {
     if (logo.isEmpty) {
       return null;
     }
-    // If already a full URL, return as-is
+    
     if (logo.startsWith('http://') || logo.startsWith('https://')) {
       return logo;
     }
-    // Get public URL if it starts with "public/"
+    
     if (logo.startsWith('public/')) {
       return await storageService.getPublicUrl(logo);
     }
     return null;
   }
 
-  /// Get public URL for image (background)
-  /// @description Gets the public URL for the background image using StorageService.
-  /// Returns null if image is null or empty, or if it's not a public key.
-  /// @param storageService - StorageService instance to fetch public URLs
-  /// @returns Future<String?> - Public URL if available, null otherwise
-  /// @example
-  /// ```dart
-  /// final storageService = StorageService();
-  /// final imageUrl = await hospital.getImageUrl(storageService);
-  /// ```
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<String?> getImageUrl(StorageService storageService) async {
     if (image.isEmpty) {
       return null;
     }
-    // If already a full URL, return as-is
+    
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
     }
-    // Get public URL if it starts with "public/"
+    
     if (image.startsWith('public/')) {
       return await storageService.getPublicUrl(image);
     }
@@ -428,50 +428,50 @@ class HospitalDetail {
     };
   }
 
-  /// Get public URL for logo
-  /// @description Gets the public URL for the logo using StorageService.
-  /// Returns null if logo is null or empty, or if it's not a public key.
-  /// @param storageService - StorageService instance to fetch public URLs
-  /// @returns Future<String?> - Public URL if available, null otherwise
-  /// @example
-  /// ```dart
-  /// final storageService = StorageService();
-  /// final logoUrl = await hospitalDetail.getLogoUrl(storageService);
-  /// ```
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<String?> getLogoUrl(StorageService storageService) async {
     if (logo.isEmpty) {
       return null;
     }
-    // If already a full URL, return as-is
+    
     if (logo.startsWith('http://') || logo.startsWith('https://')) {
       return logo;
     }
-    // Get public URL if it starts with "public/"
+    
     if (logo.startsWith('public/')) {
       return await storageService.getPublicUrl(logo);
     }
     return null;
   }
 
-  /// Get public URL for image (background)
-  /// @description Gets the public URL for the background image using StorageService.
-  /// Returns null if image is null or empty, or if it's not a public key.
-  /// @param storageService - StorageService instance to fetch public URLs
-  /// @returns Future<String?> - Public URL if available, null otherwise
-  /// @example
-  /// ```dart
-  /// final storageService = StorageService();
-  /// final imageUrl = await hospitalDetail.getImageUrl(storageService);
-  /// ```
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<String?> getImageUrl(StorageService storageService) async {
     if (image.isEmpty) {
       return null;
     }
-    // If already a full URL, return as-is
+    
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
     }
-    // Get public URL if it starts with "public/"
+    
     if (image.startsWith('public/')) {
       return await storageService.getPublicUrl(image);
     }

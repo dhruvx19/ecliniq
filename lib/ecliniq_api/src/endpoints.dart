@@ -65,7 +65,7 @@ class Endpoints {
   static String get registerDeviceToken =>
       '$localhost/api/device-tokens/register';
 
-  // Change contact endpoints (4-step flow)
+  
   static String get sendExistingContactOTP =>
       '$localhost/api/auth/change-contact/send-existing-otp';
   static String get verifyExistingContactOtp =>
@@ -83,20 +83,20 @@ class Endpoints {
   static String get bannersForHome =>
       '$localhost/api/appointments/patient/home-banners';
 
-  // Forget MPIN endpoints (3-step flow)
+  
   static String get forgetMpinSendOtp =>
       '$localhost/api/auth/forget-mpin/send-otp';
   static String get forgetMpinVerifyOtp =>
       '$localhost/api/auth/forget-mpin/verify-otp';
   static String get forgetMpinReset => '$localhost/api/auth/forget-mpin/reset';
 
-  // Patient notification preferences
+  
   static String get updateNotificationPreferences =>
       '$localhost/api/patients/update-notification-preferences';
   static String get getUnreadNotificationCount =>
       '$localhost/api/notifications/patients/get-unread-count';
   
-  // Notifications
+  
   static String get getAllNotifications =>
       '$localhost/api/notifications/patients/get-all-notifications';
   static String markAsRead(String notificationId) =>
@@ -104,21 +104,21 @@ class Endpoints {
   static String get markAllAsRead =>
       '$localhost/api/notifications/patients/mark-all-as-read';
   
-  // Search
+  
   static String get searchProviders =>
       '$localhost/api/search/providers';
   
-  // Filtered Hospitals
+  
   static String get getFilteredHospitals =>
       '$localhost/api/hospitals/getFilteredHospitalsByPatient';
   
-  // Wallet endpoints
+  
   static String get walletBalance =>
       '$localhost/api/patients/wallet/balance';
   static String walletTransactions(int year) =>
       '$localhost/api/patients/wallet/transactions?year=$year';
 
-  // ETA status
+  
   static String etaStatus(String appointmentId) =>
       '$localhost/api/eta/appointment/$appointmentId/status';
 }

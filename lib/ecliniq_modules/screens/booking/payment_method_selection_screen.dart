@@ -1,4 +1,4 @@
-// Create a new file: payment_method_bottom_sheet.dart
+
 
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
@@ -73,13 +73,13 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Use passed selection if available, otherwise default to Google Pay
+    
     if (widget.currentSelectedMethod != null &&
         widget.currentSelectedPackage != null) {
       _selectedMethod = widget.currentSelectedMethod;
       _selectedMethodPackage = widget.currentSelectedPackage;
     } else {
-      // Default to Google Pay
+      
       _selectedMethod = 'Gpay';
       _selectedMethodPackage = 'com.google.android.apps.nbu.paisa.user';
     }
@@ -88,13 +88,13 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
 
   void _handleConfirm() {
     if (_selectedMethodPackage != null && _selectedMethod != null) {
-      // First return the selection
+      
       Navigator.pop(context, {
         'name': _selectedMethod!,
         'packageName': _selectedMethodPackage!,
         'useWallet': _useWallet,
       });
-      // Then call the confirm callback if provided
+      
       if (widget.onConfirm != null) {
         widget.onConfirm!();
       }
@@ -106,7 +106,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
       _selectedMethodPackage = packageName;
       _selectedMethod = name;
     });
-    // Auto-close bottom sheet when payment method is selected
+    
     Navigator.pop(context, {
       'name': name,
       'packageName': packageName,
@@ -140,7 +140,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Payment methods list (scrollable)
+          
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(top: 28, left: 16, right: 16),
@@ -200,7 +200,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                   const SizedBox(height: 8),
                   Container(height: 0.5, color: const Color(0xffB8B8B8)),
                   const SizedBox(height: 8),
-                  // Recommended Method section
+                  
                   Text(
                     'Recommended Method',
                     style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
@@ -221,7 +221,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
 
                   const SizedBox(height: 22),
 
-                  // Cards section
+                  
                   Text(
                     'Cards',
                     style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
@@ -241,103 +241,103 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                     ),
                   ),
 
-                  // Add card button
-                  // Container(
-                  //   margin: const EdgeInsets.only(bottom: 12),
-                  //   decoration: BoxDecoration(
-                  //     border: Border.all(
-                  //       color: const Color(0xFFE0E0E0),
-                  //       width: 1,
-                  //     ),
-                  //     borderRadius: BorderRadius.circular(8),
-                  //   ),
-                  //   child: ListTile(
-                  //     leading: Container(
-                  //       padding: const EdgeInsets.all(6),
-                  //       decoration: BoxDecoration(
-                  //         color: const Color(0xFFE3F2FD),
-                  //         borderRadius: BorderRadius.circular(4),
-                  //       ),
-                  //       child: const Icon(
-                  //         Icons.credit_card,
-                  //         color: Color(0xFF2372EC),
-                  //         size: 20,
-                  //       ),
-                  //     ),
-                  //     title: Text(
-                  //       'Add credit or debit cards',
-                  //       style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                  //         color: const Color(0xFF2372EC),
-                  //         fontWeight: FontWeight.w500,
-                  //       ),
-                  //     ),
-                  //     trailing: const Icon(
-                  //       Icons.add,
-                  //       color: Color(0xFF2372EC),
-                  //       size: 24,
-                  //     ),
-                  //     onTap: () {
-                  //       // Handle add card
-                  //     },
-                  //   ),
-                  // ),
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   const SizedBox(height: 24),
 
-                  // Pay by any UPI App section
-                  // Text(
-                  //   'Pay by any UPI App',
-                  //   style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-                  //     color: const Color(0xff424242),
-                  //     fontWeight: FontWeight.w600,
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 12),
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
 
-                  // Container(
-                  //   padding: const EdgeInsets.symmetric(
-                  //     horizontal: 12,
-                  //     vertical: 14,
-                  //   ),
-                  //   decoration: BoxDecoration(
-                  //     border: Border.all(
-                  //       color: const Color(0xFFE0E0E0),
-                  //       width: 1,
-                  //     ),
-                  //     borderRadius: BorderRadius.circular(8),
-                  //   ),
-                  //   child: Row(
-                  //     children: [
-                  //       const Icon(
-                  //         Icons.phone_android,
-                  //         color: Color(0xff626060),
-                  //         size: 24,
-                  //       ),
-                  //       const SizedBox(width: 12),
-                  //       Expanded(
-                  //         child: TextField(
-                  //           decoration: InputDecoration(
-                  //             hintText: 'Enter UPI ID',
-                  //             hintStyle: EcliniqTextStyles.headlineXMedium
-                  //                 .copyWith(color: const Color(0xFFD6D6D6)),
-                  //             border: InputBorder.none,
-                  //             contentPadding: EdgeInsets.zero,
-                  //             isDense: true,
-                  //           ),
-                  //           style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                  //             color: const Color(0xff424242),
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
 
-          // Fixed bottom section - matches review screen layout
+          
           Container(
             padding: const EdgeInsets.only(
               left: 16,
@@ -349,10 +349,10 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Wallet balance checkbox
+                
                 Container(height: 0.5, color: const Color(0xffB8B8B8)),
                 const SizedBox(height: 8),
-                // Payment method selector and button row
+                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -363,7 +363,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Icon and "Pay using" in same row
+                            
                             Row(
                               children: [
                                 if (_selectedMethodPackage != null)
@@ -411,7 +411,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                               ],
                             ),
                             const SizedBox(height: 2),
-                            // Payment method name below
+                            
                             Text(
                               _selectedMethod ??
                                   widget.selectedPaymentMethod ??
@@ -430,7 +430,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
 
                     const SizedBox(width: 12),
 
-                    // Right side - Pay & Confirm button
+                    
                     GestureDetector(
                       onTap: widget.isBooking ? null : _handleConfirm,
                       child: Container(
@@ -476,7 +476,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Amount and Total
+                                    
                                     Flexible(
                                       child: Column(
                                         crossAxisAlignment:
@@ -515,7 +515,7 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
                                     SizedBox(
                                       width: EcliniqTextStyles.getResponsiveSpacing(context, 34),
                                     ),
-                                    // Pay & Confirm text
+                                    
                                     Expanded(
                                       child: Text(
                                         'Pay & Confirm',

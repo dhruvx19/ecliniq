@@ -1,4 +1,4 @@
-/// Model class for notification data from API
+
 class NotificationModel {
   final String id;
   final String type;
@@ -64,7 +64,7 @@ class NotificationModel {
     };
   }
 
-  /// Format time ago from createdAt
+  
   String get timeAgo {
     try {
       final createdAtDate = DateTime.parse(createdAt);
@@ -120,7 +120,7 @@ class NotificationMetadata {
   }
 }
 
-/// Notification counts from API
+
 class NotificationCounts {
   final int allCount;
   final int unreadCount;
@@ -150,7 +150,7 @@ class NotificationCounts {
   }
 }
 
-/// Notification pagination info
+
 class NotificationPagination {
   final bool hasMore;
   final String? nextCursor;

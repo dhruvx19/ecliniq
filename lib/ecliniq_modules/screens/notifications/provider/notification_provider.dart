@@ -17,8 +17,8 @@ class NotificationProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   Map<String, dynamic>? get allNotifications => _allNotifications;
 
-  /// Fetch unread notification count
-  /// @description Gets the count of unread notifications for the patient
+  
+  
   Future<void> fetchUnreadCount() async {
     _isLoading = true;
     _errorMessage = null;
@@ -27,7 +27,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       final authToken = await SessionService.getAuthToken();
       if (authToken == null) {
-        debugPrint('No auth token found for notifications');
+        
         _isLoading = false;
         notifyListeners();
         return;
@@ -47,25 +47,25 @@ class NotificationProvider with ChangeNotifier {
         if (data['success'] == true) {
           final count = data['data']['unreadCount'];
           _unreadCount = count is int ? count : (int.tryParse(count.toString()) ?? 0);
-          debugPrint('Unread notification count: $_unreadCount');
+          
         } else {
-          debugPrint('Failed to get unread count: ${data['message']}');
+          
         }
       } else {
-        debugPrint('Failed to get unread count: ${response.statusCode}');
+        
       }
     } catch (e) {
       _errorMessage = e.toString();
-      debugPrint('Error fetching unread count: $e');
+      
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Fetch all notifications
-  /// @description Retrieves all notifications (new and older) for the patient
-  /// @returns Future<Map<String, dynamic>?> - Response containing all notifications or null on error
+  
+  
+  
   Future<Map<String, dynamic>?> fetchAllNotifications() async {
     _isLoading = true;
     _errorMessage = null;
@@ -86,7 +86,7 @@ class NotificationProvider with ChangeNotifier {
 
       if (response['success'] == true) {
         _allNotifications = response;
-        // Update unread count from response
+        
         if (response['data'] != null &&
             response['data']['counts'] != null) {
           _unreadCount = response['data']['counts']['unreadCount'] ?? 0;
@@ -108,10 +108,10 @@ class NotificationProvider with ChangeNotifier {
     }
   }
 
-  /// Mark a notification as read
-  /// @description Marks a specific notification as read by its ID
-  /// @param notificationId - The ID of the notification to mark as read
-  /// @returns Future<bool> - True if successful, false otherwise
+  
+  
+  
+  
   Future<bool> markAsRead(String notificationId) async {
     try {
       final authToken = await SessionService.getAuthToken();
@@ -127,7 +127,7 @@ class NotificationProvider with ChangeNotifier {
       );
 
       if (response['success'] == true) {
-        // Update unread count
+        
         if (_unreadCount > 0) {
           _unreadCount--;
         }
@@ -145,9 +145,9 @@ class NotificationProvider with ChangeNotifier {
     }
   }
 
-  /// Mark all notifications as read
-  /// @description Marks all unread notifications as read
-  /// @returns Future<bool> - True if successful, false otherwise
+  
+  
+  
   Future<bool> markAllAsRead() async {
     try {
       final authToken = await SessionService.getAuthToken();

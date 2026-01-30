@@ -96,9 +96,9 @@ class PatientService {
     }
   }
 
-  /// Get all dependents for the authenticated patient
-  /// @param authToken - Authentication token from AuthProvider
-  /// @returns GetDependentsResponse with list of dependents or error
+  
+  
+  
   Future<GetDependentsResponse> getDependents({
     required String authToken,
   }) async {
@@ -143,9 +143,9 @@ class PatientService {
     }
   }
 
-  /// Get favourite doctors for the authenticated patient
-  /// @param authToken - Authentication token from AuthProvider
-  /// @returns FavouriteDoctorsResponse with list of favourite doctors or error
+  
+  
+  
   Future<FavouriteDoctorsResponse> getFavouriteDoctors({
     required String authToken,
   }) async {
@@ -188,10 +188,10 @@ class PatientService {
     }
   }
 
-  /// Update patient notification preferences
-  /// @param authToken - Authentication token from AuthProvider
-  /// @param prefs - Map of preferences to update
-  /// @returns PatientDetailsResponse with updated patient data or error
+  
+  
+  
+  
   Future<PatientDetailsResponse> updateNotificationPreferences({
     required String authToken,
     required Map<String, dynamic> prefs,
@@ -213,7 +213,7 @@ class PatientService {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        // Some APIs wrap actual result under data.data, handle both
+        
         if (responseData is Map<String, dynamic> &&
             responseData['success'] == true &&
             responseData['data'] is Map<String, dynamic> &&
@@ -257,7 +257,7 @@ class PatientService {
     }
   }
 
-  /// Add a doctor to favourites
+  
   Future<Map<String, dynamic>> addFavouriteDoctor({
     required String authToken,
     required String doctorId,
@@ -283,7 +283,7 @@ class PatientService {
     }
   }
 
-  /// Remove a doctor from favourites
+  
   Future<Map<String, dynamic>> removeFavouriteDoctor({
     required String authToken,
     required String doctorId,

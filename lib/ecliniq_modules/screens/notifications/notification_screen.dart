@@ -12,16 +12,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
-// Enum for notification types
+
 enum NotificationType {
   consultationCompleted,
   bookingConfirmed,
   bookingRequestReceived,
-  //bookingCancelled,
-  // paymentReceived,
-  // prescriptionReady,
-  // reminder,
-  // labReportReady,
+  
+  
+  
+  
+  
 }
 
 class NotificationScreen extends StatefulWidget {
@@ -37,7 +37,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    // Load notifications after the first frame
+    
     Future.microtask(() {
       if (mounted) {
         _loadNotifications();
@@ -45,13 +45,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
     });
   }
 
-  /// Load notifications from API
+  
   Future<void> _loadNotifications() async {
     final provider = Provider.of<NotificationProvider>(context, listen: false);
     await provider.fetchAllNotifications();
   }
 
-  /// Get all notifications from provider (flattened list)
+  
   List<NotificationModel> get _allNotifications {
     final provider = Provider.of<NotificationProvider>(context);
     final data = provider.allNotifications?['data'];
@@ -71,7 +71,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       olderList.map((item) => NotificationModel.fromJson(item)),
     );
     
-    // Sort by createdAt descending (newest first)
+    
     allNotifications.sort((a, b) {
       try {
         final dateA = DateTime.parse(a.createdAt);
@@ -85,17 +85,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return allNotifications;
   }
 
-  /// Get unread notifications from provider
+  
   List<NotificationModel> get _unreadNotifications {
-    // Filter _allNotifications where isRead is false
+    
     return _allNotifications.where((n) => !n.isRead).toList();
   }
 
-  /// Get new notifications based on custom logic
-  /// (Unread) OR (Time < 48 hours)
+  
+  
   List<NotificationModel> get _newNotifications {
     if (selectedTab == 'Unread') {
-      // In Unread tab, everything is "New" basically
+      
       return _unreadNotifications;
     }
 
@@ -104,22 +104,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final fortyEightHoursAgo = now.subtract(const Duration(hours: 48));
 
     return all.where((n) {
-      if (!n.isRead) return true; // Keep unread in New
+      if (!n.isRead) return true; 
       
       try {
         final date = DateTime.parse(n.createdAt);
-        return date.isAfter(fortyEightHoursAgo); // Keep recent (< 48h) in New
+        return date.isAfter(fortyEightHoursAgo); 
       } catch (e) {
-        return true; // Fallback to new if date parse fails
+        return true; 
       }
     }).toList();
   }
 
-  /// Get older notifications based on custom logic
-  /// (Read) AND (Time >= 48 hours)
+  
+  
   List<NotificationModel> get _olderNotifications {
     if (selectedTab == 'Unread') {
-      return []; // No "older" section in unread tab
+      return []; 
     }
 
     final all = _allNotifications;
@@ -127,7 +127,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final fortyEightHoursAgo = now.subtract(const Duration(hours: 48));
 
     return all.where((n) {
-      if (!n.isRead) return false; // Unread are in New
+      if (!n.isRead) return false; 
       
       try {
         final date = DateTime.parse(n.createdAt);
@@ -138,18 +138,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }).toList();
   }
 
-  /// Check if there are unread notifications
+  
   bool get _hasUnreadNotifications {
     final provider = Provider.of<NotificationProvider>(context);
     return provider.unreadCount > 0;
   }
 
-  /// Mark all notifications as read
+  
   Future<void> _markAllAsRead() async {
     final provider = Provider.of<NotificationProvider>(context, listen: false);
     final success = await provider.markAllAsRead();
     if (success) {
-      // Refresh notifications
+      
       await provider.fetchAllNotifications();
     } else {
       if (mounted) {
@@ -165,21 +165,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  /// Mark notification as read
+  
   Future<void> _markAsRead(NotificationModel notification) async {
     if (notification.isRead) return;
 
     final provider = Provider.of<NotificationProvider>(context, listen: false);
     final success = await provider.markAsRead(notification.id);
     if (success) {
-      // Refresh notifications
+      
       await provider.fetchAllNotifications();
     }
   }
 
-  /// Convert NotificationModel to NotificationItem for UI
+  
   NotificationItem _toNotificationItem(NotificationModel model) {
-    // Extract doctor name, token, and estimated time from metadata if available
+    
     String doctorName = '';
     String token = '';
     String estimatedTime = '';
@@ -187,7 +187,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (model.metadata?.data != null) {
       doctorName = model.metadata!.data!['doctorName']?.toString() ?? 
                    model.metadata!.data!['doctor_name']?.toString() ?? '';
-      // Extract tokenNo from metadata (as per API response)
+      
       token = model.metadata!.data!['tokenNo']?.toString() ?? 
               model.metadata!.data!['token']?.toString() ?? 
               model.metadata!.data!['tokenNumber']?.toString() ?? '';
@@ -196,7 +196,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       model.metadata!.data!['time']?.toString() ?? '';
     }
 
-    // Determine notification type and build message based on subject
+    
     NotificationType type = NotificationType.bookingRequestReceived;
     String title = model.subject;
     String message = '';
@@ -206,13 +206,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
     String? tokenNumber;
     String? estTime;
 
-    // Handle APPOINTMENT_CONFIRMED
+    
     if (model.subject == 'APPOINTMENT_CONFIRMED') {
       type = NotificationType.bookingConfirmed;
       title = 'Booking Confirmed';
       
-      // Build message: "Your appointment confirmed with Dr. [doctorName]. Token #[token]. (Est.Time: [time])"
-      // Check if doctorName already has "Dr." prefix to avoid duplication
+      
+      
       String doctorPart = '';
       if (doctorName.isNotEmpty) {
         doctorPart = doctorName.trim().startsWith('Dr.') 
@@ -224,20 +224,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
       message = 'Your appointment confirmed with';
       highlightText = doctorPart;
       
-      // Store token and time separately for green display
+      
       tokenNumber = token.isNotEmpty ? token : null;
       estTime = estimatedTime.isNotEmpty ? estimatedTime : null;
       
-      // Build suffix (period after doctor name)
+      
       suffix = '.';
     }
-    // Handle APPOINTMENT_REQUESTED
+    
     else if (model.subject == 'APPOINTMENT_REQUESTED') {
       type = NotificationType.bookingRequestReceived;
       title = 'Booking Request Received';
       
-      // Build message: "Your appointment request with Dr. [doctorName] has been received."
-      // Check if doctorName already has "Dr." prefix to avoid duplication
+      
+      
       String doctorPart = '';
       if (doctorName.isNotEmpty) {
         doctorPart = doctorName.trim().startsWith('Dr.') 
@@ -250,7 +250,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       highlightText = doctorPart;
       suffix = ' has been received.';
     }
-    // Handle other appointment types (backward compatibility)
+    
     else if (model.category == 'APPOINTMENT') {
       if (model.subject.toLowerCase().contains('confirmed')) {
         type = NotificationType.bookingConfirmed;
@@ -261,12 +261,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
         type = NotificationType.bookingRequestReceived;
       }
       
-      // Use original message and highlight doctor name if available
+      
       message = model.message;
       highlightText = doctorName.isNotEmpty ? doctorName : '';
       suffix = '';
     }
-    // Default case
+    
     else {
       message = model.message;
       highlightText = doctorName.isNotEmpty ? doctorName : '';
@@ -285,7 +285,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       estimatedTime: estTime,
       time: model.timeAgo,
       isRead: model.isRead,
-      isNew: false, // We'll handle new/older separately
+      isNew: false, 
       entityType: model.entityType,
       entityId: model.entityId,
     );
@@ -335,7 +335,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           appBar: _buildAppBar(),
           body: Column(
             children: [
-              // Filter tabs
+              
               Padding(
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16.0),
                 child: Row(
@@ -372,7 +372,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ),
               ),
 
-              // Content
+              
               Expanded(
                 child: hasAnyNotifications
                     ? ListView(
@@ -499,7 +499,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     NotificationItem notification,
     NotificationModel model,
   ) {
-    // Set background color based on read status
+    
     final backgroundColor = notification.isRead
         ? const Color(0xFFF9F9F9)
         : Colors.white;
@@ -520,7 +520,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Row
+            
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -565,14 +565,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // Content Row
+            
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon
+                
                 _buildNotificationIcon(notification.type),
                 const SizedBox(width: 12),
-                // Message
+                
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -583,7 +583,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                 ),
 
-                // Unread indicator
+                
                 if (!notification.isRead)
                   Container(
                     width: 10,
@@ -632,16 +632,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
         iconColor = const Color(0xFF96BFFF);
         bgColor = const Color(0xFFF8FAFF);
         break;
-      // case NotificationType.bookingCancelled:
-      //   iconData = EcliniqIcons.cancel_outlined;
-      //   iconColor = const Color(0xFFE53935);
-      //   bgColor = const Color(0xFFFFEBEE);
-      //   break;
-      // case NotificationType.reminder:
-      //   iconData = EcliniqIcons.alarm;
-      //   iconColor = const Color(0xFFFF9800);
-      //   bgColor = const Color(0xFFFFF3E0);
-      //   break;
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     }
 
     return Container(
@@ -686,7 +686,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
     ];
 
-    // For booking confirmed, add token and time in green
+    
     if (notification.type == NotificationType.bookingConfirmed) {
       if (notification.tokenNumber != null && notification.estimatedTime != null) {
         children.add(
@@ -725,7 +725,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         );
       }
     } else if (notification.tokenInfo != null) {
-      // For other notification types, use tokenInfo if available
+      
       children.add(
         TextSpan(
           text: notification.tokenInfo,
@@ -820,14 +820,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 NotificationType.bookingConfirmed,
                 NotificationType.bookingRequestReceived,
               ]),
-              // _buildFilterOption('Payments', [
-              //   NotificationType.paymentReceived,
-              // ]),
-              // _buildFilterOption('Reports', [
-              //   NotificationType.prescriptionReady,
-              //   NotificationType.labReportReady,
-              // ]),
-              // _buildFilterOption('Reminders', [NotificationType.reminder]),
+              
+              
+              
+              
+              
+              
+              
+              
               const SizedBox(height: 16),
             ],
           ),
@@ -848,7 +848,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       trailing: const Icon(Icons.chevron_right, color: Color(0xff8E8E8E)),
       onTap: () {
         Navigator.pop(context);
-        // Implement filter logic here
+        
       },
     );
   }
@@ -857,24 +857,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
     NotificationItem notification,
     NotificationModel model,
   ) {
-    // Navigate based on entityType and entityId
+    
     if (model.entityType == 'APPOINTMENT' && model.entityId.isNotEmpty) {
-      // Determine appointment status from notification
+      
       final appointmentId = model.entityId;
 
-      // Navigate to appropriate appointment detail screen
-      // For now, navigate to confirmed detail - you may want to check status from API
+      
+      
       EcliniqRouter.push(BookingConfirmedDetail(appointmentId: appointmentId));
     }
-    // Add more entity types as needed
+    
   }
 
-  /// Build shimmer loading widget for notifications
+  
   Widget _buildShimmerLoading() {
     return ListView(
       padding: const EdgeInsets.only(top: 16),
       children: [
-        // Section header shimmer
+        
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -885,13 +885,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        // Notification card shimmers
+        
         ...List.generate(5, (index) => _buildNotificationCardShimmer()),
       ],
     );
   }
 
-  /// Build shimmer for a single notification card
+  
   Widget _buildNotificationCardShimmer() {
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, bottom: 0, top: 16),
@@ -904,7 +904,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row shimmer
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -923,24 +923,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Divider shimmer
+          
           ShimmerLoading(
             height: 1,
             borderRadius: BorderRadius.circular(12),
           ),
           const SizedBox(height: 8),
-          // Content Row shimmer
+          
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon shimmer
+              
               ShimmerLoading(
                 width: 48,
                 height: 48,
                 borderRadius: BorderRadius.circular(24),
               ),
               const SizedBox(width: 12),
-              // Message shimmer
+              
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -961,7 +961,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Time shimmer
+          
           ShimmerLoading(
             width: 80,
             height: 14,
@@ -973,7 +973,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 }
 
-// Model class for notifications (UI representation)
+
 class NotificationItem {
   final String id;
   final NotificationType type;

@@ -52,8 +52,8 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // Re-check biometric availability when app comes to foreground
-    // This helps if user enabled biometric in device settings while app was in background
+    
+    
     if (state == AppLifecycleState.resumed && mounted) {
       _checkBiometricAvailability();
     }
@@ -77,9 +77,9 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
 
     _mpinSubmitTimer?.cancel();
 
-    // Auto-submit immediately when 4 digits entered
+    
     if (v.length == 4) {
-      // Use microtask to ensure UI updates first, then submit immediately
+      
       _mpinSubmitTimer = Timer(Duration.zero, () {
         if (mounted && !_isLoading) {
           _handleMPINLogin(v);
@@ -89,23 +89,23 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
   }
 
   Future<void> _autoTriggerBiometric() async {
-    // Auto-trigger biometric if available and enabled (after a short delay)
-    // Only trigger if user hasn't started typing MPIN
+    
+    
     await Future.delayed(const Duration(milliseconds: 800));
 
-    // Double-check all conditions before triggering
+    
     if (!mounted) return;
     if (_isLoading) return;
     if (!_isBiometricAvailable) return;
     if (!_isBiometricEnabled) return;
-    if (_entered.isNotEmpty) return; // User has started typing
+    if (_entered.isNotEmpty) return; 
 
     try {
-      // Don't set loading state here - let _handleBiometricLogin() handle it
-      // This prevents race conditions
+      
+      
       await _handleBiometricLogin();
     } catch (e) {
-      // Silently fail - user can still use MPIN
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -126,18 +126,18 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
         });
       }
     } catch (e) {
-      // On error, still try to show the button if we can't determine availability
-      // This is better UX than hiding it completely
+      
+      
       if (mounted) {
         try {
           final isEnabled = await SecureStorageService.isBiometricEnabled();
           setState(() {
-            // If biometric was previously enabled, assume it's available
+            
             _isBiometricAvailable = isEnabled || _isBiometricAvailable;
             _isBiometricEnabled = isEnabled;
           });
         } catch (_) {
-          // If everything fails, keep current state
+          
         }
       }
     }
@@ -156,12 +156,12 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
 
       if (mounted) {
         if (success) {
-          // After successful MPIN login, ask for biometric permission if available and not enabled
-          // Run in background (non-blocking) so it doesn't delay navigation
+          
+          
           if (_isBiometricAvailable && !_isBiometricEnabled) {
-            // Don't await - let it run in background while we navigate
+            
             _requestBiometricPermission(mpin).catchError((e) {
-              // Silently handle errors - don't block navigation
+              
             });
           }
 
@@ -198,48 +198,48 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
     }
   }
 
-  /// Request biometric permission using native dialog (like location permission)
-  /// This will trigger the native biometric permission dialog automatically
+  
+  
   Future<void> _requestBiometricPermission(String mpin) async {
     try {
-      // Check if biometric is available
+      
       if (!await BiometricService.isAvailable()) {
         return;
       }
 
-      // Check if already enabled
+      
       if (await SecureStorageService.isBiometricEnabled()) {
         return;
       }
 
-      // This will trigger the native biometric permission dialog automatically
-      // The native dialog will appear just like location permission dialog
+      
+      
       final success = await SecureStorageService.storeMPINWithBiometric(mpin);
 
       if (success) {
-        // Update local state
+        
         if (mounted) {
           setState(() {
             _isBiometricEnabled = true;
           });
         }
       } else {
-        // User skipped or denied - that's okay, continue without biometric
+        
       }
     } catch (e) {
-      // Continue without biometric if permission request fails
+      
     }
   }
 
   Future<void> _handleBiometricLogin() async {
-    // Prevent multiple simultaneous calls
+    
     if (_isLoading) {
       return;
     }
 
     if (!mounted) return;
 
-    // Check if biometric is actually available before proceeding
+    
     if (!_isBiometricAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -254,22 +254,22 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
     }
 
     if (!_isBiometricEnabled) {
-      // Get MPIN from storage to enable biometric
+      
       final mpin = await SecureStorageService.getMPIN();
       if (mpin != null && mpin.isNotEmpty) {
         await _requestBiometricPermission(mpin);
-        // Re-check if enabled after permission request
+        
         final isEnabled = await SecureStorageService.isBiometricEnabled();
         if (!isEnabled) {
-          // User skipped or denied, can't proceed with biometric login
+          
           return;
         }
-        // Update state and continue with biometric login
+        
         setState(() {
           _isBiometricEnabled = true;
         });
       } else {
-        // Can't enable biometric without MPIN
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('MPIN not found. Please login with MPIN first.'),
@@ -288,7 +288,7 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Add timeout wrapper to ensure we don't hang forever
+      
       final success = await authProvider.loginWithBiometric().timeout(
         const Duration(seconds: 35),
         onTimeout: () {
@@ -310,7 +310,7 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
         },
       );
 
-      // Always reset loading state first, before any navigation
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -322,7 +322,7 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
       }
 
       if (success) {
-        // Navigate to home
+        
         EcliniqRouter.pushAndRemoveUntil(const HomeScreen(), (route) => false);
       } else {
         final errorMsg = authProvider.errorMessage ?? '';
@@ -341,23 +341,23 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
             ),
           );
         } else if (errorMsg.toLowerCase().contains('not enabled')) {
-          // Biometric not enabled - request permission via native dialog
+          
           final mpin = await SecureStorageService.getMPIN();
           if (mpin != null && mpin.isNotEmpty) {
             await _requestBiometricPermission(mpin);
-            // Re-check availability after permission request
+            
             await _checkBiometricAvailability();
           }
         }
       }
     } catch (e) {
-      // Always reset loading state on exception
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
 
-        // Check if it's a timeout exception
+        
         if (e.toString().toLowerCase().contains('timeout')) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -369,7 +369,7 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
             ),
           );
         } else {
-          // Only show error for unexpected exceptions
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Biometric login failed: ${e.toString()}'),
@@ -485,14 +485,14 @@ class _VerifyMPINPageState extends State<VerifyMPINPage>
                                   onPressed: _isLoading
                                       ? null
                                       : () async {
-                                          // Get MPIN and request biometric permission via native dialog
+                                          
                                           final mpin =
                                               await SecureStorageService.getMPIN();
                                           if (mpin != null && mpin.isNotEmpty) {
                                             await _requestBiometricPermission(
                                               mpin,
                                             );
-                                            // Re-check availability after permission request
+                                            
                                             await _checkBiometricAvailability();
                                           } else {
                                             ScaffoldMessenger.of(

@@ -1,6 +1,6 @@
-/// Models for ETA (Estimated Time of Arrival) WebSocket updates
 
-/// ETA Update Status
+
+
 enum ETAStatus {
   waiting,
   ready,
@@ -9,7 +9,7 @@ enum ETAStatus {
   cancelled,
 }
 
-/// ETA Update received from WebSocket
+
 class ETAUpdate {
   final String? appointmentId;
   final int? token;
@@ -109,7 +109,7 @@ class ETAUpdate {
   }
 }
 
-/// Slot Display Update for display screens
+
 class SlotDisplayUpdate {
   final String slotId;
   final int currentToken;
@@ -146,7 +146,7 @@ class SlotDisplayUpdate {
   }
 }
 
-/// Join Response from WebSocket
+
 class JoinResponse {
   final String room;
   final bool success;

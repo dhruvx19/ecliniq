@@ -103,7 +103,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   PatientDetailsData? _currentUserDetails;
   bool _isLoadingUserDetails = false;
 
-  // Payment-related state
+  
   bool _useWallet = false;
   double _walletBalance = 0.0;
   double _consultationFee = 500.0;
@@ -111,7 +111,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
   bool _isProcessingPayment = false;
   String? _selectedPaymentMethod;
   String?
-  _selectedPaymentMethodPackage; // Store package name for payment processing
+  _selectedPaymentMethodPackage; 
 
   @override
   void initState() {
@@ -119,7 +119,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     _loadPatientId();
     _fetchHospitalAddress();
 
-    // Use passed user details if available, otherwise fetch
+    
     if (widget.currentUserDetails != null) {
       _currentUserDetails = widget.currentUserDetails;
       _patientId = widget.currentUserDetails!.userId;
@@ -130,21 +130,19 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
     if (widget.doctor != null) {
       _doctor = widget.doctor;
-      // Set serviceFee from widget.doctor if available
-      debugPrint('========== SERVICE FEE FROM WIDGET ==========');
-      debugPrint('widget.doctor?.serviceFee: ${widget.doctor?.serviceFee}');
-      debugPrint(
-        'widget.doctor?.serviceFee type: ${widget.doctor?.serviceFee.runtimeType}',
-      );
+      
+      
+      
+      
 
       if (_doctor?.serviceFee != null && _doctor!.serviceFee! > 0) {
         _serviceFee = _doctor!.serviceFee!;
-        debugPrint('ServiceFee from widget set to: $_serviceFee');
+        
       } else {
         _serviceFee = 0.0;
-        debugPrint('ServiceFee from widget set to 0.0 (was null or <= 0)');
+        
       }
-      debugPrint('=============================================');
+      
       _currentLocationName = widget.locationName;
       _currentLocationAddress = widget.locationAddress;
       _currentDistance = widget.locationDistance;
@@ -158,7 +156,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     });
 
     if (widget.isReschedule && widget.previousAppointment != null) {
-      // Pre-fill reason if available
+      
     }
   }
 
@@ -198,7 +196,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         });
       }
     } catch (e) {
-      // Silently fail
+      
     }
   }
 
@@ -250,7 +248,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           _walletBalance = 0.0;
         });
       }
-      debugPrint('Failed to fetch wallet balance: $e');
+      
     }
   }
 
@@ -270,12 +268,12 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         return;
       }
 
-      // Fetch patient details
+      
       final response = await _patientService.getPatientDetails(
         authToken: authToken,
       );
 
-      // Fetch dependents to get self data
+      
       final dependentsResponse = await _patientService.getDependents(
         authToken: authToken,
       );
@@ -287,7 +285,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             _patientId = response.data!.userId;
           }
 
-          // Auto-select self if available
+          
           if (dependentsResponse.success && dependentsResponse.self != null) {
             _selectedDependent = dependentsResponse.self;
           }
@@ -301,7 +299,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           _isLoadingUserDetails = false;
         });
       }
-      debugPrint('Failed to fetch current user details: $e');
+      
     }
   }
 
@@ -342,20 +340,20 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     return _formatUserSubtitle();
   }
 
-  /// Extract error message from response errors
-  /// Handles errors as List of objects with 'message' field or as String
+  
+  
   String _extractErrorMessage(dynamic errors, String defaultMessage) {
     if (errors == null) {
       return defaultMessage;
     }
 
-    // If errors is a List
+    
     if (errors is List) {
       if (errors.isEmpty) {
         return defaultMessage;
       }
 
-      // Extract messages from error objects
+      
       final messages = errors
           .where((error) => error is Map && error['message'] != null)
           .map((error) => error['message'].toString())
@@ -366,21 +364,21 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         return messages.join(', ');
       }
 
-      // If no message field, try to convert first item to string
+      
       return errors.first.toString();
     }
 
-    // If errors is a Map with 'message' field
+    
     if (errors is Map && errors['message'] != null) {
       return errors['message'].toString();
     }
 
-    // If errors is a String
+    
     if (errors is String) {
       return errors;
     }
 
-    // Fallback to string representation
+    
     return errors.toString();
   }
 
@@ -393,19 +391,19 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     );
 
     if (selectedDependent != null && mounted) {
-      // Use post-frame callback to avoid state updates during layout
+      
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
-            // If self is selected, clear _selectedDependent to use _currentUserDetails
-            // Otherwise, set the selected dependent which will update gender, age, and DOB
+            
+            
             if (selectedDependent.isSelf) {
               _selectedDependent = null;
             } else {
               _selectedDependent = selectedDependent;
             }
-            // This will trigger a rebuild and update appointment details
-            // including name, gender, age, and DOB through _buildPatientInfo()
+            
+            
           });
         }
       });
@@ -431,24 +429,22 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           setState(() {
             _doctor = response.data;
 
-            // Set serviceFee from API response
-            debugPrint('========== SERVICE FEE PARSING ==========');
-            debugPrint('_doctor?.serviceFee: ${_doctor?.serviceFee}');
-            debugPrint(
-              '_doctor?.serviceFee type: ${_doctor?.serviceFee.runtimeType}',
-            );
+            
+            
+            
+            
 
             if (_doctor?.serviceFee != null && _doctor!.serviceFee! > 0) {
               _serviceFee = _doctor!.serviceFee!;
-              debugPrint('ServiceFee set to: $_serviceFee');
+              
             } else {
               _serviceFee = 0.0;
-              debugPrint('ServiceFee set to 0.0 (was null or <= 0)');
+              
             }
-            debugPrint('Final _serviceFee: $_serviceFee');
-            debugPrint('==========================================');
+            
+            
 
-            // Update consultation fee from doctor data if available
+            
             if (widget.hospitalId != null && _doctor != null) {
               final hospital = _doctor!.hospitals.firstWhere(
                 (h) => h.id == widget.hospitalId,
@@ -477,7 +473,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           setState(() {
             _isLoadingDoctorDetails = false;
           });
-          debugPrint('Failed to fetch doctor details: ${response.message}');
+          
         }
       }
     } catch (e) {
@@ -486,7 +482,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           _isLoadingDoctorDetails = false;
         });
       }
-      debugPrint('Failed to fetch doctor details: $e');
+      
     }
   }
 
@@ -682,7 +678,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
       final age = _calculateAgeFromDob(_selectedDependent!.dob);
 
-      // Capitalize gender properly
+      
       final gender = capitalize(_selectedDependent!.gender);
 
       return PatientInfo(
@@ -705,7 +701,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
       return PatientInfo(
         name: _currentUserDetails?.fullName ?? 'User',
-        gender: 'Male', // PatientDetailsData doesn't have gender field
+        gender: 'Male', 
         dateOfBirth: dobStr,
         age: age,
         isSelf: true,
@@ -731,7 +727,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         ? double.tryParse(_currentDistance!) ?? 0.0
         : 0.0;
 
-    // Extract city and pincode from address if available
+    
     String city = '';
     String pincode = '';
     if (locationAddress.isNotEmpty) {
@@ -758,7 +754,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     );
   }
 
-  // Replace your build method's body with this:
+  
 
   @override
   Widget build(BuildContext context) {
@@ -819,7 +815,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
       ),
       body: Column(
         children: [
-          // Fixed DoctorInfoCard at the top (not scrollable)
+          
           RepaintBoundary(
             child: _isLoadingDoctorDetails
                 ? _buildDoctorInfoShimmer()
@@ -1011,7 +1007,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Wallet checkbox section (only for new appointments)
+                  
                   RepaintBoundary(
                     child: Container(
                       padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(
@@ -1174,7 +1170,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             ),
           ),
 
-          // Fixed button/bottom bar at bottom
+          
           if (_serviceFee > 0)
             _buildPaymentBottomBar()
           else
@@ -1206,7 +1202,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
     
 
-    // Check if payment method is selected when service fee > 0 and wallet is not used
+    
     if (_serviceFee > 0 &&
         !_useWallet &&
         _selectedPaymentMethodPackage == null) {
@@ -1293,8 +1289,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           }
         }
       } else {
-        // Book new appointment
-        // Check if selected member is a dependent (not self)
+        
+        
         final isDependent =
             _selectedDependent != null && !_selectedDependent!.isSelf;
         final request = BookAppointmentRequest(
@@ -1321,22 +1317,22 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 ? response.data as Map<String, dynamic>
                 : null;
 
-            // Debug logging
+            
             if (responseDataJson != null) {}
 
-            // Check if payment data is present (new backend format)
+            
             if (responseDataJson != null &&
                 responseDataJson.containsKey('paymentRequired') &&
                 responseDataJson['paymentRequired'] == true) {
               final paymentData = BookingPaymentData.fromJson(responseDataJson);
 
-              // Check if total amount is 0, gateway amount is 0, service fee was 0, or wallet is used
-              // If any of these conditions are true, skip payment and go directly to request sent screen
+              
+              
               if (paymentData.totalAmount == 0 ||
                   paymentData.gatewayAmount == 0 ||
                   _serviceFee == 0 ||
                   _useWallet) {
-                // No payment required or wallet payment, go directly to request sent screen
+                
                 final appointmentData = response.data is AppointmentData
                     ? response.data as AppointmentData
                     : null;
@@ -1368,7 +1364,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               }
 
               if (paymentData.requiresGateway) {
-                // Validate payment data
+                
                 if (paymentData.requestPayload == null ||
                     paymentData.requestPayload!.isEmpty) {
                   if (paymentData.token == null || paymentData.token!.isEmpty) {
@@ -1403,16 +1399,16 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   }
                 }
 
-                // Use the pre-selected payment method or default to Google Pay if service fee was 0
+                
                 String? paymentPackage = _selectedPaymentMethodPackage;
                 if (paymentPackage == null && _serviceFee == 0) {
-                  // Default to Google Pay when service fee was 0 but payment is required
+                  
                   paymentPackage = 'com.google.android.apps.nbu.paisa.user';
                 }
 
                 if (paymentPackage != null) {
                   if (paymentPackage == 'WALLET') {
-                    // Wallet-only payment, go to request sent
+                    
                     final appointmentData = response.data is AppointmentData
                         ? response.data as AppointmentData
                         : null;
@@ -1443,14 +1439,14 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                       ),
                     );
                   } else {
-                    // UPI payment, process payment with loader
+                    
                     await _processUPIPayment(
                       paymentData: paymentData,
                       selectedUPIPackage: paymentPackage,
                     );
                   }
                 } else {
-                  // No payment method selected and service fee > 0, show error
+                  
                   setState(() {
                     _isBooking = false;
                   });
@@ -1463,7 +1459,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   );
                 }
               } else {
-                // Wallet-only payment
+                
                 final appointmentData = response.data is AppointmentData
                     ? response.data as AppointmentData
                     : null;
@@ -1493,7 +1489,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                 );
               }
             } else {
-              // Legacy response format
+              
               final appointmentData = response.data is AppointmentData
                   ? response.data as AppointmentData
                   : null;
@@ -1589,7 +1585,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           ),
           decoration: BoxDecoration(
             boxShadow: _isBooking
-                ? [] // No shadow when loading
+                ? [] 
                 : [
                     BoxShadow(
                       color: Color(0x4D2372EC),
@@ -1649,7 +1645,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                         ),
                       ),
 
-                      // Right side - Confirm Visit and arrow
+                      
                       Row(
                         children: [
                           Text(
@@ -1712,7 +1708,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Wallet balance checkbox
+          
           Row(
             children: [
               Image.asset(
@@ -1767,11 +1763,11 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           const SizedBox(height: 8),
           Container(height: 0.5, color: const Color(0xffB8B8B8)),
           const SizedBox(height: 8),
-          // Payment method selector and button
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left side - Payment method selector
+              
               Expanded(
                 child: GestureDetector(
                   onTap: _isBooking
@@ -1781,7 +1777,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Icon and "Pay using" in same row
+                      
                       Row(
                         children: [
                           if (_selectedPaymentMethodPackage != null)
@@ -1829,7 +1825,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      // Payment method name below
+                      
                       Text(
                         _selectedPaymentMethod ?? 'Google Pay UPI',
                         style: EcliniqTextStyles.responsiveBodyMedium(context)
@@ -1847,7 +1843,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
               ),
               const SizedBox(width: 12),
 
-              // Right side - Pay & Confirm button
+              
               GestureDetector(
                 onTap: _isBooking ? null : () => _onConfirmVisit(),
                 child: Container(
@@ -1879,7 +1875,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                     ),
                     child: _isBooking
                         ? SizedBox(
-                            width: 180, // Fixed width for loading state
+                            width: 180, 
                             child: const Center(
                               child: EcliniqLoader(
                                 size: 24,
@@ -1890,7 +1886,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Amount and Total
+                              
                               Flexible(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -1924,7 +1920,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                                 ),
                               ),
                               const SizedBox(width: 34),
-                              // Pay & Confirm text
+                              
                               Expanded(
                                 child: Text(
                                   'Pay & Confirm',
@@ -2004,8 +2000,8 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
           });
         },
         onConfirm: () {
-          // Payment confirmation is handled in _onConfirmVisit
-          // This callback can be used for additional actions if needed
+          
+          
         },
       ),
     );
@@ -2020,7 +2016,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             _useWallet = selectedMethod['useWallet'] as bool;
           }
         } else {
-          // If bottom sheet closed without selection, default to Google Pay
+          
           if (_selectedPaymentMethodPackage == null) {
             _selectedPaymentMethod = 'Gpay';
             _selectedPaymentMethodPackage =
@@ -2040,7 +2036,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
     });
 
     try {
-      // Initialize PhonePe SDK if not already initialized
+      
       if (!_phonePeService.isInitialized) {
         final prefs = await SharedPreferences.getInstance();
         final userId =
@@ -2049,7 +2045,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
 
         const merchantId = 'M237OHQ3YCVAO_2511191950';
         const isProduction =
-            false; // Change to true if you have real PhonePe app installed
+            false; 
 
         final initialized = await _phonePeService.initialize(
           isProduction: isProduction,
@@ -2063,7 +2059,7 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
         }
       }
 
-      // Open UPI app if specific app selected
+      
       if (selectedUPIPackage != 'com.phonepe.app' &&
           selectedUPIPackage != 'com.phonepe.simulator') {
         try {
@@ -2073,11 +2069,11 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
             await Future.delayed(const Duration(milliseconds: 300));
           }
         } catch (e) {
-          debugPrint('Error opening UPI app: $e');
+          
         }
       }
 
-      // Start PhonePe payment
+      
       final result = await _phonePeService.startPayment(
         requestPayload: paymentData.requestPayload,
         token: paymentData.token,
@@ -2086,16 +2082,16 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
       );
 
       if (result.success || result.status != 'INCOMPLETE') {
-        // Verify payment
+        
         final statusData = await _paymentService.pollPaymentUntilComplete(
           paymentData.merchantTransactionId,
           onStatusUpdate: (status) {
-            debugPrint('Payment status: ${status.status}');
+            
           },
         );
 
         if (statusData != null && statusData.isSuccess) {
-          // Verify appointment
+          
           final verifyRequest = VerifyAppointmentRequest(
             appointmentId: paymentData.appointmentId,
             merchantTransactionId: paymentData.merchantTransactionId,
@@ -2201,7 +2197,7 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
   bool _isWhatsAppEnabled = true;
 
   void _callUs() {
-    print('Call us tapped');
+    
   }
 
   void _toggleWhatsAppUpdates(bool value) {

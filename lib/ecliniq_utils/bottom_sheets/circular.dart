@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 class CircularProfileCarousel extends StatefulWidget {
   final List<String>? profileImages;
   final List<String>? profileNames;
-  final List<String>? profileSvgs; // Optional custom SVG list
+  final List<String>? profileSvgs; 
 
   const CircularProfileCarousel({
     super.key,
@@ -23,23 +23,23 @@ class _CircularProfileCarouselState extends State<CircularProfileCarousel>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
-  // Default 7 different SVG assets for profiles
-  // Replace these with your actual SVG asset paths from EcliniqIcons
+  
+  
   late final List<String> defaultProfileSvgs;
 
   @override
   void initState() {
     super.initState();
     
-    // Initialize default SVGs - replace with your actual icon paths
+    
     defaultProfileSvgs = [
-      EcliniqIcons.one.assetPath,   // Profile 1
-      EcliniqIcons.two.assetPath,   // Profile 2 - REPLACE with different icon
-      EcliniqIcons.three.assetPath,   // Profile 3 - REPLACE with different icon
-      EcliniqIcons.four.assetPath,   // Profile 4 - REPLACE with different icon
-      EcliniqIcons.five.assetPath,   // Profile 5 - REPLACE with different icon
-      EcliniqIcons.six.assetPath,   // Profile 6 - REPLACE with different icon
-      EcliniqIcons.seven.assetPath,   // Profile 7 - REPLACE with different icon
+      EcliniqIcons.one.assetPath,   
+      EcliniqIcons.two.assetPath,   
+      EcliniqIcons.three.assetPath,   
+      EcliniqIcons.four.assetPath,   
+      EcliniqIcons.five.assetPath,   
+      EcliniqIcons.six.assetPath,   
+      EcliniqIcons.seven.assetPath,   
     ];
     
     _controller = AnimationController(
@@ -63,7 +63,7 @@ class _CircularProfileCarouselState extends State<CircularProfileCarousel>
   }
 
   String _getSvgForProfile(int profileIndex) {
-    // Use custom SVGs if provided, otherwise use defaults
+    
     if (widget.profileSvgs != null && profileIndex < widget.profileSvgs!.length) {
       return widget.profileSvgs![profileIndex];
     }
@@ -125,7 +125,7 @@ class _CircularProfileCarouselState extends State<CircularProfileCarousel>
                 containerWidth * 0.78,
               ];
 
-              // Sizes: center=32, ±1=28, ±2=24, ±3=20
+              
               List<double> sizes = [20, 24, 28, 32, 28, 24, 20];
               List<double> baseOpacities = [0.4, 0.5, 0.7, 1.0, 0.7, 0.5, 0.4];
 

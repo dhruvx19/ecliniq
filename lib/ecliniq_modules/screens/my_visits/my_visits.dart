@@ -73,7 +73,7 @@ class _MyVisitsState extends State<MyVisits>
   final _appointmentService = AppointmentService();
   final _storageService = StorageService();
   bool _isLoadingAppointments = false;
-  // Key counter for hot reload
+  
 
   List<AppointmentData> _scheduledAppointments = [];
   List<AppointmentData> _historyAppointments = [];
@@ -91,12 +91,12 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   void _onTabTapped(int index) {
-    // Don't navigate if already on the same tab
+    
     if (index == _currentIndex) {
       return;
     }
 
-    // Navigate using the navigation helper with smooth left-to-right transitions
+    
     NavigationHelper.navigateToTab(context, index, _currentIndex);
   }
 
@@ -119,10 +119,10 @@ class _MyVisitsState extends State<MyVisits>
     });
 
     try {
-      // Determine type based on filter index (Default is Doctor at index 0)
+      
       final type = _selectedFilterIndex == 0 ? 'doctor' : 'hospital';
 
-      // Load both scheduled and history appointments
+      
       final results = await Future.wait([
         _appointmentService.getScheduledAppointments(
           authToken: authToken,
@@ -175,7 +175,7 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   AppointmentData _mapToAppointmentData(AppointmentListItem item) {
-    // Map API status to local enum
+    
     AppointmentStatus status;
     switch (item.status.toUpperCase()) {
       case 'CONFIRMED':
@@ -199,25 +199,25 @@ class _MyVisitsState extends State<MyVisits>
         status = AppointmentStatus.requested;
     }
 
-    // Format date
+    
     final dateFormat = DateFormat('dd MMM, yyyy');
     final date = dateFormat.format(item.appointmentDate);
 
-    // Format time
+    
     final timeFormat = DateFormat('hh:mm a');
     final time = timeFormat.format(item.appointmentTime.startTime);
 
-    // Format specialization (join list)
+    
     final specialization = item.speciality.isNotEmpty
         ? item.speciality.join(', ')
         : 'General Physician';
 
-    // Format qualification (join degrees)
+    
     final qualification = item.degrees.isNotEmpty
         ? item.degrees.join(', ')
         : 'MBBS';
 
-    // Format patient name
+    
     final patientName = item.bookedFor == 'SELF'
         ? '${item.patientName} (You)'
         : item.patientName;
@@ -238,11 +238,11 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Future<void> _navigateToDetailPage(AppointmentData appointment) async {
-    // Navigate immediately with appointment ID and status
-    // The detail page will handle its own loading state
+    
+    
     Widget detailPage;
 
-    // Determine status from appointment data
+    
     String status = appointment.status.name;
     if (status == 'served') {
       status = 'completed';
@@ -265,7 +265,7 @@ class _MyVisitsState extends State<MyVisits>
         detailPage = BookingCompletedDetail(appointmentId: appointment.id);
         break;
       default:
-        // Fallback: try to determine from status enum
+        
         if (appointment.status == AppointmentStatus.confirmed) {
           detailPage = BookingConfirmedDetail(appointmentId: appointment.id);
         } else if (appointment.status == AppointmentStatus.requested) {
@@ -302,10 +302,10 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Future<void> _refreshAppointments() async {
-    // Reload appointments from API
+    
     await _loadAppointments();
     setState(() {
-      // Increment key to trigger hot reload
+      
     });
   }
 
@@ -314,7 +314,7 @@ class _MyVisitsState extends State<MyVisits>
       margin: const EdgeInsets.only(
         top: 8,
         bottom: 12,
-      ), // Changed bottom margin to 12
+      ), 
       child: Row(
         children: [
           Expanded(child: _buildTabButton('Scheduled', 0)),
@@ -331,7 +331,7 @@ class _MyVisitsState extends State<MyVisits>
         setState(() {
           _selectedTabIndex = index;
         });
-        // Reload appointments when switching tabs
+        
         _loadAppointments();
       },
       child: Container(
@@ -368,7 +368,7 @@ class _MyVisitsState extends State<MyVisits>
         right: 16,
         bottom: 2,
         top: 6,
-      ), // Removed top padding
+      ), 
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
@@ -574,7 +574,7 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Widget _buildDoctorInfo(AppointmentData appointment) {
-    // Get the first letter of doctor's name for fallback
+    
     final doctorInitial = appointment.doctorName.isNotEmpty
         ? appointment.doctorName[0].toUpperCase()
         : 'D';
@@ -622,7 +622,7 @@ class _MyVisitsState extends State<MyVisits>
                                   height: 70,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
-                                    // Fallback to initial if image fails to load
+                                    
                                     return Center(
                                       child: Text(
                                         doctorInitial,
@@ -658,7 +658,7 @@ class _MyVisitsState extends State<MyVisits>
                               );
                             }
 
-                            // Fallback to initial if no URL
+                            
                             return Center(
                               child: Text(
                                 doctorInitial,
@@ -815,7 +815,7 @@ class _MyVisitsState extends State<MyVisits>
                         .copyWith(
                           color: Color(0xFF424242),
                           fontWeight: FontWeight.w500,
-                          height: 1.0, // Set line height to 1 for better alignment
+                          height: 1.0, 
                         ),
                   ),
                   const SizedBox(width: 4),
@@ -928,7 +928,7 @@ class _MyVisitsState extends State<MyVisits>
   }
 
   Future<void> _openRatingSheet(AppointmentData appointment) async {
-    // Don't allow opening if rating already exists
+    
     if (appointment.rating != null && appointment.rating! > 0) {
       return;
     }
@@ -939,11 +939,11 @@ class _MyVisitsState extends State<MyVisits>
       doctorName: appointment.doctorName,
       appointmentId: appointment.id,
       onRatingSubmitted: (rating) {
-        // Refresh appointments after rating is submitted
+        
         _refreshAppointments();
       },
       onRefetch: () {
-        // Refresh appointments to get updated rating
+        
         _refreshAppointments();
       },
     );

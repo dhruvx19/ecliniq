@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Responsive Helper Utilities
-/// Provides utilities to make the app responsive across different screen sizes
 
-/// Breakpoints for different screen sizes
+
+
+
 class ScreenBreakpoints {
   static const double mobileSmall = 360;
   static const double mobileMedium = 480;
@@ -14,7 +14,7 @@ class ScreenBreakpoints {
   static const double desktopLarge = 1920;
 }
 
-/// Device Type Enum
+
 enum DeviceType {
   mobileSmall,
   mobileMedium,
@@ -25,7 +25,7 @@ enum DeviceType {
   desktopLarge,
 }
 
-/// Screen size information provider
+
 class ScreenSize {
   final Size screenSize;
   final DeviceType deviceType;
@@ -45,7 +45,7 @@ class ScreenSize {
     required this.isDesktop,
   });
 
-  /// Get responsive double value based on current screen size
+  
   double getResponsiveValue({
     required double mobile,
     double? tablet,
@@ -70,7 +70,7 @@ class ScreenSize {
     }
   }
 
-  /// Get responsive int value based on current screen size
+  
   int getResponsiveIntValue({
     required int mobile,
     int? tablet,
@@ -89,7 +89,7 @@ class ScreenSize {
     ).toInt();
   }
 
-  /// Get responsive EdgeInsets based on current screen size
+  
   EdgeInsets getResponsivePadding({
     required EdgeInsets mobile,
     EdgeInsets? tablet,
@@ -115,9 +115,9 @@ class ScreenSize {
   }
 }
 
-/// Main Responsive Helper Class
+
 class ResponsiveHelper {
-  /// Get screen size information from context
+  
   static ScreenSize getScreenSize(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final width = size.width;
@@ -175,7 +175,7 @@ class ResponsiveHelper {
     );
   }
 
-  /// Get responsive double value
+  
   static double getResponsiveValue(
     BuildContext context, {
     required double mobile,
@@ -196,7 +196,7 @@ class ResponsiveHelper {
     );
   }
 
-  /// Get responsive padding
+  
   static EdgeInsets getResponsivePadding(
     BuildContext context, {
     required EdgeInsets mobile,
@@ -217,7 +217,7 @@ class ResponsiveHelper {
     );
   }
 
-  /// Get responsive font size
+  
   static double getResponsiveFontSize(
     BuildContext context, {
     required double mobile,
@@ -232,7 +232,7 @@ class ResponsiveHelper {
     );
   }
 
-  /// Get responsive icon size
+  
   static double getResponsiveIconSize(
     BuildContext context, {
     required double mobile,
@@ -247,7 +247,7 @@ class ResponsiveHelper {
     );
   }
 
-  /// Get responsive spacing
+  
   static double getResponsiveSpacing(
     BuildContext context, {
     required double mobile,
@@ -263,7 +263,7 @@ class ResponsiveHelper {
   }
 }
 
-/// Responsive Widget Builder
+
 class ResponsiveBuilder extends StatelessWidget {
   final Widget Function(ScreenSize screenSize) builder;
 
@@ -279,7 +279,7 @@ class ResponsiveBuilder extends StatelessWidget {
   }
 }
 
-/// Responsive Layout Widget
+
 class ResponsiveLayout extends StatelessWidget {
   final Widget mobile;
   final Widget? tablet;
@@ -306,7 +306,7 @@ class ResponsiveLayout extends StatelessWidget {
   }
 }
 
-/// Responsive Text Widget
+
 class ResponsiveText extends StatelessWidget {
   final String text;
   final TextStyle? style;
@@ -345,7 +345,7 @@ class ResponsiveText extends StatelessWidget {
   }
 }
 
-/// Responsive Sizing Widget
+
 class ResponsiveSizedBox extends StatelessWidget {
   final double? mobileWidth;
   final double? mobileHeight;
@@ -384,7 +384,7 @@ class ResponsiveSizedBox extends StatelessWidget {
   }
 }
 
-/// Responsive Padding Widget
+
 class ResponsivePadding extends StatelessWidget {
   final EdgeInsets mobile;
   final EdgeInsets? tablet;
@@ -424,7 +424,7 @@ class ResponsivePadding extends StatelessWidget {
   }
 }
 
-/// Responsive Sliver Padding Widget
+
 class ResponsiveSliverPadding extends StatelessWidget {
   final EdgeInsets mobile;
   final EdgeInsets? tablet;

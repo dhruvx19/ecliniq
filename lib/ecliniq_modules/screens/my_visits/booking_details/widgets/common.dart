@@ -70,9 +70,9 @@ class AppointmentDetailModel {
     );
   }
 
-  /// Factory method to convert from API AppointmentDetailData
+  
   factory AppointmentDetailModel.fromApiData(AppointmentDetailData apiData) {
-    // Map status to lowercase for UI
+    
     String status = apiData.status.toLowerCase();
     if (status == 'served') {
       status = 'completed';
@@ -82,10 +82,10 @@ class AppointmentDetailModel {
       status = 'confirmed';
     }
 
-    // Combine date and time - startTime might have wrong date (1970-01-01), so use schedule.date
+    
     final appointmentDate = apiData.schedule.date;
     final startTime = apiData.schedule.startTime;
-    // Create a proper DateTime by combining the date from schedule.date with time from startTime
+    
     final combinedDateTime = DateTime(
       appointmentDate.year,
       appointmentDate.month,
@@ -94,15 +94,15 @@ class AppointmentDetailModel {
       startTime.minute,
     );
 
-    // Format date
+    
     final dateFormat = DateFormat('dd MMM, yyyy');
     final dateStr = dateFormat.format(appointmentDate);
 
-    // Format time
+    
     final timeFormat = DateFormat('hh:mm a');
     final timeStr = timeFormat.format(combinedDateTime);
 
-    // Calculate age from DOB
+    
     final now = DateTime.now();
     final dob = apiData.patient.dob;
     int age = now.year - dob.year;
@@ -111,11 +111,11 @@ class AppointmentDetailModel {
       age--;
     }
 
-    // Get clinic/hospital info from location
+    
     final location = apiData.location;
     final clinicName = location.name;
 
-    // Parse and format address
+    
     String formattedAddress = '';
     String city = '';
     String pincode = '';
@@ -124,12 +124,12 @@ class AppointmentDetailModel {
 
     if (location.type == 'CLINIC' && apiData.doctor.primaryClinic != null) {
       final primaryClinic = apiData.doctor.primaryClinic!;
-      // For clinics, prefer primary clinic address if available, otherwise use location address
+      
       formattedAddress = primaryClinic.address.isNotEmpty
           ? primaryClinic.address
           : location.address;
 
-      // Extract city and pincode from address
+      
       final addressParts = formattedAddress.split(',');
       if (addressParts.length > 2) {
         city = addressParts[addressParts.length - 2].trim();
@@ -153,27 +153,27 @@ class AppointmentDetailModel {
       latitude = hospital.latitude;
       longitude = hospital.longitude;
 
-      // Parse JSON address for hospitals
+      
       formattedAddress = _parseHospitalAddress(location.address, hospital);
     } else {
-      // Fallback: use address as-is
+      
       formattedAddress = location.address;
     }
 
-    // Format consultation type
+    
     String consultationType = apiData.type == 'ONLINE'
         ? 'Online Consultation'
         : 'In-Clinic Consultation';
 
-    // Get consultation fee - prefer top-level fees, fallback to doctor fees
+    
     final consultationFee =
         apiData.consultationFee ?? apiData.doctor.consultationFee ?? 0.0;
     final followUpFee =
         apiData.followUpFee ?? apiData.doctor.followUpFee ?? 0.0;
-    final serviceFee = 0.0; // Service fee not in API response
+    final serviceFee = 0.0; 
     final totalPayable = consultationFee + serviceFee;
 
-    // Extract doctorId, hospitalId, and clinicId
+    
     final doctorId = apiData.doctor.userId;
     String? hospitalId;
     String? clinicId;
@@ -190,8 +190,8 @@ class AppointmentDetailModel {
       id: apiData.appointmentId,
       status: status,
       tokenNumber: apiData.tokenNo?.toString(),
-      expectedTime: null, // Not available in API
-      currentTokenNumber: null, // Not available in API
+      expectedTime: null, 
+      currentTokenNumber: null, 
       doctor: DoctorInfo(
         name: apiData.doctor.name,
         specialization: apiData.doctor.specialties.isNotEmpty
@@ -200,7 +200,7 @@ class AppointmentDetailModel {
         qualification: apiData.doctor.degrees.isNotEmpty
             ? apiData.doctor.degrees.join(', ')
             : 'MBBS',
-        rating: 0.0, // Not available in API
+        rating: 0.0, 
         yearsOfExperience: apiData.doctor.workExperience ?? 0,
         profileImage: apiData.doctor.profilePhoto,
       ),
@@ -224,7 +224,7 @@ class AppointmentDetailModel {
         pincode: pincode,
         latitude: latitude,
         longitude: longitude,
-        distanceKm: 0.0, // Not available in API
+        distanceKm: 0.0, 
       ),
       payment: PaymentInfo(
         consultationFee: consultationFee,
@@ -265,30 +265,30 @@ class AppointmentDetailModel {
   }
 }
 
-/// Helper function to parse and format hospital address from JSON string
+
 String _parseHospitalAddress(
   String addressString,
   AssociatedHospital hospital,
 ) {
   try {
-    // Check if address is a JSON string
+    
     if (addressString.trim().startsWith('{')) {
       final addressJson = jsonDecode(addressString) as Map<String, dynamic>;
       final parts = <String>[];
 
-      // Add street if available
+      
       if (addressJson['street'] != null &&
           addressJson['street'].toString().isNotEmpty) {
         parts.add(addressJson['street'].toString());
       }
 
-      // Add block number if available
+      
       if (addressJson['blockNo'] != null &&
           addressJson['blockNo'].toString().isNotEmpty) {
         parts.add(addressJson['blockNo'].toString());
       }
 
-      // Add city and state from hospital object
+      
       if (hospital.city.isNotEmpty) {
         parts.add(hospital.city);
       }
@@ -296,20 +296,20 @@ String _parseHospitalAddress(
         parts.add(hospital.state);
       }
 
-      // Add landmark if available
+      
       if (addressJson['landmark'] != null &&
           addressJson['landmark'].toString().isNotEmpty) {
         parts.add('Near ${addressJson['landmark']}');
       }
 
-      // Add pincode
+      
       if (hospital.pincode.isNotEmpty) {
         parts.add(hospital.pincode);
       }
 
       return parts.isEmpty ? addressString : parts.join(', ');
     } else {
-      // If not JSON, return as-is but append city, state, pincode if available
+      
       final parts = <String>[addressString];
       if (hospital.city.isNotEmpty) {
         parts.add(hospital.city);
@@ -323,7 +323,7 @@ String _parseHospitalAddress(
       return parts.join(', ');
     }
   } catch (e) {
-    // If parsing fails, return original address with hospital details appended
+    
     final parts = <String>[addressString];
     if (hospital.city.isNotEmpty) {
       parts.add(hospital.city);
@@ -764,17 +764,17 @@ class DoctorInfoCard extends StatelessWidget {
   final DoctorInfo doctor;
   final ClinicInfo clinic;
   final String? currentTokenNumber;
-  final bool isSimplified; // New parameter for simplified view
+  final bool isSimplified; 
 
   const DoctorInfoCard({
     super.key,
     required this.doctor,
     required this.clinic,
     this.currentTokenNumber,
-    this.isSimplified = false, // Default to full view
+    this.isSimplified = false, 
   });
 
-  // Cache colors to prevent recreation on every build
+  
   static final Color _borderColor = const Color(0xFF1565C0).withOpacity(0.2);
 
   String _getExperienceText(int years) {
@@ -1451,7 +1451,7 @@ class _RatingSectionState extends State<RatingSection> {
   }
 
   Future<void> _openRatingBottomSheet() async {
-    // Don't allow opening if rating already exists or is read-only
+    
     if (widget.showAsReadOnly ||
         widget.onRatingChanged == null ||
         (_rating > 0)) {
@@ -1483,7 +1483,7 @@ class _RatingSectionState extends State<RatingSection> {
   Widget build(BuildContext context) {
     final hasRating = _rating > 0;
     final isReadOnly = widget.showAsReadOnly || hasRating;
-    // Don't allow opening if rating exists
+    
     final canOpen = !isReadOnly && (_rating == 0);
 
     return GestureDetector(
@@ -1803,7 +1803,7 @@ class _BookingActionButtonState extends State<BookingActionButton> {
   }
 }
 
-/// Animated dot widget that shows and disappears in a loop
+
 class _AnimatedDot extends StatefulWidget {
   const _AnimatedDot();
 

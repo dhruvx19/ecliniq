@@ -91,10 +91,10 @@ class _ProfilePageState extends State<ProfilePage>
       );
 
       if (response.success && response.data != null) {
-        // Do not resolve or display profile image for now
+        
         _profilePhotoUrl = null;
 
-        // Store user name in secure storage
+        
         final user = response.data!.user;
         if (user?.firstName != null || user?.lastName != null) {
           final firstName = user?.firstName ?? '';
@@ -128,7 +128,7 @@ class _ProfilePageState extends State<ProfilePage>
     String key, {
     required String token,
   }) async {
-    // Try public URL
+    
     try {
       final publicUri = Uri.parse(
         '${Endpoints.storagePublicUrl}?key=${Uri.encodeComponent(key)}',
@@ -147,7 +147,7 @@ class _ProfilePageState extends State<ProfilePage>
       }
     } catch (_) {}
 
-    // Fallback to download URL with auth
+    
     try {
       final downloadUri = Uri.parse(
         '${Endpoints.storageDownloadUrl}?key=${Uri.encodeComponent(key)}',
@@ -218,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   void _handleDependentTap(Dependent dependent) {
-    // TODO: Navigate to dependent details
+    
   }
 
   void _onTabTapped(int index) {
@@ -300,7 +300,7 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
-                    // Background pattern
+                    
                     Positioned(
                       top: 0,
                       left: 0,
@@ -317,7 +317,7 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
-                    // Profile Header
+                    
                     ProfileHeader(onSettingsPressed: _handleSettings),
 
                     Positioned(
@@ -345,7 +345,7 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
-                    // Static avatar placeholder (no network image)
+                    
                     Positioned(
                       top: topMargin - 13,
                       left: MediaQuery.of(context).size.width / 2 - 43,
@@ -430,7 +430,7 @@ class _ProfileAvatarIcon extends StatelessWidget {
   }
 }
 
-// Profile page content builders
+
 extension _ProfilePageContent on _ProfilePageState {
   String _uiBloodGroup(String? backendValue) {
     if (backendValue == null) return 'N/A';
@@ -453,7 +453,7 @@ extension _ProfilePageContent on _ProfilePageState {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // User Info Shimmer
+          
           Column(
             children: [
               ShimmerLoading(
@@ -476,7 +476,7 @@ extension _ProfilePageContent on _ProfilePageState {
             ],
           ),
           const SizedBox(height: 30),
-          // Basic Info Cards Shimmer
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -554,10 +554,10 @@ extension _ProfilePageContent on _ProfilePageState {
             ],
           ),
           const SizedBox(height: 30),
-          // Physical Health Card Shimmer
+          
           ShimmerLoading(height: 200, borderRadius: BorderRadius.circular(16)),
           const SizedBox(height: 30),
-          // Dependents Shimmer
+          
           ShimmerLoading(height: 100, borderRadius: BorderRadius.circular(16)),
         ],
       ),
@@ -604,7 +604,7 @@ extension _ProfilePageContent on _ProfilePageState {
     final userEmail = patient.displayEmail;
     final isPhoneVerified = patient.user?.phone != null;
     final age = patient.age ?? 'N/A';
-    final gender = 'Male'; // TODO: Add gender to API response
+    final gender = 'Male'; 
     final bloodGroup = _uiBloodGroup(patient.bloodGroup);
     final healthStatus = patient.healthStatus;
     final bmi = patient.bmi ?? 0.0;
@@ -708,8 +708,8 @@ extension _ProfilePageContent on _ProfilePageState {
           ),
           const SizedBox(height: 24),
           
-          // const TestNotificationWidget(),
-          // const SizedBox(height: 24),
+          
+          
         ],
       ),
     );

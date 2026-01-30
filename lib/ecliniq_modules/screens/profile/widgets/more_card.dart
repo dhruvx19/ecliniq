@@ -118,24 +118,24 @@ class MoreSettingsMenuWidget extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          // Center(
-          //   child: Column(
-          //     children: [
-          //       SvgPicture.asset(
-          //         EcliniqIcons.nameLogo.assetPath,
-          //       ),
-          //       const SizedBox(height: 4),
-          //       Text(
-          //         appVersion,
-          //         style: TextStyle(
-          //           fontSize: 14,
-          //           color: Color(0xffB8B8B8),
-          //           fontWeight: FontWeight.w400,
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
 
           const SizedBox(height: 20),
         ],
@@ -154,7 +154,7 @@ class MoreSettingsMenuWidget extends StatelessWidget {
   }
 }
 
-// Special widget for Refer & Earn with share icons
+
 class _ReferEarnMenuItem extends StatelessWidget {
   final String icon;
   final String title;
@@ -208,7 +208,7 @@ class _ReferEarnMenuItem extends StatelessWidget {
                 ],
               ),
             ),
-            // Share icons with divider
+            
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -242,7 +242,7 @@ class _ReferEarnMenuItem extends StatelessWidget {
   }
 }
 
-// Regular menu item with arrow
+
 class _MoreMenuItem extends StatelessWidget {
   final String icon;
   final String title;

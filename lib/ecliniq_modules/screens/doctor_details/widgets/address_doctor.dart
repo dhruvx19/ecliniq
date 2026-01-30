@@ -13,9 +13,9 @@ class AddressWidget extends StatefulWidget {
 }
 
 class _AddressWidgetState extends State<AddressWidget> {
-  /// Open maps app with directions from current location to clinic
-  /// @description Opens Google Maps or Apple Maps with navigation directions
-  /// from user's current location to the clinic coordinates
+  
+  
+  
   Future<void> _openMapsDirections() async {
     if (widget.clinic.latitude == null || widget.clinic.longitude == null) {
       if (mounted) {
@@ -33,19 +33,19 @@ class _AddressWidgetState extends State<AddressWidget> {
     final lat = widget.clinic.latitude!;
     final lng = widget.clinic.longitude!;
 
-    // Try Google Maps first with directions from current location
+    
     final googleMapsUrl = Uri.parse(
       'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
     );
 
-    // Try Apple Maps (will fall back to web on Android)
+    
     final appleMapsUrl = Uri.parse('https://maps.apple.com/?daddr=$lat,$lng');
 
     try {
       bool canLaunchGoogle = false;
       bool canLaunchApple = false;
 
-      // Safely check if URLs can be launched
+      
       try {
         canLaunchGoogle = await canLaunchUrl(googleMapsUrl);
       } catch (e) {
@@ -58,34 +58,34 @@ class _AddressWidgetState extends State<AddressWidget> {
         canLaunchApple = false;
       }
 
-      // Try to launch Google Maps
+      
       if (canLaunchGoogle) {
         try {
           await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
           return;
         } catch (e) {
-          // Continue to next option if Google Maps fails
+          
         }
       }
 
-      // Try to launch Apple Maps
+      
       if (canLaunchApple) {
         try {
           await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
           return;
         } catch (e) {
-          // Continue to web fallback if Apple Maps fails
+          
         }
       }
 
-      // Fall back to web browser with Google Maps
+      
       final webMapsUrl = Uri.parse(
         'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
       );
       try {
         await launchUrl(webMapsUrl, mode: LaunchMode.externalApplication);
       } catch (e) {
-        // If all methods fail, try launching without checking first
+        
         try {
           await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
         } catch (finalLaunchError) {
@@ -103,13 +103,13 @@ class _AddressWidgetState extends State<AddressWidget> {
         }
       }
     } catch (e) {
-      // Silent fail - error handling above already shows user-friendly message
+      
     }
   }
 
-  /// Get static map image URL for preview
-  /// @description Generates a Google Static Maps URL for the clinic location
-  /// @returns String? - Static map image URL or null if coordinates unavailable
+  
+  
+  
   String? _getStaticMapUrl() {
     if (widget.clinic.latitude == null || widget.clinic.longitude == null) {
       return null;
@@ -118,7 +118,7 @@ class _AddressWidgetState extends State<AddressWidget> {
     final lat = widget.clinic.latitude!;
     final lng = widget.clinic.longitude!;
 
-    // Google Static Maps API (no API key required for basic usage)
+    
     return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng&zoom=15&size=400x150&maptype=roadmap&markers=color:red%7C$lat,$lng';
   }
 

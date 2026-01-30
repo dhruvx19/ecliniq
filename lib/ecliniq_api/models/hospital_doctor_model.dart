@@ -1,6 +1,6 @@
 import 'package:ecliniq/ecliniq_api/storage_service.dart';
 
-// Updated Doctor Model to match the API response
+
 class Doctor {
   final String id;
   final String firstName;
@@ -42,28 +42,28 @@ class Doctor {
     this.isFavourite = false,
   });
 
-  // Computed property for full name
+  
   String get name => '$firstName $lastName'.trim();
 
-  // Computed property for specializations list
+  
   List<String> get specializations {
     if (specialization.isEmpty) return [];
     return specialization.split(',').map((s) => s.trim()).toList();
   }
 
-  // Computed property for degree types
+  
   List<String> get degreeTypes {
     if (qualifications.isEmpty) return [];
     return qualifications.split(',').map((s) => s.trim()).toList();
   }
 
-  // Year of experience
+  
   int? get yearOfExperience => experience;
 
-  /// Get profile photo URL using StorageService
-  /// @description Fetches the public URL for the doctor's profile photo if available
-  /// @param storageService - StorageService instance to fetch the public URL
-  /// @returns Future<String?> - Public URL if successful, null otherwise
+  
+  
+  
+  
   Future<String?> getProfilePhotoUrl(StorageService storageService) async {
     if (profilePhoto == null || profilePhoto!.isEmpty) {
       return null;
@@ -77,17 +77,17 @@ class Doctor {
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       headline: json['headline'],
-      // API may return an array 'specializations' or a string 'specialization'
+      
       specialization: (json['specializations'] is List)
           ? ((json['specializations'] as List).map((e) => e.toString()).toList()).join(', ')
           : (json['specialization'] ?? ''),
-      // API may return an array 'qualifications'
+      
       qualifications: (json['qualifications'] is List)
           ? ((json['qualifications'] as List).map((e) => e.toString()).toList()).join(', ')
           : (json['qualifications'] ?? ''),
       experience: json['experience'],
       rating: (json['rating'] is num) ? (json['rating'] as num).toDouble() : null,
-      // Fee can be a string (e.g., "600"). Parse to double when possible.
+      
       fee: () {
         final f = json['fee'];
         if (f == null) return null;
@@ -97,7 +97,7 @@ class Doctor {
       }(),
       timings: json['timings'],
       location: json['location'],
-      // Distance object: { meters, km }
+      
       distance: () {
         final d = json['distance'];
         if (d is Map) {
@@ -357,7 +357,7 @@ class HospitalAddress {
   }
 }
 
-// Response wrapper
+
 class TopDoctorsResponse {
   final bool success;
   final String message;

@@ -58,7 +58,7 @@ class EcliniqScaffold extends StatelessWidget {
   }
 }
 
-// Extension for easy color access throughout the app
+
 extension EcliniqColors on BuildContext {
   Color get primaryBlue => EcliniqScaffold.primaryBlue;
   Color get lightBlue => EcliniqScaffold.lightBlue;
@@ -68,7 +68,7 @@ extension EcliniqColors on BuildContext {
   Color get dividerColor => EcliniqScaffold.dividerColor;
 }
 
-// Theme data for consistent styling across the app
+
 class EcliniqTheme {
   static ThemeData get lightTheme {
     return ThemeData(

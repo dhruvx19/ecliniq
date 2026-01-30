@@ -7,7 +7,7 @@ class TransactionProvider extends ChangeNotifier {
   bool isLoading;
   int selectedYear;
   final Function(int)? onYearChanged;
-  final Map<int, bool> _expansionState = {}; // Track expansion state by index
+  final Map<int, bool> _expansionState = {}; 
 
   TransactionProvider({
     this.transactionsData,
@@ -15,7 +15,7 @@ class TransactionProvider extends ChangeNotifier {
     this.selectedYear = 2025,
     this.onYearChanged,
   }) {
-    // Initialize expansion states
+    
     _initializeExpansionStates();
   }
 
@@ -35,11 +35,11 @@ class TransactionProvider extends ChangeNotifier {
     final data = monthlyData;
     for (int i = 0; i < data.length; i++) {
       if (!_expansionState.containsKey(i)) {
-        // Always expand the first month (latest/January)
+        
         _expansionState[i] = i == 0;
       }
     }
-    // Ensure first month is always expanded
+    
     if (data.isNotEmpty) {
       _expansionState[0] = true;
     }
@@ -50,7 +50,7 @@ class TransactionProvider extends ChangeNotifier {
       return [];
     }
 
-    // Convert API transactions to UI model
+    
     final List<MonthlyTransactions> monthlyList = [];
     
     transactionsData!.transactions.forEach((monthKey, transactions) {
@@ -71,13 +71,13 @@ class TransactionProvider extends ChangeNotifier {
       );
     });
 
-    // Sort by date (newest first)
+    
     monthlyList.sort((a, b) {
       if (a.transactions.isEmpty || b.transactions.isEmpty) return 0;
       return b.transactions.first.date.compareTo(a.transactions.first.date);
     });
 
-    // Update expansion states after sorting
+    
     for (int i = 0; i < monthlyList.length; i++) {
       monthlyList[i].isExpanded = _expansionState[i] ?? false;
     }

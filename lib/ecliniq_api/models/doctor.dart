@@ -22,7 +22,7 @@ class Doctor {
   final bool isFavourite;
   final double? serviceFee;
 
-  // Getters for backward compatibility or convenience
+  
   List<String> get degreeTypes => qualifications;
   int? get yearOfExperience => experience;
   String get primarySpecialization =>
@@ -143,25 +143,25 @@ class Doctor {
     };
   }
 
-  /// Get public URL for profile photo
-  /// @description Gets the public URL for the profile photo using StorageService.
-  /// Returns null if profilePhoto is null or empty, or if it's not a public key.
-  /// @param storageService - StorageService instance to fetch public URLs
-  /// @returns Future<String?> - Public URL if available, null otherwise
-  /// @example
-  /// ```dart
-  /// final storageService = StorageService();
-  /// final photoUrl = await doctor.getProfilePhotoUrl(storageService);
-  /// ```
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<String?> getProfilePhotoUrl(StorageService storageService) async {
     if (profilePhoto == null || profilePhoto!.isEmpty) {
       return null;
     }
-    // If already a full URL, return as-is
+    
     if (profilePhoto!.startsWith('http://') || profilePhoto!.startsWith('https://')) {
       return profilePhoto;
     }
-    // Get public URL if it starts with "public/"
+    
     if (profilePhoto!.startsWith('public/')) {
       return await storageService.getPublicUrl(profilePhoto);
     }
@@ -460,7 +460,7 @@ class Pagination {
   }
 }
 
-// Doctor Details Models
+
 class ClinicDetails {
   final String id;
   final String name;
@@ -805,25 +805,25 @@ class DoctorDetails {
     );
   }
 
-  /// Get public URL for profile photo
-  /// @description Gets the public URL for the profile photo using StorageService.
-  /// Returns null if profilePhoto is null or empty, or if it's not a public key.
-  /// @param storageService - StorageService instance to fetch public URLs
-  /// @returns Future<String?> - Public URL if available, null otherwise
-  /// @example
-  /// ```dart
-  /// final storageService = StorageService();
-  /// final photoUrl = await doctorDetails.getProfilePhotoUrl(storageService);
-  /// ```
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<String?> getProfilePhotoUrl(StorageService storageService) async {
     if (profilePhoto == null || profilePhoto!.isEmpty) {
       return null;
     }
-    // If already a full URL, return as-is
+    
     if (profilePhoto!.startsWith('http://') || profilePhoto!.startsWith('https://')) {
       return profilePhoto;
     }
-    // Get public URL if it starts with "public/"
+    
     if (profilePhoto!.startsWith('public/')) {
       return await storageService.getPublicUrl(profilePhoto);
     }

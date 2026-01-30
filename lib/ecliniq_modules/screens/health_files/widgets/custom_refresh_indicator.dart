@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Custom RefreshIndicator wrapper that uses styled RefreshIndicator
-/// Note: Flutter's RefreshIndicator doesn't support custom indicator widgets,
-/// but we can style it to match EcliniqLoader colors
+
+
+
 class CustomRefreshIndicator extends StatelessWidget {
   final Future<void> Function() onRefresh;
   final Widget child;

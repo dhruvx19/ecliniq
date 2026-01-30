@@ -34,7 +34,7 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
   @override
   void initState() {
     super.initState();
-    // Initialize with previously selected names if provided
+    
     if (widget.initialSelectedNames != null) {
       _selectedRelatedTo.addAll(widget.initialSelectedNames!);
     }
@@ -54,7 +54,7 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
       _selectedCategory = 'Sort By';
       _searchController.clear();
     });
-    // Emit empty filter state to clear active filters in parent and close bottom sheet
+    
     final result = {
       'selectedNames': <String>[],
       'sortBy': null,
@@ -79,12 +79,12 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
         return;
       }
 
-      // Fetch current user details
+      
       final userResponse = await _patientService.getPatientDetails(
         authToken: authToken,
       );
 
-      // Fetch dependents
+      
       final dependentsResponse = await _patientService.getDependents(
         authToken: authToken,
       );
@@ -93,14 +93,14 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
         setState(() {
           _relatedToOptions = [];
 
-          // Add current user
+          
           if (userResponse.success && userResponse.data != null) {
             final user = userResponse.data!;
             _currentUserName = user.fullName;
             _relatedToOptions.add({'name': user.fullName, 'relation': 'You'});
           }
 
-          // Add dependents
+          
           if (dependentsResponse.success) {
             for (final dependent in dependentsResponse.data) {
               _relatedToOptions.add({
@@ -119,7 +119,7 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
           _isLoadingDependents = false;
         });
       }
-      debugPrint('Failed to fetch dependents and user: $e');
+      
     }
   }
 
@@ -167,7 +167,7 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
               ),
             ),
           ),
-          // Search bar
+          
           SearchBarWidget(onSearch: (String value) {}),
           SizedBox(
             height: EcliniqTextStyles.getResponsiveSpacing(context, 20),
@@ -179,12 +179,12 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
           SizedBox(
             height: EcliniqTextStyles.getResponsiveSpacing(context, 10),
           ),
-          // Two column layout
+          
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left column - Categories
+                
                 SizedBox(
                   width: 130,
                   child: ListView.builder(
@@ -249,9 +249,9 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
                     },
                   ),
                 ),
-                // Divider
+                
                 Container(width: 0.5, color: const Color(0xffD6D6D6)),
-                // Right column - Options
+                
                 Expanded(child: _buildOptionsColumn()),
               ],
             ),
@@ -259,7 +259,7 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
           SizedBox(
             height: EcliniqTextStyles.getResponsiveSpacing(context, 16),
           ),
-          // Apply and Clear buttons
+          
           Padding(
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
               context,
@@ -538,10 +538,10 @@ class HealthFilesFilterState extends State<HealthFilesFilter> {
   }
 }
 
-// Usage example:
-// showModalBottomSheet(
-//   context: context,
-//   isScrollControlled: true,
-//   backgroundColor: Colors.transparent,
-//   builder: (context) => const FilterBottomSheet(),
-// );
+
+
+
+
+
+
+

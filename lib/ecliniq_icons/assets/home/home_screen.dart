@@ -55,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isLoadingBanners = false;
   static const String _bannersCacheKey = 'cached_appointment_banners';
   
-  // Voice search functionality
+  
   final TextEditingController _searchController = TextEditingController();
   final SpeechToText _speechToText = SpeechToText();
   final SearchService _searchService = SearchService();
@@ -274,7 +274,7 @@ CustomErrorSnackBar.show(
       'Speech result: ${result.recognizedWords}, final: ${result.finalResult}',
     );
 
-    // Update the search controller with recognized words
+    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -282,14 +282,14 @@ CustomErrorSnackBar.show(
 
     setState(() {});
 
-    // If we have a valid search query (3+ characters), navigate to search results
+    
     if (result.recognizedWords.trim().length >= 3) {
       _performSearchAndNavigate(result.recognizedWords);
     }
 
     if (result.finalResult) {
       _stopListening();
-      // If final result has valid query, navigate
+      
       if (result.recognizedWords.trim().length >= 3) {
         _performSearchAndNavigate(result.recognizedWords);
       }
@@ -299,7 +299,7 @@ CustomErrorSnackBar.show(
   Future<void> _performSearchAndNavigate(String query) async {
     try {
       final authToken = await SessionService.getAuthToken();
-      // Navigate to search results screen with the query
+      
       EcliniqRouter.push(
         SearchResultsScreen(
           searchQuery: query,
@@ -324,7 +324,7 @@ CustomErrorSnackBar.show(
   }
 
   void _toggleVoiceSearch() {
-    // Navigate to search page and start voice search there
+    
     EcliniqRouter.push(
       const SearchPage(shouldStartVoiceSearch: true),
       transition: PageTransitionType.rightToLeft,
@@ -377,14 +377,14 @@ CustomErrorSnackBar.show(
         listen: false,
       );
 
-      // Check if doctors need to be fetched
+      
       if (!doctorProvider.hasDoctors && !doctorProvider.isLoading) {
-        // Hardcoded location values
+        
         const double latitude = 12.9173;
         const double longitude = 77.6377;
         const String locationName = 'Current Location';
 
-        // Update providers with hardcoded location
+        
         hospitalProvider.setLocation(
           latitude: latitude,
           longitude: longitude,
@@ -399,7 +399,7 @@ CustomErrorSnackBar.show(
           locationName: locationName,
         );
 
-        // Use hardcoded location values
+        
         const double finalLatitude = 12.9173;
         const double finalLongitude = 77.6377;
 
@@ -434,16 +434,16 @@ CustomErrorSnackBar.show(
     await _fetchBannersForHome();
   }
 
-  /// Load cached banners immediately, then fetch fresh ones in background
+  
   Future<void> _loadCachedBannersAndFetch() async {
-    // Load cached banners first for instant display
+    
     await _loadCachedBanners();
     
-    // Then fetch fresh banners in background
+    
     await _fetchBannersForHome();
   }
 
-  /// Load banners from cache
+  
   Future<void> _loadCachedBanners() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -467,7 +467,7 @@ CustomErrorSnackBar.show(
     }
   }
 
-  /// Save banners to cache
+  
   Future<void> _saveBannersToCache(List<AppointmentBanner> banners) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -509,7 +509,7 @@ CustomErrorSnackBar.show(
         if (mounted) {
           setState(() {
             _isLoadingBanners = false;
-            // Keep cached banners if available, only clear if no cache exists
+            
             if (_banners.isEmpty) {
               _banners = [];
             }
@@ -530,10 +530,10 @@ CustomErrorSnackBar.show(
                 .map((banner) => AppointmentBanner.fromJson(banner))
                 .toList();
 
-            // Filter to show only latest banner per type
+            
             final filteredBanners = _getLatestBannerPerType(allBanners);
 
-            // Save to cache
+            
             await _saveBannersToCache(filteredBanners);
 
             setState(() {
@@ -548,12 +548,12 @@ CustomErrorSnackBar.show(
               _banners = [];
               _isLoadingBanners = false;
             });
-            // Clear cache if no banners
+            
             await _clearBannersCache();
           }
         } else {
           developer.log('Failed to fetch banners: ${response['message']}');
-          // Don't clear banners on error, keep cached ones
+          
           setState(() {
             _isLoadingBanners = false;
           });
@@ -562,7 +562,7 @@ CustomErrorSnackBar.show(
     } catch (e) {
       developer.log('Error fetching banners: $e');
       if (mounted) {
-        // Don't clear banners on error, keep cached ones
+        
         setState(() {
           _isLoadingBanners = false;
         });
@@ -570,7 +570,7 @@ CustomErrorSnackBar.show(
     }
   }
 
-  /// Clear banners cache
+  
   Future<void> _clearBannersCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -581,7 +581,7 @@ CustomErrorSnackBar.show(
   }
 
 
-  /// Filter banners to show only the latest one per type
+  
   List<AppointmentBanner> _getLatestBannerPerType(
     List<AppointmentBanner> banners,
   ) {
@@ -590,7 +590,7 @@ CustomErrorSnackBar.show(
     for (final banner in banners) {
       final type = banner.type.toUpperCase();
 
-      // Parse appointment date to compare
+      
       DateTime? bannerDate;
       try {
         bannerDate = DateTime.parse(banner.appointmentDate);
@@ -599,7 +599,7 @@ CustomErrorSnackBar.show(
         continue;
       }
 
-      // If this type doesn't exist or this banner is newer, use it
+      
       if (!latestByType.containsKey(type) ||
           (latestByType[type] != null &&
               DateTime.parse(
@@ -701,12 +701,12 @@ CustomErrorSnackBar.show(
                             },
                           ),
                         ),
-                        // Fixed Banners above navbar
+                        
                         if (_banners.isNotEmpty)
                           AppointmentBannersList(
                             banners: _banners,
                             onBannerTap: (appointmentId) {
-                              // Navigation handled in banner widget
+                              
                             },
                             onBannerClose: (appointmentId) async {
                               setState(() {
@@ -716,7 +716,7 @@ CustomErrorSnackBar.show(
                                     )
                                     .toList();
                               });
-                              // Update cache after closing banner
+                              
                               await _saveBannersToCache(_banners);
                             },
                           ),
@@ -809,14 +809,14 @@ CustomErrorSnackBar.show(
       key: const ValueKey('top_doctors_section'),
       child: Consumer<DoctorProvider>(
       builder: (context, doctorProvider, child) {
-        // Show error state if there's an error
+        
         if (doctorProvider.errorMessage != null &&
             !doctorProvider.isLoading &&
             !doctorProvider.hasDoctors) {
           return _buildErrorState(doctorProvider);
         }
 
-        // Show doctors or shimmer
+        
         return TopDoctorsWidget(
             key: ValueKey('top_doctors_${doctorProvider.doctors?.length ?? 0}_${doctorProvider.isLoading}'),
           doctors: doctorProvider.doctors,
@@ -875,7 +875,7 @@ CustomErrorSnackBar.show(
     );
   }
 
-  /// Builds a widget with error handling to prevent white screen
+  
   Widget _buildSafeWidget(Widget Function() builder) {
     return Builder(
       builder: (context) {

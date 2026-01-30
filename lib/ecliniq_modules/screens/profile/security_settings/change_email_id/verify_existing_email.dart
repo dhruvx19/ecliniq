@@ -51,20 +51,20 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
   void initState() {
     super.initState();
 
-    // If email is preloaded, use it and send OTP immediately
+    
     if (widget.preloadedEmail != null && widget.preloadedMaskedEmail != null) {
       _contact = widget.preloadedEmail;
-      // Send OTP immediately without showing loading state
+      
       _sendOTPToExistingContact();
     } else if (widget.challengeId != null && widget.maskedContact != null) {
-      // Use provided data if available
+      
       _challengeId = widget.challengeId;
       _contact = widget.maskedContact;
     } else if (widget.existingEmail != null) {
       _contact = widget.existingEmail;
       _sendOTPToExistingContact();
     } else {
-      // Fallback: fetch OTP
+      
       _sendOTPToExistingContact();
     }
   }
@@ -114,10 +114,10 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
     try {
       final authToken = await SessionService.getAuthToken();
 
-      // Check if email exists, if not use mobile for verification
+      
       String otpType = 'email';
       if (widget.existingEmail == null || widget.existingEmail!.isEmpty) {
-        // Fallback to mobile if provided or logic dictates
+        
         otpType = 'mobile';
       }
 
@@ -131,7 +131,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       if (result['success'] == true) {
         setState(() {
           _challengeId = result['challengeId'];
-          // Only update contact if we don't have preloaded one and API returns it
+          
           if (widget.preloadedEmail == null) {
             _contact = result['contact'];
           }
@@ -175,7 +175,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       return;
     }
 
-    // Check if already verifying
+    
     if (_isVerifying) return;
 
     setState(() {
@@ -183,7 +183,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       _errorMessage = null;
     });
 
-    // Step 2: Verify existing contact OTP
+    
     try {
       final authToken = await SessionService.getAuthToken();
       final result = await _authService.verifyExistingContactOtp(
@@ -195,12 +195,12 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        // Reset verifying state
+        
         setState(() {
           _isVerifying = false;
         });
 
-        // Navigate to add email screen with verificationToken
+        
         if (!mounted) return;
         final addResult = await Navigator.push(
           context,
@@ -210,7 +210,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
           ),
         );
 
-        // Pass result back to security settings
+        
         if (addResult != null && mounted) {
           Navigator.pop(context, addResult);
         }
@@ -218,7 +218,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
         setState(() {
           _errorMessage = result['message'] ?? 'Failed to verify OTP';
           _isVerifying = false;
-          _otpController.clear(); // Clear OTP on error
+          _otpController.clear(); 
         });
       }
     } catch (e) {
@@ -226,7 +226,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
       setState(() {
         _errorMessage = 'An error occurred: $e';
         _isVerifying = false;
-        _otpController.clear(); // Clear OTP on error
+        _otpController.clear(); 
       });
     }
   }
@@ -258,10 +258,10 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
             color: _isVerifying
                 ? const Color(0xFF2372EC)
                 : _isButtonPressed
-                ? const Color(0xFF0E4395) // Pressed color
+                ? const Color(0xFF0E4395) 
                 : _isOtpValid
-                ? const Color(0xFF2372EC) // Enabled color
-                : const Color(0xffF9F9F9), // Disabled color
+                ? const Color(0xFF2372EC) 
+                : const Color(0xffF9F9F9), 
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(
@@ -431,7 +431,7 @@ class _VerifyExistingEmailState extends State<VerifyExistingEmail> {
                 onChanged: (value) {
                   if (mounted) {
                     setState(() {
-                      // Clear error message when user starts typing
+                      
                       if (_errorMessage != null) {
                         _errorMessage = null;
                       }

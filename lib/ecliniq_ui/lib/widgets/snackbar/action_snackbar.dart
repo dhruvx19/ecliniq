@@ -25,7 +25,7 @@ class CustomActionSnackBar {
 
     overlayState.insert(overlayEntry);
 
-    // Auto-remove after duration
+    
     Future.delayed(duration ?? const Duration(seconds: 15), () {
       overlayEntry.remove();
     });
@@ -60,7 +60,7 @@ class _ActionSnackBarOverlayState extends State<_ActionSnackBarOverlay>
   void initState() {
     super.initState();
 
-    // Slide animation (entrance)
+    
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -70,7 +70,7 @@ class _ActionSnackBarOverlayState extends State<_ActionSnackBarOverlay>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    // Progress bar animation
+    
     _progressController = AnimationController(
       duration: widget.duration,
       vsync: this,
@@ -84,7 +84,7 @@ class _ActionSnackBarOverlayState extends State<_ActionSnackBarOverlay>
   }
 
   void _dismiss() {
-    _progressController.stop(); // Stop progress animation
+    _progressController.stop(); 
     _slideController.reverse().then((_) {
       if (mounted) {
         widget.onDismiss();
@@ -113,14 +113,14 @@ class _ActionSnackBarOverlayState extends State<_ActionSnackBarOverlay>
           color: Colors.transparent,
           child: GestureDetector(
             onHorizontalDragEnd: (details) {
-              // Swipe to dismiss horizontally (left or right)
+              
               if (details.primaryVelocity != null &&
                   details.primaryVelocity!.abs() > 300) {
                 _dismiss();
               }
             },
             onVerticalDragEnd: (details) {
-              // Swipe to dismiss vertically (up or down)
+              
               if (details.primaryVelocity != null &&
                   details.primaryVelocity!.abs() > 300) {
                 _dismiss();

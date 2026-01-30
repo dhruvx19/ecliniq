@@ -103,7 +103,7 @@ class LoginTroublePage extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: GestureDetector(
                           onTap: () {
-                            // Your onPressed logic here
+                            
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -183,7 +183,7 @@ class LoginTroublePage extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: GestureDetector(
                           onTap: () {
-                            // Your onPressed logic here
+                            
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(

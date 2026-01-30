@@ -103,7 +103,7 @@ enum EcliniqIcons {
   sort('$_base/Sort.svg'),
   chatMessage('$_base/Chat Group.svg'),
   smartphone('$_base/Smartphone.svg'),
-  //angleRight('$_base/Angle Right.svg'),
+  
   whatsapp('$_base/whatsapp (1).svg'),
   clipboard('$_base/Clipboard.svg'),
   copy('$_base/Copy.svg'),
@@ -269,7 +269,7 @@ enum EcliniqIcons {
   loginLogo('$_base/UpcharQ_horizontal 1.svg'),
   noNotifications('$_base/no_notif.svg');
 
-  //speciality
+  
 
   final String assetPath;
   const EcliniqIcons(this.assetPath);

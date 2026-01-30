@@ -47,7 +47,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
 
   Future<void> _loadUserInfo() async {
     try {
-      // Priority 1: Use passed patient data
+      
       if (widget.patientData != null) {
         if (widget.patientData!.user?.phone != null) {
           _existingPhone = widget.patientData!.user!.phone;
@@ -57,7 +57,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
         }
       }
 
-      // Priority 2: If values are still null, try storage/token
+      
       if (_existingPhone == null) {
         final phone = await SecureStorageService.getPhoneNumber();
         if (phone != null) {
@@ -79,7 +79,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
         setState(() {});
       }
     } catch (e) {
-      print('Error loading user info: $e');
+      
     } finally {
       if (mounted) {
         setState(() {
@@ -89,7 +89,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
     }
   }
 
-  /// Refresh user info from API after phone/email change
+  
   Future<void> _refreshUserInfo() async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -107,14 +107,14 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
         final user = response.data!.user;
 
         if (mounted) {
-          // Update phone number
+          
           if (user?.phone != null) {
             _existingPhone = user!.phone;
-            // Also update secure storage if phone is stored there
+            
             await SecureStorageService.storePhoneNumber(user.phone!);
           }
 
-          // Update email
+          
           if (user?.emailId != null) {
             _existingEmail = user!.emailId;
           }
@@ -123,12 +123,12 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
         }
       }
     } catch (e) {
-      print('Error refreshing user info: $e');
+      
     }
   }
 
   Future<void> onPressedChangeMobileNumber() async {
-    // Show loader while navigating
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -136,13 +136,13 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
       builder: (context) => Center(child: EcliniqLoader()),
     );
 
-    // Navigate immediately, API call happens in background on next page
+    
     if (mounted) {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => VerifyExistingAccount(
-            challengeId: null, // Will trigger API call on next page
+            challengeId: null, 
             maskedContact: null,
             existingPhone: _existingPhone,
             preloadedPhone: _existingPhone,
@@ -154,17 +154,17 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
         ),
       );
 
-      // Dismiss loader when navigation completes
+      
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
       }
 
-      // Show success snackbar if phone was changed successfully
+      
       if (result != null &&
           result is Map &&
           result['success'] == true &&
           result['type'] == 'phone') {
-        // Refresh user info from API to get updated phone number
+        
         await _refreshUserInfo();
 
         if (mounted) {
@@ -181,7 +181,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
   }
 
   Future<void> onPressedChangeEmail() async {
-    // Show loader while navigating
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -189,13 +189,13 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
       builder: (context) => Center(child: EcliniqLoader()),
     );
 
-    // Navigate immediately, API call happens in background on next page
+    
     if (mounted) {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => VerifyExistingEmail(
-            challengeId: null, // Will trigger API call on next page
+            challengeId: null, 
             maskedContact: null,
             existingEmail: _existingEmail,
             preloadedEmail: _existingEmail,
@@ -207,17 +207,17 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
         ),
       );
 
-      // Dismiss loader when navigation completes
+      
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
       }
 
-      // Show success snackbar if email was changed successfully
+      
       if (result != null &&
           result is Map &&
           result['success'] == true &&
           result['type'] == 'email') {
-        // Refresh user info from API to get updated email
+        
         await _refreshUserInfo();
 
         if (mounted) {
@@ -247,7 +247,7 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
     }
 
     Future<void> onPressedChangeMPin() async {
-      // Navigate to change MPIN screen with preloaded phone number
+      
       if (mounted) {
         final result = await Navigator.push(
           context,
@@ -262,13 +262,13 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
           ),
         );
 
-        // Show success snackbar if MPIN was changed successfully
+        
         if (result == true) {
           if (mounted) {
-            // Wait a bit to ensure navigation is complete and widget is stable
+            
             await Future.delayed(const Duration(milliseconds: 100));
             if (mounted && context.mounted) {
-              // Use postFrameCallback to ensure the page is fully built before showing snackbar
+              
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted && context.mounted) {
      
@@ -293,18 +293,18 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-        // Clear session
+        
         final success = await authProvider.logout();
 
         if (success && mounted) {
-          // Navigate to login page and clear navigation stack
+          
           EcliniqRouter.pushAndRemoveUntil(const LoginPage(), (route) => false);
         } else if (mounted) {
-          // If logout failed, still navigate to login for security
+          
           EcliniqRouter.pushAndRemoveUntil(const LoginPage(), (route) => false);
         }
       } catch (e) {
-        // Even if there's an error, navigate to login for security
+        
         if (mounted) {
           EcliniqRouter.pushAndRemoveUntil(const LoginPage(), (route) => false);
         }
@@ -393,17 +393,17 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
                     _buildDropDown( context:   context,isOn, handleBiometricPermission),
                   ],
 
-                  // Container(
-                  //   color: Color(0xffD6D6D6),
-                  //   width: double.infinity,
-                  //   height: 0.5,
-                  // ),
-                  // _buildTile(
-                  //   EcliniqIcons.logout.assetPath,
-                  //   'Logout',
-                  //   onPressedLogout,
-                  //   _isExpanded,
-                  // ),
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   Spacer(),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 30),

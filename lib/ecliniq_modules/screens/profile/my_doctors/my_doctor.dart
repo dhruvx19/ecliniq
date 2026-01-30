@@ -410,14 +410,14 @@ class _MyDoctorsState extends State<MyDoctors> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  // Avatar shimmer
+                  
                   ShimmerLoading(
                     width: 64,
                     height: 64,
                     borderRadius: BorderRadius.circular(32),
                   ),
                   const SizedBox(width: 12),
-                  // Name and details shimmer
+                  
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,7 +450,7 @@ class _MyDoctorsState extends State<MyDoctors> {
                   ),
                 ],
               ),
-              // Stats row
+              
               Row(
                 children: [
                   ShimmerLoading(
@@ -478,7 +478,7 @@ class _MyDoctorsState extends State<MyDoctors> {
                   ),
                 ],
               ),
-              // Availability row
+              
               Row(
                 children: [
                   ShimmerLoading(
@@ -500,7 +500,7 @@ class _MyDoctorsState extends State<MyDoctors> {
                   ),
                 ],
               ),
-              // Location row
+              
               Row(
                 children: [
                   ShimmerLoading(
@@ -524,7 +524,7 @@ class _MyDoctorsState extends State<MyDoctors> {
                   ),
                 ],
               ),
-              // Tokens + button
+              
               ShimmerLoading(
                 width: 180,
                 height: 24,

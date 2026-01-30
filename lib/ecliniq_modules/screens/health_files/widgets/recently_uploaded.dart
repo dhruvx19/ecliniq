@@ -87,7 +87,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
   @override
   void initState() {
     super.initState();
-    // Check file existence asynchronously to avoid blocking build
+    
     _checkFileExists();
   }
 
@@ -101,9 +101,9 @@ class _RecentFileCardState extends State<RecentFileCard> {
   }
 
   String _formatDate(DateTime date) {
-    // Use fileDate if available, otherwise use createdAt
+    
     final displayDate = widget.file.fileDate ?? date;
-    // Format as "08/08/2025 | 9:30pm"
+    
     return HealthFileDateFormatter.formatDateTime(displayDate);
   }
 
@@ -120,33 +120,31 @@ class _RecentFileCardState extends State<RecentFileCard> {
     BuildContext context,
     HealthFile file,
   ) async {
-    debugPrint(
-      '_handleDownloadFile called for file: ${file.fileName}, id: ${file.id}',
-    );
+    
 
-    // Check storage permissions for Android - use default Android dialog like location
+    
     if (Platform.isAndroid) {
-      // Check both permission statuses
+      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      // If neither permission is granted, request permission using default Android dialog
+      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        // Determine which permission to request
+        
         Permission storagePermission = Permission.storage;
 
-        // For Android 11+, try manageExternalStorage first if not permanently denied
+        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        // Request permission directly (shows default Android dialog)
+        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (context.mounted) {
             if (result.isPermanentlyDenied) {
-              // Show dialog to open settings
+              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -196,7 +194,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
     BuildContext? dialogContext;
 
     try {
-      // Show loading indicator
+      
       if (context.mounted) {
         showDialog(
           context: context,
@@ -208,7 +206,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
         );
       }
 
-      // Show "Download started" message
+      
       SnackBarHelper.showSnackBar(
         context,
         Platform.isIOS
@@ -350,13 +348,11 @@ class _RecentFileCardState extends State<RecentFileCard> {
   }
 
   Future<void> _handleDeleteFile(BuildContext context, HealthFile file) async {
-    debugPrint(
-      '_handleDeleteFile called for file: ${file.fileName}, id: ${file.id}',
-    );
+    
     BuildContext? dialogContext;
 
     try {
-      // Show loading indicator
+      
       if (context.mounted) {
         showDialog(
           context: context,
@@ -370,22 +366,22 @@ class _RecentFileCardState extends State<RecentFileCard> {
 
       final provider = context.read<HealthFilesProvider>();
 
-      debugPrint('Starting file deletion for: ${file.fileName}');
-      // Delete the file (provider handles both physical file and metadata)
+      
+      
       final success = await provider.deleteFile(file);
-      debugPrint('File deletion result: $success');
+      
 
-      // Refresh the file list to ensure UI updates
+      
       if (success && context.mounted) {
         await provider.refresh();
       }
 
-      // Close loading indicator - ensure it closes even if refresh fails
+      
       if (dialogContext != null && context.mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (e) {
-          debugPrint('Error closing loading dialog: $e');
+          
         }
         dialogContext = null;
       }
@@ -407,12 +403,12 @@ class _RecentFileCardState extends State<RecentFileCard> {
         );
       }
     } catch (e) {
-      // Close loading indicator if still open
+      
       if (dialogContext != null && context.mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (_) {
-          debugPrint('Error closing loading dialog in catch:');
+          
         }
         dialogContext = null;
       }
@@ -434,7 +430,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
 
     return GestureDetector(
       onTap: () {
-        // Navigate to file type screen
+        
         EcliniqRouter.push(FileTypeScreen(fileType: widget.file.fileType));
       },
       child: Container(

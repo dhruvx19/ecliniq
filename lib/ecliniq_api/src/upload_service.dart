@@ -1,4 +1,4 @@
-// lib/services/upload_service.dart
+
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:ecliniq/ecliniq_api/models/upload.dart';
@@ -40,7 +40,7 @@ class UploadService {
     }
   }
 
-  /// Upload image to S3 using presigned URL
+  
   Future<bool> uploadImageToS3({
     required String uploadUrl,
     required File imageFile,
@@ -69,7 +69,7 @@ class UploadService {
     }
   }
 
-  /// Upload image from bytes to S3 using presigned URL
+  
   Future<bool> uploadImageBytesToS3({
     required String uploadUrl,
     required Uint8List imageBytes,
@@ -90,13 +90,13 @@ class UploadService {
     }
   }
 
-  /// Save patient details with profile photo
+  
   Future<PatientDetailsResponse> savePatientDetails({
     required String authToken,
     required PatientDetailsRequest request,
   }) async {
     try {
-      final url = Uri.parse(Endpoints.patientDetails); // Replace with your actual endpoint
+      final url = Uri.parse(Endpoints.patientDetails); 
 
       final response = await http.post(
         url,
@@ -118,23 +118,23 @@ class UploadService {
     }
   }
 
-  /// Get content type from file
+  
   String getContentTypeFromFile(File file) {
     final mimeType = lookupMimeType(file.path);
-    return mimeType ?? 'image/jpeg'; // Default to jpeg if can't determine
+    return mimeType ?? 'image/jpeg'; 
   }
 
-  /// Complete image upload flow
+  
   Future<String?> uploadImageComplete({
     required String authToken,
     required File imageFile,
   }) async {
     try {
       
-      // Step 1: Get content type
+      
       final contentType = getContentTypeFromFile(imageFile);
       
-      // Step 2: Generate upload URL
+      
       final uploadUrlResponse = await generateUploadUrl(
         authToken: authToken,
         contentType: contentType,
@@ -145,7 +145,7 @@ class UploadService {
       }
 
 
-      // Step 3: Upload to S3
+      
       final uploadSuccess = await uploadImageToS3(
         uploadUrl: uploadUrlResponse.data!.uploadUrl,
         imageFile: imageFile,
@@ -157,25 +157,25 @@ class UploadService {
       }
 
       
-      // Return the key for use in patient details
+      
       return uploadUrlResponse.data!.key;
     } catch (e) {
       throw Exception('Complete upload failed: $e');
     }
   }
 
-  /// Complete image upload flow from bytes
+  
   Future<String?> uploadImageBytesComplete({
     required String authToken,
     required Uint8List imageBytes,
     required String fileName,
   }) async {
     try {
-      // Step 1: Get content type from filename
+      
       final mimeType = lookupMimeType(fileName);
       final contentType = mimeType ?? 'image/jpeg';
       
-      // Step 2: Generate upload URL
+      
       final uploadUrlResponse = await generateUploadUrl(
         authToken: authToken,
         contentType: contentType,
@@ -185,7 +185,7 @@ class UploadService {
         throw Exception('Failed to get upload URL: ${uploadUrlResponse.message}');
       }
 
-      // Step 3: Upload to S3
+      
       final uploadSuccess = await uploadImageBytesToS3(
         uploadUrl: uploadUrlResponse.data!.uploadUrl,
         imageBytes: imageBytes,
@@ -196,7 +196,7 @@ class UploadService {
         throw Exception('Failed to upload image to S3');
       }
 
-      // Return the key for use in patient details
+      
       return uploadUrlResponse.data!.key;
     } catch (e) {
       throw Exception('Complete upload failed: $e');

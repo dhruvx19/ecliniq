@@ -7,7 +7,7 @@ class DoctorLocationOption {
   final String id;
   final String name;
   final String address;
-  final String type; // 'Clinic' or 'Hospital'
+  final String type; 
   final String? distance;
   final String? hours;
 
@@ -51,7 +51,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
     setState(() {
       _selectedLocationId = locationId;
     });
-    // Find the selected option and return it
+    
     final selected = widget.locations.firstWhere((loc) => loc.id == locationId);
     Navigator.pop(context, selected);
   }
@@ -71,13 +71,13 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Content
+          
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
+                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -91,7 +91,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Description
+                
                 Text(
                   _buildDescription(),
                   style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
@@ -101,7 +101,7 @@ class _DoctorLocationChangeSheetState extends State<DoctorLocationChangeSheet> {
                 ),
                 const SizedBox(height: 22),
 
-                // Location options
+                
                 if (widget.locations.isEmpty)
                   const _EmptyLocationState()
                 else
@@ -263,7 +263,7 @@ class _LocationDetails extends StatelessWidget {
               ),
             ),
             SizedBox(width: 4),
-            // if (location.distance = null) ...[
+            
             Container(
               height: 24,
               width: 44,
@@ -282,7 +282,7 @@ class _LocationDetails extends StatelessWidget {
               ),
             ),
           ],
-          //],
+          
         ),
       ],
     );

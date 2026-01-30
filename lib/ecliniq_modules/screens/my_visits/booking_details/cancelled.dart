@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 class BookingCancelledDetail extends StatefulWidget {
   final String appointmentId;
   final AppointmentDetailModel?
-  appointment; // Optional for backward compatibility
+  appointment; 
 
   const BookingCancelledDetail({
     super.key,
@@ -32,7 +32,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
   @override
   void initState() {
     super.initState();
-    // If appointment is provided, use it directly (backward compatibility)
+    
     if (widget.appointment != null) {
       _appointment = widget.appointment;
       _isLoading = false;
@@ -71,7 +71,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
         return;
       }
 
-      // Convert API response to UI model
+      
       final appointmentDetail = AppointmentDetailModel.fromApiData(
         response.data!,
       );
@@ -156,7 +156,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Status header shimmer
+          
           Container(
             height: 120,
             margin: const EdgeInsets.all(16),
@@ -167,7 +167,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Doctor info card shimmer
+                
                 SizedBox(
                   height: 150,
                   child: ShimmerLoading(
@@ -175,7 +175,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Appointment details shimmer
+                
                 SizedBox(
                   height: 200,
                   child: ShimmerLoading(
@@ -183,7 +183,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Clinic location shimmer
+                
                 SizedBox(
                   height: 120,
                   child: ShimmerLoading(
@@ -191,7 +191,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Payment details shimmer
+                
                 SizedBox(
                   height: 100,
                   child: ShimmerLoading(
@@ -199,7 +199,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Callback section shimmer
+                
                 SizedBox(
                   height: 120,
                   child: ShimmerLoading(
@@ -252,7 +252,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
   Widget _buildContent() {
     return Column(
       children: [
-        // Fixed sections: StatusHeader and DoctorInfoCard
+        
         StatusHeader(status: _appointment!.status),
         Padding(
           padding: const EdgeInsets.all(16),
@@ -262,7 +262,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
             isSimplified: true,
           ),
         ),
-        // Scrollable content starting after DoctorInfoCard
+        
         Expanded(
           child: SingleChildScrollView(
             child: Padding(
@@ -401,7 +401,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
 
         type: BookingButtonType.primary,
         onPressed: () {
-          // Handle book again
+          
         },
       ),
     );

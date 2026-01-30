@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// Reusable shimmer loading widget for API calls and content loading
+
 class ShimmerLoading extends StatelessWidget {
   final double? width;
   final double? height;
@@ -36,7 +36,7 @@ class ShimmerLoading extends StatelessWidget {
   }
 }
 
-/// Shimmer loading for list items
+
 class ShimmerListLoading extends StatelessWidget {
   final int itemCount;
   final double itemHeight;
@@ -67,7 +67,7 @@ class ShimmerListLoading extends StatelessWidget {
   }
 }
 
-/// Shimmer loading for card items
+
 class ShimmerCardLoading extends StatelessWidget {
   final int itemCount;
   final double? cardHeight;
@@ -100,7 +100,7 @@ class ShimmerCardLoading extends StatelessWidget {
   }
 }
 
-/// Shimmer loading for full screen loading states
+
 class ShimmerFullScreenLoading extends StatelessWidget {
   final String? message;
 
@@ -140,7 +140,7 @@ class ShimmerFullScreenLoading extends StatelessWidget {
   }
 }
 
-/// Shimmer loading for button states
+
 class ShimmerButtonLoading extends StatelessWidget {
   final double? width;
   final double? height;

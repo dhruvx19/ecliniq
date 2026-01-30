@@ -176,20 +176,20 @@ class _DatePickerBottomSheetState extends State<DatePickerBottomSheet> {
 
           if (dragDistance.abs() >= dragThreshold) {
             if (dragDistance > 0) {
-              // Scrolling down - select previous item (wrap around)
+              
               int newIndex = selectedIndex - 1;
               if (newIndex < 0) {
-                newIndex = itemCount - 1; // Wrap to last item
+                newIndex = itemCount - 1; 
               }
               if (isItemEnabled?.call(newIndex) ?? true) {
                 onTap(newIndex);
                 dragDistance = 0;
               }
             } else {
-              // Scrolling up - select next item (wrap around)
+              
               int newIndex = selectedIndex + 1;
               if (newIndex >= itemCount) {
-                newIndex = 0; // Wrap to first item
+                newIndex = 0; 
               }
               if (isItemEnabled?.call(newIndex) ?? true) {
                 onTap(newIndex);
@@ -204,7 +204,7 @@ class _DatePickerBottomSheetState extends State<DatePickerBottomSheet> {
         child: Column(
           children: List.generate(7, (index) {
             final offset = index - 3;
-            // Use modulo for circular wrapping
+            
             int actualIndex = (selectedIndex + offset) % itemCount;
             if (actualIndex < 0) {
               actualIndex += itemCount;
@@ -215,19 +215,19 @@ class _DatePickerBottomSheetState extends State<DatePickerBottomSheet> {
             double fontSize;
             Color textColor;
             switch (offset.abs()) {
-              case 0: // Center (selected)
+              case 0: 
                 fontSize = 20;
                 textColor = Color(0xff424242);
                 break;
-              case 1: // One away from center
+              case 1: 
                 fontSize = 16;
                 textColor = Color(0xffB8B8B8);
                 break;
-              case 2: // Two away from center
+              case 2: 
                 fontSize = 14;
                 textColor = Color(0xffD6D6D6);
                 break;
-              case 3: // Three away from center
+              case 3: 
                 fontSize = 12;
                 textColor = Color(0xffD6D6D6);
                 break;
@@ -307,7 +307,7 @@ class _DatePickerBottomSheetState extends State<DatePickerBottomSheet> {
                 ),
                 child: Stack(
                   children: [
-                    // Single grey container for all three pickers
+                    
                     Positioned(
                       top: EcliniqTextStyles.getResponsiveSize(context, 84.0),
                       left: 0,
@@ -403,7 +403,7 @@ class _DatePickerBottomSheetState extends State<DatePickerBottomSheet> {
   }
 }
 
-// Helper class to show the date picker similar to AlaanDatePicker
+
 class EcliniqDatePicker {
   static Future<DateTime?> showDatePicker({
     required BuildContext context,

@@ -4,15 +4,15 @@ import 'dart:io';
 import 'package:ecliniq/ecliniq_api/models/appointment.dart' as api_models;
 import 'package:ecliniq/ecliniq_core/notifications/appointment_lock_screen_notification.dart';
 
-/// Test helper for appointment lock screen notifications
-/// @description Provides methods to test the notification feature without backend
+
+
 class AppointmentNotificationTestHelper {
-  /// Test showing notification with mock data
-  /// @description Shows a test notification on lock screen for testing purposes
-  /// @param userToken - Your token number
-  /// @param currentRunningToken - Currently running token (optional)
-  /// @param doctorName - Doctor name for testing
-  /// @param hospitalName - Hospital name for testing
+  
+  
+  
+  
+  
+  
   static Future<void> testShowNotification({
     required int userToken,
     int? currentRunningToken,
@@ -73,8 +73,8 @@ class AppointmentNotificationTestHelper {
     }
   }
 
-  /// Test updating notification with new token
-  /// @description Updates the test notification with new running token
+  
+  
   static Future<void> testUpdateNotification({
     required int userToken,
     required int newRunningToken,
@@ -114,7 +114,7 @@ class AppointmentNotificationTestHelper {
     }
   }
 
-  /// Test dismissing notification
+  
   static Future<void> testDismissNotification() async {
     try {
       log('🧪 Testing notification dismissal...');
@@ -126,13 +126,13 @@ class AppointmentNotificationTestHelper {
     }
   }
 
-  /// Run all test scenarios
-  /// @description Runs a complete test sequence
+  
+  
   static Future<void> runAllTests() async {
     log('🧪 Starting comprehensive notification tests...\n');
 
     try {
-      // Test 1: Show notification with queue not started
+      
       log('Test 1: Queue not started');
       await testShowNotification(
         userToken: 76,
@@ -140,7 +140,7 @@ class AppointmentNotificationTestHelper {
       );
       await Future.delayed(const Duration(seconds: 3));
 
-      // Test 2: Update with tokens ahead
+      
       log('\nTest 2: Tokens ahead');
       await testUpdateNotification(
         userToken: 76,
@@ -148,7 +148,7 @@ class AppointmentNotificationTestHelper {
       );
       await Future.delayed(const Duration(seconds: 3));
 
-      // Test 3: Update with your turn
+      
       log('\nTest 3: Your turn');
       await testUpdateNotification(
         userToken: 76,
@@ -156,7 +156,7 @@ class AppointmentNotificationTestHelper {
       );
       await Future.delayed(const Duration(seconds: 3));
 
-      // Test 4: Dismiss
+      
       log('\nTest 4: Dismiss notification');
       await testDismissNotification();
 

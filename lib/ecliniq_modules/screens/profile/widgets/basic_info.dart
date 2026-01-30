@@ -201,8 +201,8 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFFFFFFFF), // 100% opacity white at top
-                    Color(0x00FFFFFF), // 0% opacity white at bottom
+                    Color(0xFFFFFFFF), 
+                    Color(0x00FFFFFF), 
                   ],
                   stops: [0.0, 1.0],
                 ).createShader(bounds);
@@ -225,7 +225,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
   }
 }
 
-// Option 1: Custom Widget
+
 class DashedVerticalDivider extends StatelessWidget {
   final double height;
   final Color color;

@@ -37,7 +37,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
       distanceRange = 50;
       selectedTab = 'Specialities';
     });
-    // Emit empty filter state to clear active filters in parent
+    
     widget.onFilterChanged({
       'specialities': <String>[],
       'availability': null,
@@ -62,7 +62,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
     'Availability',
     'Gender',
     'Distance',
-    // 'Fees',
+    
     'Experience',
     'Languages',
     'Meet at',
@@ -126,7 +126,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Title
+          
           Padding(
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
               context,
@@ -180,7 +180,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
           SizedBox(
             height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
           ),
-          // Content
+          
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,7 +289,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
   }
 
   Widget _buildSpecialitiesList() {
-    // Filter specialities based on search query
+    
     final filteredSpecialities = _searchQuery.isEmpty
         ? specialities
         : specialities.where((speciality) {
@@ -941,19 +941,19 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                           child: IconButton(
                             icon: Container(
                               padding: const EdgeInsets.all(4),
-                              // decoration: _isListening
-                              //     ? BoxDecoration(
-                              //         shape: BoxShape.circle,
-                              //         boxShadow: [
-                              //           BoxShadow(
-                              //             color: const Color(0xFF2372EC)
-                              //                 .withOpacity(0.5),
-                              //             blurRadius: 12,
-                              //             spreadRadius: 2,
-                              //           ),
-                              //         ],
-                              //       )
-                              //     : null,
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
                               child: SvgPicture.asset(
                                 EcliniqIcons.microphone.assetPath,
                                 width: 24,

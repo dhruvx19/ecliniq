@@ -1,4 +1,4 @@
-// lib/ecliniq_api/hospital_service.dart
+
 
 import 'dart:convert';
 import 'package:ecliniq/ecliniq_api/models/hospital.dart';
@@ -8,20 +8,20 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HospitalService {
-  // Private auth token storage (optional - can use dependency injection instead)
+  
   String? _authToken;
 
-  /// Set authentication token for the service
+  
   void setAuthToken(String token) {
     _authToken = token;
   }
 
-  /// Clear authentication token
+  
   void clearAuthToken() {
     _authToken = null;
   }
 
-  /// Get stored auth token
+  
   String? get authToken => _authToken;
 
   Future<TopHospitalsResponse> getTopHospitals({
@@ -31,7 +31,7 @@ class HospitalService {
     try {
       final url = Uri.parse(Endpoints.topHospitals);
 
-      // Hardcoded latitude and longitude
+      
       final requestBody = TopHospitalsRequest(
         latitude: 12.9173,
         longitude: 77.6377,
@@ -147,7 +147,7 @@ class HospitalService {
   Future<HospitalDetailsResponse> getHospitalDetails({
     required String hospitalId,
   }) async {
-    // Validate hospital ID
+    
     if (hospitalId.isEmpty) {
       return HospitalDetailsResponse(
         success: false,
@@ -232,7 +232,7 @@ class HospitalService {
     required String hospitalId,
     required String authToken,
   }) async {
-    // Validate hospital ID
+    
     if (hospitalId.isEmpty) {
       return TopDoctorsResponse(
         success: false,
@@ -244,7 +244,7 @@ class HospitalService {
       );
     }
 
-    // Validate auth token
+    
     if (authToken.isEmpty) {
       return TopDoctorsResponse(
         success: false,
@@ -265,10 +265,10 @@ class HospitalService {
         'x-access-token': authToken,
       };
 
-      // Make the API request
+      
       final response = await http.get(url, headers: headers);
 
-      // Handle different response status codes
+      
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         return TopDoctorsResponse.fromJson(responseData);
@@ -365,7 +365,7 @@ class HospitalService {
     }
 
     try {
-      // Hardcoded latitude and longitude
+      
       final response = await getTopHospitals(
         latitude: 12.9173,
         longitude: 77.6377,
@@ -485,25 +485,25 @@ class HospitalService {
     }
   }
 
-  /// Get filtered hospitals by patient with typed response
-  /// @description Fetches hospitals based on various filters and returns typed response
-  /// @param latitude - Latitude for location-based filtering
-  /// @param longitude - Longitude for location-based filtering
-  /// @param searchQuery - Optional search query string
-  /// @param city - Optional city filter
-  /// @param state - Optional state filter
-  /// @param distance - Optional distance filter in km
-  /// @param speciality - Optional list of specialities
-  /// @param availability - Optional availability filter
-  /// @param date - Optional date filter (ISO format)
-  /// @param gender - Optional gender filter
-  /// @param workExperience - Optional work experience filter
-  /// @param languages - Optional list of languages
-  /// @param practiceArea - Optional list of practice areas
-  /// @param page - Page number for pagination
-  /// @param limit - Number of results per page
-  /// @param authToken - Optional authentication token
-  /// @returns Future<FilteredHospitalsResponse> - Typed response containing filtered hospitals with pagination
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<FilteredHospitalsResponse> getFilteredHospitalsTyped({
     required double latitude,
     required double longitude,
@@ -534,7 +534,7 @@ class HospitalService {
         headers['x-access-token'] = authToken;
       }
 
-      // Build request payload
+      
       final requestBody = <String, dynamic>{
         'latitude': latitude,
         'longitude': longitude,
@@ -542,7 +542,7 @@ class HospitalService {
         'limit': limit,
       };
 
-      // Add optional parameters only if they are not null
+      
       if (searchQuery != null && searchQuery.isNotEmpty) {
         requestBody['searchQuery'] = searchQuery;
       }
@@ -609,12 +609,12 @@ class HospitalService {
     }
   }
 
-  /// Get filtered hospitals by patient
-  /// @description Fetches hospitals based on various filters using the same structure as FilterDoctorsRequest
-  /// @param request - FilterDoctorsRequest-like object with filter parameters (latitude, longitude, city, distance, speciality, availability, date, gender, workExperience, languages, practiceArea, page, limit)
-  /// @param searchQuery - Optional search query string
-  /// @param authToken - Optional authentication token
-  /// @returns Future<Map<String, dynamic>> - Response containing filtered hospitals with pagination
+  
+  
+  
+  
+  
+  
   Future<Map<String, dynamic>> getFilteredHospitals({
     required double latitude,
     required double longitude,
@@ -644,7 +644,7 @@ class HospitalService {
         headers['x-access-token'] = authToken;
       }
 
-      // Build request payload matching FilterDoctorsRequest structure
+      
       final requestBody = <String, dynamic>{
         'latitude': latitude,
         'longitude': longitude,
@@ -652,7 +652,7 @@ class HospitalService {
         'limit': limit,
       };
 
-      // Add optional parameters only if they are not null
+      
       if (searchQuery != null && searchQuery.isNotEmpty) {
         requestBody['searchQuery'] = searchQuery;
       }
@@ -715,11 +715,11 @@ class HospitalService {
     }
   }
 
-  /// Get filtered hospitals using FilterDoctorsRequest-like structure
-  /// @description Convenience method that accepts a map with the same structure as FilterDoctorsRequest
-  /// @param filters - Map containing filter parameters matching FilterDoctorsRequest structure
-  /// @param authToken - Optional authentication token
-  /// @returns Future<Map<String, dynamic>> - Response containing filtered hospitals with pagination
+  
+  
+  
+  
+  
   Future<Map<String, dynamic>> getFilteredHospitalsFromMap({
     required Map<String, dynamic> filters,
     String? authToken,

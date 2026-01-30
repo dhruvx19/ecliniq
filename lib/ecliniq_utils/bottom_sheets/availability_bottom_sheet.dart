@@ -56,7 +56,7 @@ class _AvailabilityFilterBottomSheetState
 
           const SizedBox(height: 6),
 
-          // List of availability options
+          
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.only(left: 16, right: 16),

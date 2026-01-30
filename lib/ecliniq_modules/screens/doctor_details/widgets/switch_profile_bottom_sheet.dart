@@ -21,13 +21,13 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
   void initState() {
     super.initState();
     _locations = widget.doctor.locations;
-    // Keep default state unselected
+    
     _selectedLocationId = null;
   }
 
   void _onLocationTap(String locationId) {
     final selected = _locations.firstWhere((loc) => loc.id == locationId);
-    // Automatically navigate when location is selected
+    
     Navigator.pop(context, selected);
   }
 
@@ -44,13 +44,13 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Content
+          
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
+                
                 Text(
                   'Select Location',
                   style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
@@ -60,7 +60,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                 ),
                 const SizedBox(height: 4),
 
-                // Description
+                
                 Text(
                   _buildDescription(),
                   style:  EcliniqTextStyles.responsiveButtonXLarge(context).copyWith(
@@ -71,7 +71,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                 ),
                 const SizedBox(height: 20),
 
-                // Location options
+                
                 if (_locations.isEmpty)
                   const _EmptyLocationState()
                 else

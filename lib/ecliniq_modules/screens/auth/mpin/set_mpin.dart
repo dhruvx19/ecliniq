@@ -175,7 +175,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
 
       final createMPIN = _createMPINController.text.trim();
 
-      // Call backend API to setup or reset MPIN
+      
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final success = widget.isResetMode
           ? await authProvider.forgetMpinReset(createMPIN)
@@ -186,42 +186,42 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
       if (success) {
         if (mounted) {
           if (widget.isResetMode) {
-            // Reset mode: Check if user is authenticated (change MPIN from settings) or not (forget PIN from login)
+            
             final hasValidSession = await SessionService.hasValidSession();
             if (hasValidSession) {
-              // User is authenticated - this is change MPIN from security settings
-              // Reset loading state before navigation
+              
+              
               _isLoadingNotifier.value = false;
-              // Small delay to ensure state is stable before navigation
+              
               await Future.delayed(const Duration(milliseconds: 100));
-              // Return true to ChangeMPINScreen so it can show snackbar on SecuritySettings page
+              
               if (!mounted || !context.mounted) return;
               Navigator.of(context).pop(true);
-              return; // Exit early to prevent finally block from resetting loading state again
+              return; 
             } else {
-              // User is not authenticated - this is forget PIN from login
-              // Clear flow state since MPIN reset is complete
+              
+              
               await SessionService.clearFlowState();
               
-              // Reset loading state
+              
               _isLoadingNotifier.value = false;
-              // Show snackbar before navigating
+              
               _showSuccessSnackBar();
               await Future.delayed(const Duration(milliseconds: 500));
               
-              // Navigate back to login - remove ALL routes to ensure clean navigation stack
+              
               if (mounted) {
                 EcliniqRouter.pushAndRemoveUntil(
                   const LoginPage(),
-                  (route) => false, // Remove all routes, start fresh with LoginPage
+                  (route) => false, 
                 );
               }
-              return; // Exit early
+              return; 
             }
           } else {
-            // Normal mode: Request biometric permission via native dialog after MPIN setup
+            
             await _requestBiometricPermission(createMPIN);
-            // Navigate based on flow state
+            
             await _navigateAfterMPINSetup();
           }
         }
@@ -231,7 +231,7 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
             'Failed to create MPIN. Please try again.';
       }
     } on Exception catch (e) {
-      debugPrint('MPIN creation error: $e');
+      
       _errorNotifier.value = 'An unexpected error occurred. Please try again.';
     } finally {
       if (mounted && _isLoadingNotifier.value) {
@@ -240,38 +240,38 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
     }
   }
 
-  /// Request biometric permission using native dialog (like location permission)
-  /// This will trigger the native biometric permission dialog automatically
+  
+  
   Future<void> _requestBiometricPermission(String mpin) async {
     try {
-      // Check if biometric is available
+      
       if (!await BiometricService.isAvailable()) {
         return;
       }
 
-      // Check if already enabled
+      
       if (await SecureStorageService.isBiometricEnabled()) {
         return;
       }
 
-      // This will trigger the native biometric permission dialog automatically
-      // The native dialog will appear just like location permission dialog
+      
+      
       final success = await SecureStorageService.storeMPINWithBiometric(mpin);
 
       if (success) {
       } else {
-        // User skipped or denied - that's okay, continue without biometric
+        
       }
     } catch (e) {
-      // Continue without biometric if permission request fails
+      
     }
   }
 
   Future<void> _navigateAfterMPINSetup() async {
     if (!mounted) return;
 
-    // Always navigate to User Details after MPIN setup
-    // Flow: OTP → MPIN → User Details → Home
+    
+    
     await SessionService.saveFlowState('profile_setup');
     if (!mounted) return;
     EcliniqRouter.pushAndRemoveUntil(
@@ -406,14 +406,14 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
             return ValueListenableBuilder<bool>(
               valueListenable: _pinsMatchNotifier,
               builder: (context, pinsMatch, _) {
-                // Show success message if pins match and no error
+                
                 if (pinsMatch && error.isEmpty) {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     child: _SuccessMessage(message: 'M-PIN matches'),
                   );
                 }
-                // Show error message if there's an error
+                
                 if (error.isNotEmpty) {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -533,24 +533,24 @@ class _MPINSetState extends State<MPINSet> with TickerProviderStateMixin {
   }
 
   PinTheme _getPinTheme() {
-    // Calculate responsive field width and padding to fit all 4 fields on screen
+    
     final screenWidth = MediaQuery.of(context).size.width;
     final horizontalPadding =
-        36.0; // Total horizontal padding (18px on each side from parent)
+        36.0; 
     final availableWidth = screenWidth - horizontalPadding;
 
-    // For 4 fields with padding on each side: 4 * (fieldWidth + 2*padding) = availableWidth
-    // 4w + 8p = availableWidth
-    // Increase spacing and reduce field size
-    const padding = 8.0; // Increased padding (16px total between fields)
+    
+    
+    
+    const padding = 8.0; 
     final calculatedWidth = (availableWidth - (8 * padding)) / 4;
-    // Ensure we don't exceed available width by using floor to be safe
+    
     final fieldWidth = (calculatedWidth.floor()).toDouble().clamp(40.0, 70.0);
 
     return PinTheme(
       shape: PinCodeFieldShape.box,
       borderRadius: BorderRadius.circular(12),
-      fieldHeight: 48, // Reduced height
+      fieldHeight: 48, 
       fieldWidth: fieldWidth,
       activeFillColor: Color(0xffffffff),
       selectedFillColor: Color(0xffffffff),
@@ -633,10 +633,10 @@ class _MPINButtonState extends State<_MPINButton> {
           color: widget.isLoading
               ? const Color(0xFF2372EC)
               : _isButtonPressed
-              ? const Color(0xFF0E4395) // Pressed color
+              ? const Color(0xFF0E4395) 
               : widget.isEnabled
-              ? const Color(0xFF2372EC) // Enabled color
-              : const Color(0xffF9F9F9), // Disabled color
+              ? const Color(0xFF2372EC) 
+              : const Color(0xffF9F9F9), 
           borderRadius: BorderRadius.circular(4),
         ),
         child: Center(

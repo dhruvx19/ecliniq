@@ -202,21 +202,21 @@ class EcliniqButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get responsive button height (default 46px for standard buttons)
+    
     final responsiveHeight = size?.height ?? 
         EcliniqTextStyles.getResponsiveButtonHeight(context, baseHeight: 46.0);
     
-    // Get responsive border radius
+    
     final responsiveBorderRadius = EcliniqTextStyles.getResponsiveBorderRadius(context, 8);
     
-    // Get responsive padding
+    
     final responsiveVerticalPadding = EcliniqTextStyles.getResponsivePadding(context, 10);
     final responsiveLoadingPadding = EcliniqTextStyles.getResponsivePadding(context, 16);
     
-    // Get responsive spacing for leading icon
+    
     final responsiveIconSpacing = EcliniqTextStyles.getResponsiveSpacing(context, 10);
     
-    // Get responsive icon size for loading indicator
+    
     final responsiveLoadingIconSize = EcliniqTextStyles.getResponsiveIconSize(context, 20);
 
     if (isLoading) {
@@ -294,65 +294,65 @@ class EcliniqButton extends StatelessWidget {
 
 
 
-// // Add this property to your EcliniqButton class
-// class EcliniqButton extends StatelessWidget {
-//   final String label;
-//   final Widget? leading;
-//   final EcliniqButtonType type;
-//   final Widget? child;
-//   final VoidCallback? onPressed;
-//   final Size? size;
-//   final bool isLoading;
-//   final Color? borderColor;
-//   final Color? textColor;
-//   final OutlinedBorder? shape;
-//   final Color? backgroundColor;
-//   final Color? disabledBackgroundColor;
-//   final Color? overlayColor; // Add this line
 
-//   const EcliniqButton({
-//     super.key,
-//     this.label = '',
-//     this.leading,
-//     required this.type,
-//     this.onPressed,
-//     this.size,
-//     this.child,
-//     this.isLoading = false,
-//     this.borderColor,
-//     this.textColor,
-//     this.shape,
-//     this.backgroundColor,
-//     this.disabledBackgroundColor,
-//     this.overlayColor, // Add this line
-//   });
 
-//   @override
-//   Widget build(BuildContext context) {
-//     // ... existing loading code ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
-//     return ElevatedButton(
-//       onPressed: onPressed,
-//       style: ElevatedButton.styleFrom(
-//         padding: const EdgeInsets.symmetric(vertical: 10),
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-//         side: onPressed == null
-//             ? null
-//             : BorderSide(
-//                 color: borderColor ?? type.borderColor(context),
-//                 width: 0.33,
-//               ),
-//         elevation: 0,
-//         backgroundColor: backgroundColor ?? type.backgroundColor(context),
-//         fixedSize: size ?? Size(MediaQuery.sizeOf(context).width, 46),
-//         disabledBackgroundColor:
-//             disabledBackgroundColor ?? type.disabledBackgroundColor(context),
-//         shadowColor: Colors.transparent,
-//         overlayColor: overlayColor != null 
-//             ? WidgetStateProperty.all(overlayColor) 
-//             : null, // Add this line
-//       ),
-//       child: // ... rest of your child code
-//     );
-//   }
-// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

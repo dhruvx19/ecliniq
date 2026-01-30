@@ -19,19 +19,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with error handling
+  
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    print('Warning: Firebase initialization failed: $e');
-    print('Make sure GoogleService-Info.plist is added to ios/Runner/');
+    
+    
   }
 
   final futures = [
     AuthProvider().initialize(),
     SharedPreferences.getInstance(),
     EcliniqPushNotifications.init(),
-    AppointmentLockScreenNotification.init(), // Initialize lock screen notification service
+    AppointmentLockScreenNotification.init(), 
   ];
   await Future.wait(futures);
   EcliniqPushNotifications.setNotificationListeners();
@@ -56,39 +56,39 @@ void main() async {
   );
 }
 
-// class MyApp extends StatefulWidget {
-//   const MyApp({super.key});
 
-//   @override
-//   State<MyApp> createState() => _MyAppState();
-// }
 
-// class _MyAppState extends State<MyApp> {
-//   @override
-//   void initState() {
-//     super.initState();
-//     _requestNotificationPermission();
-//   }
 
-//   Future<void> _requestNotificationPermission() async {
+
+
+
+
+
+
+
+
+
+
+
+
     
-//     await Future.delayed(const Duration(seconds: 1));
-//     await EcliniqPushNotifications.requestPermission();
-//   }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       navigatorKey: EcliniqRouter.navigatorKey,
-//       theme: ThemeData(
-//         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-//         useMaterial3: true,
-//       ),
-//       debugShowCheckedModeBanner: false,
-//       home: const LoginPage(),
-//     );
-//   }
-// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 

@@ -3,17 +3,17 @@ import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:http/http.dart' as http;
 
 class SearchService {
-  /// Search for doctors and hospitals
-  /// @description Searches for providers (doctors and hospitals) based on query string
-  /// @param query - Search query (minimum 3 characters required)
-  /// @param authToken - Optional authentication token
-  /// @returns Future<Map<String, dynamic>> - Response containing doctors and hospitals matching the search query
+  
+  
+  
+  
+  
   Future<Map<String, dynamic>> searchProviders({
     required String query,
     String? authToken,
   }) async {
     try {
-      // Validate query length (minimum 3 characters)
+      
       if (query.length < 3) {
         return {
           'success': false,

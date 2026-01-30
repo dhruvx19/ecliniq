@@ -142,8 +142,8 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Optimize: Use cacheWidth/cacheHeight for better performance
-          // Make image responsive to prevent overflow
+          
+          
           LayoutBuilder(
             builder: (context, constraints) {
               return SvgPicture.asset(
@@ -179,7 +179,7 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
           ),
           const SizedBox(height: 32),
 
-          // Optimize: Pre-build list items instead of generating on each build
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: _buildIndicatorDots(),
@@ -189,7 +189,7 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
     );
   }
 
-  // Cache indicator dots to avoid rebuilding
+  
   List<Widget> _buildIndicatorDots() {
     return List.generate(5, (index) {
       return Container(
@@ -322,10 +322,10 @@ class _EcliniqWelcomeScreenState extends State<EcliniqWelcomeScreen>
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero, // Remove default padding
-                    minimumSize: Size.zero, // Remove minimum size constraint
+                    padding: EdgeInsets.zero, 
+                    minimumSize: Size.zero, 
                     tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap, // Shrink tap target
+                        MaterialTapTargetSize.shrinkWrap, 
                   ),
                   onPressed: () {
                     EcliniqRouter.push(LoginTroublePage());

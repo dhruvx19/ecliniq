@@ -201,11 +201,11 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
 
   Future<void> _enableLocation() async {
     try {
-      // Check if permission is already granted
+      
       final isGranted = await LocationPermissionManager.isPermissionGranted();
       if (isGranted) {
-        // Permission already granted, get location directly
-        // Add a small delay to ensure bottom sheet is fully rendered
+        
+        
         await Future.delayed(const Duration(milliseconds: 100));
 
         if (!mounted) return;
@@ -217,7 +217,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
         }
       }
 
-      // Check if permission was denied forever
+      
       final isDeniedForever =
           await LocationPermissionManager.isPermissionDeniedForever();
       if (isDeniedForever) {
@@ -225,7 +225,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
         return;
       }
 
-      // Check if location services are enabled
+      
       bool serviceEnabled = await _locationService.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _showErrorDialog(
@@ -234,12 +234,12 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
         return;
       }
 
-      // Request permission if needed
+      
       final permissionStatus =
           await LocationPermissionManager.requestPermissionIfNeeded();
 
       if (permissionStatus == LocationPermissionStatus.granted) {
-        // Permission granted, get location
+        
         final position = await _permissionManager.getCurrentLocationIfGranted();
         if (position != null) {
           await _handleLocationReceived(position);
@@ -271,7 +271,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
   }
 
   Future<void> _handleLocationReceived(Position position) async {
-    // 1. Get location name first
+    
     String? locationName;
     try {
       locationName = await _locationService.getLocationName(
@@ -279,40 +279,40 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
         position.longitude,
       );
     } catch (e) {
-      debugPrint('Error getting location name: $e');
+      
       locationName = 'Unknown Location';
     }
 
     if (!mounted) return;
 
-    // 2. Store location persistently
+    
     await LocationStorageService.storeLocation(
       latitude: position.latitude,
       longitude: position.longitude,
       locationName: locationName,
     );
 
-    // 3. Get providers before popping context - store references, not context-dependent
+    
     final hospitalProvider = Provider.of<HospitalProvider>(
       context,
       listen: false,
     );
     final doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
 
-    // Store values we need
+    
     final lat = position.latitude;
     final lng = position.longitude;
     final locName = locationName;
 
-    // 4. Close bottom sheet first
+    
     if (mounted && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
 
-    // 5. Update providers immediately (providers are singletons, safe to use)
-    // Use a small delay to ensure bottom sheet animation completes
+    
+    
     Future.delayed(const Duration(milliseconds: 300), () {
-      // Update providers after bottom sheet closes
+      
       hospitalProvider.setLocation(
         latitude: lat,
         longitude: lng,
@@ -325,7 +325,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
         locationName: locName,
       );
 
-      // Fetch data in background (UI will show loading state via providers)
+      
       Future.wait([
         hospitalProvider.fetchTopHospitals(
           latitude: lat,
@@ -338,7 +338,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
           isRefresh: true,
         ),
       ]).catchError((e) {
-        debugPrint('Error fetching data: $e');
+        
       });
     });
   }

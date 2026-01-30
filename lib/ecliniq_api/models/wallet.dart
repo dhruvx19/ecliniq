@@ -1,4 +1,4 @@
-/// Wallet balance data model
+
 class WalletBalanceData {
   final double balance;
   final double totalDeposited;
@@ -11,7 +11,7 @@ class WalletBalanceData {
   });
 
   factory WalletBalanceData.fromJson(Map<String, dynamic> json) {
-    // Helper to safely parse double
+    
     double parseDouble(dynamic value) {
       if (value == null) return 0.0;
       if (value is double) return value;
@@ -36,7 +36,7 @@ class WalletBalanceData {
   }
 }
 
-/// Wallet balance response model
+
 class WalletBalanceResponse {
   final bool success;
   final String message;
@@ -79,10 +79,10 @@ class WalletBalanceResponse {
   }
 }
 
-/// Wallet transaction model
+
 class WalletTransaction {
   final String id;
-  final String type; // 'DEBIT' or 'TOPUP'
+  final String type; 
   final double amount;
   final String description;
   final DateTime createdAt;
@@ -102,7 +102,7 @@ class WalletTransaction {
   });
 
   factory WalletTransaction.fromJson(Map<String, dynamic> json) {
-    // Helper to safely parse double
+    
     double parseDouble(dynamic value) {
       if (value == null) return 0.0;
       if (value is double) return value;
@@ -111,7 +111,7 @@ class WalletTransaction {
       return 0.0;
     }
 
-    // Helper to safely parse DateTime
+    
     DateTime parseDateTime(dynamic value) {
       if (value == null) return DateTime.now();
       try {
@@ -147,17 +147,17 @@ class WalletTransaction {
     };
   }
 
-  /// Check if transaction is a credit (TOPUP)
+  
   bool get isCredit => type.toUpperCase() == 'TOPUP';
 
-  /// Check if transaction is a debit
+  
   bool get isDebit => type.toUpperCase() == 'DEBIT';
 
-  /// Check if transaction is completed
+  
   bool get isCompleted => status.toUpperCase() == 'COMPLETED';
 }
 
-/// Wallet transactions data model (grouped by month)
+
 class WalletTransactionsData {
   final double balance;
   final double totalDeposited;
@@ -174,7 +174,7 @@ class WalletTransactionsData {
   });
 
   factory WalletTransactionsData.fromJson(Map<String, dynamic> json) {
-    // Helper to safely parse double
+    
     double parseDouble(dynamic value) {
       if (value == null) return 0.0;
       if (value is double) return value;
@@ -183,7 +183,7 @@ class WalletTransactionsData {
       return 0.0;
     }
 
-    // Parse transactions map
+    
     Map<String, List<WalletTransaction>> parseTransactions(
         Map<String, dynamic>? transactionsJson) {
       if (transactionsJson == null) return {};
@@ -230,7 +230,7 @@ class WalletTransactionsData {
     };
   }
 
-  /// Get all transactions as a flat list sorted by date (newest first)
+  
   List<WalletTransaction> get allTransactions {
     final List<WalletTransaction> all = [];
     transactions.forEach((month, txList) {
@@ -240,22 +240,22 @@ class WalletTransactionsData {
     return all;
   }
 
-  /// Get transactions for a specific month
+  
   List<WalletTransaction> getTransactionsForMonth(String month) {
     return transactions[month] ?? [];
   }
 
-  /// Get all month keys sorted chronologically (newest first)
+  
   List<String> get months {
     final months = transactions.keys.toList();
-    // Sort months in reverse chronological order
+    
     months.sort((a, b) {
       try {
         final dateA = DateTime.parse(a);
         final dateB = DateTime.parse(b);
         return dateB.compareTo(dateA);
       } catch (e) {
-        // If parsing fails, use string comparison
+        
         return b.compareTo(a);
       }
     });
@@ -263,7 +263,7 @@ class WalletTransactionsData {
   }
 }
 
-/// Wallet transactions response model
+
 class WalletTransactionsResponse {
   final bool success;
   final String message;

@@ -3,18 +3,18 @@ import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-/// Service for handling notification permissions
+
 class NotificationPermissionHandler {
-  /// Check if notification permission is granted
-  /// @returns true if permission is granted, false otherwise
+  
+  
   static Future<bool> hasPermission() async {
     try {
-      // Check Firebase messaging permission status
+      
       final settings = await FirebaseMessaging.instance.getNotificationSettings();
       final isGranted = settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional;
 
-      // Also check system permission (Android 13+)
+      
       if (await Permission.notification.isGranted) {
         return isGranted;
       }
@@ -26,17 +26,17 @@ class NotificationPermissionHandler {
     }
   }
 
-  /// Request notification permission
-  /// @param openSettings - If true, opens app settings if permission is permanently denied
-  /// @returns true if permission granted, false otherwise
+  
+  
+  
   static Future<bool> requestPermission({bool openSettings = true}) async {
     try {
-      // First check if already granted
+      
       if (await hasPermission()) {
         return true;
       }
 
-      // Request Firebase messaging permission (iOS)
+      
       final settings = await FirebaseMessaging.instance.requestPermission(
         alert: true,
         announcement: false,
@@ -47,7 +47,7 @@ class NotificationPermissionHandler {
         sound: true,
       );
 
-      // Request system notification permission (Android 13+)
+      
       if (!await Permission.notification.isGranted) {
         final status = await Permission.notification.request();
         
@@ -74,8 +74,8 @@ class NotificationPermissionHandler {
     }
   }
 
-  /// Check if permission is permanently denied
-  /// @returns true if permission is permanently denied
+  
+  
   static Future<bool> isPermanentlyDenied() async {
     try {
       final status = await Permission.notification.status;
@@ -86,8 +86,8 @@ class NotificationPermissionHandler {
     }
   }
 
-  /// Open app settings
-  /// Uses permission_handler's openAppSettings() function
+  
+  
   static Future<void> _openAppSettings() async {
     try {
       await openAppSettings();

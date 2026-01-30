@@ -114,7 +114,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
     try {
       if (_isFavourite) {
-        // Remove
+        
         final response = await _patientService.removeFavouriteDoctor(
           authToken: authToken,
           doctorId: widget.doctorId,
@@ -136,7 +136,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           );
         }
       } else {
-        // Add
+        
         final response = await _patientService.addFavouriteDoctor(
           authToken: authToken,
           doctorId: widget.doctorId,
@@ -181,7 +181,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
     if (imageKey == null || imageKey.isEmpty) {
       return 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80';
     }
-    // Construct full URL from image key
+    
     return '${Endpoints.localhost}/$imageKey';
   }
 
@@ -212,7 +212,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
   List<DoctorLocationOption> _getDoctorLocations() {
     final List<DoctorLocationOption> options = [];
 
-    // Add Clinic
+    
     if (_doctorDetails?.clinicDetails != null) {
       final clinic = _doctorDetails!.clinicDetails!;
       options.add(
@@ -225,7 +225,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       );
     }
 
-    // Add Hospitals
+    
     if (_doctorDetails?.doctorHospitals != null) {
       for (var hospital in _doctorDetails!.doctorHospitals!) {
         if (hospital is Map) {
@@ -246,7 +246,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
   void _openLocationChangeBottomSheet() async {
     final locations = _getDoctorLocations();
-    // Only show if there are locations
+    
     if (locations.isEmpty) return;
 
     final selected = await EcliniqBottomSheet.show(
@@ -617,17 +617,17 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
 
     return Container(
       height: EcliniqTextStyles.getResponsiveHeight(context, 210.0),
-      color: Colors.grey[200], // Fallback background color
+      color: Colors.grey[200], 
       child: Stack(
         children: [
-          // Image with error handling or default SVG
+          
           Positioned.fill(
             child: imageUrlToUse != null
                 ? Image.network(
                     imageUrlToUse,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      // Show default SVG placeholder on error
+                      
                       return Container(
                         color: Colors.grey[300],
                         child: Center(
@@ -661,7 +661,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                     },
                   )
                 : Container(
-                    // Show default SVG when no image URL
+                    
                     color: Colors.grey[300],
                     child: Center(
                       child: SvgPicture.asset(
@@ -678,7 +678,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                     ),
                   ),
           ),
-          // Navigation buttons
+          
           Positioned(
             top: EcliniqTextStyles.getResponsiveSize(context, 44.0),
             left: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
@@ -1103,13 +1103,13 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header image shimmer
+              
               ShimmerLoading(
                 height: EcliniqTextStyles.getResponsiveHeight(context, 280.0),
                 borderRadius: BorderRadius.zero,
               ),
 
-              // Doctor info section shimmer
+              
               Container(
                 color: Colors.white,
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
@@ -1128,7 +1128,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                           24.0,
                         ),
                       ),
-                      // Name shimmer
+                      
                       ShimmerLoading(
                         width: EcliniqTextStyles.getResponsiveWidth(
                           context,
@@ -1151,7 +1151,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                           12.0,
                         ),
                       ),
-                      // Specialization shimmer
+                      
                       ShimmerLoading(
                         width: EcliniqTextStyles.getResponsiveWidth(
                           context,
@@ -1174,7 +1174,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                           8.0,
                         ),
                       ),
-                      // Education shimmer
+                      
                       ShimmerLoading(
                         width: EcliniqTextStyles.getResponsiveWidth(
                           context,
@@ -1197,7 +1197,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                           16.0,
                         ),
                       ),
-                      // Location shimmer
+                      
                       ShimmerLoading(
                         width: EcliniqTextStyles.getResponsiveWidth(
                           context,
@@ -1221,7 +1221,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               SizedBox(
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
               ),
-              // Stats cards shimmer
+              
               Container(
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 24),
@@ -1274,7 +1274,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               SizedBox(
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
               ),
-              // Appointment timing shimmer
+              
               Padding(
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
                   context,
@@ -1291,7 +1291,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               SizedBox(
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
               ),
-              // Address section shimmer
+              
               Padding(
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
                   context,
@@ -1308,7 +1308,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               SizedBox(
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
               ),
-              // About section shimmer
+              
               Padding(
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
                   context,
@@ -1325,7 +1325,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               SizedBox(
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
               ),
-              // Additional sections shimmer
+              
               Padding(
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
                   context,
@@ -1360,7 +1360,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               ),
             ],
           ),
-          // Profile picture positioned shimmer
+          
           Builder(
             builder: (context) {
               final headerHeight = EcliniqTextStyles.getResponsiveHeight(

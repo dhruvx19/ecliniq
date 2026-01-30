@@ -7,7 +7,7 @@ import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Search results screen displaying doctors and hospitals from search API
+
 class SearchResultsScreen extends StatefulWidget {
   final String searchQuery;
   final String? authToken;
@@ -42,8 +42,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     super.dispose();
   }
 
-  /// Perform search using the search service
-  /// @description Calls the search API and updates the UI with results
+  
+  
   Future<void> _performSearch({String? query}) async {
     final searchQuery = query ?? _searchController.text;
     
@@ -122,9 +122,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       ),
       body: Column(
         children: [
-          // Search Bar
+          
           _buildSearchBar(),
-          // Content
+          
           Expanded(
             child: _buildContent(),
           ),
@@ -279,7 +279,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       );
     }
 
-    // Combine doctors and hospitals into a single list
+    
     final List<Map<String, dynamic>> allItems = [];
     if (doctors.isNotEmpty) {
       allItems.add({'type': 'header', 'title': 'Doctors', 'count': doctors.length});
@@ -304,7 +304,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         if (index < allItems.length - 1) {
           final current = allItems[index];
           final next = allItems[index + 1];
-          // Don't add separator after headers, before headers, or after dividers
+          
           if (current['type'] == 'header' || 
               next['type'] == 'header' || 
               current['type'] == 'divider') {
@@ -362,7 +362,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Navigate to doctor details
+            
             developer.log('Navigate to doctor: ${doctor['id']}');
           },
           borderRadius: BorderRadius.circular(16),
@@ -453,7 +453,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Navigate to hospital details
+            
             developer.log('Navigate to hospital: ${hospital['id']}');
           },
           borderRadius: BorderRadius.circular(16),
@@ -516,35 +516,35 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
-  /// Build shimmer loading widget for search results
+  
   Widget _buildShimmerLoading() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Section header shimmer
+        
         ShimmerLoading(
           width: 120,
           height: 20,
           borderRadius: BorderRadius.circular(4),
         ),
         const SizedBox(height: 12),
-        // Doctor card shimmers
+        
         ...List.generate(3, (index) => _buildDoctorCardShimmer()),
         const SizedBox(height: 24),
-        // Section header shimmer for hospitals
+        
         ShimmerLoading(
           width: 120,
           height: 20,
           borderRadius: BorderRadius.circular(4),
         ),
         const SizedBox(height: 12),
-        // Hospital card shimmers
+        
         ...List.generate(2, (index) => _buildHospitalCardShimmer()),
       ],
     );
   }
 
-  /// Build shimmer for a doctor card
+  
   Widget _buildDoctorCardShimmer() {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -578,7 +578,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
-  /// Build shimmer for a hospital card
+  
   Widget _buildHospitalCardShimmer() {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

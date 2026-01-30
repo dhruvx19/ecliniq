@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AppointmentDetailItem extends StatelessWidget {
-  final String iconAssetPath; // Changed from IconData to String for asset path
+  final String iconAssetPath; 
   final String title;
   final String subtitle;
   final String? badge;
@@ -16,7 +16,7 @@ class AppointmentDetailItem extends StatelessWidget {
 
   const AppointmentDetailItem({
     super.key,
-    required this.iconAssetPath, // Now expects asset path string
+    required this.iconAssetPath, 
     required this.title,
     required this.subtitle,
     this.badge,

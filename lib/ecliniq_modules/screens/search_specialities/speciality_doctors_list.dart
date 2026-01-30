@@ -50,7 +50,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
   bool _speechEnabled = false;
   bool _isListening = false;
 
-  // Updated category list to match UI
+  
   final List<String> _categories = [
     'All',
     'General Physician',
@@ -66,20 +66,20 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
     'Dentistry',
   ];
 
-  // Keys for each category to measure their positions
+  
   final Map<String, GlobalKey> _categoryKeys = {};
 
   @override
   void initState() {
     super.initState();
-    // Initialize keys for all categories
+    
     for (var category in _categories) {
       _categoryKeys[category] = GlobalKey();
     }
 
     if (widget.initialSpeciality != null) {
       _selectedCategory = widget.initialSpeciality!;
-      // Add initial speciality if not in list
+      
       if (!_categories.contains(widget.initialSpeciality)) {
         _categories.insert(1, widget.initialSpeciality!);
         _categoryKeys[widget.initialSpeciality!] = GlobalKey();
@@ -89,7 +89,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
     _searchController.addListener(_onSearchChanged);
     _initSpeech();
 
-    // Auto scroll to initial category after build
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCategory(_selectedCategory);
     });
@@ -276,7 +276,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
       'Speech result: ${result.recognizedWords}, final: ${result.finalResult}',
     );
 
-    // Update the search controller with recognized words
+    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -300,7 +300,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
   }
 
   Future<void> _loadLocationAndFetch() async {
-    // Hardcoded location values
+    
     setState(() {
       _latitude = 12.9173;
       _longitude = 77.6377;
@@ -334,7 +334,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
       final screenWidth = MediaQuery.of(context).size.width;
       final boxWidth = renderBox.size.width;
 
-      // Calculate scroll offset to center the selected category
+      
       final scrollOffset =
           _categoryScrollController.offset +
           position.dx -
@@ -388,14 +388,14 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
       child: DoctorFilterBottomSheet(
         onFilterChanged: (params) {
           setState(() {
-            // Check if filters are empty (reset was called)
+            
             if (!_hasActiveFiltersInParams(params)) {
               _filterParams = {};
-              // Call initial API when filters are reset
+              
               _fetchDoctorsInitial();
             } else {
               _filterParams = params;
-              // Call filtered API when filters are applied
+              
               _fetchDoctors();
             }
           });
@@ -411,7 +411,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
     });
 
     try {
-      // When no filters, only use category if selected
+      
       List<String>? specialityFilter;
       if (_selectedCategory != 'All') {
         specialityFilter = [_selectedCategory];
@@ -559,7 +559,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
           break;
         case 'Relevance':
         default:
-          // Default order from API
+          
           break;
       }
     });
@@ -574,7 +574,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
     try {
       List<String>? specialityFilter;
 
-      // Merge tab selection with bottom sheet filter
+      
       if (_filterParams['specialities'] != null &&
           (_filterParams['specialities'] as List).isNotEmpty) {
         specialityFilter = (_filterParams['specialities'] as List)
@@ -584,8 +584,8 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
       }
 
       final request = api_doctor.FilterDoctorsRequest(
-        latitude: 12.9173, // Hardcoded latitude
-        longitude: 77.6377, // Hardcoded longitude
+        latitude: 12.9173, 
+        longitude: 77.6377, 
         speciality: specialityFilter,
         gender: _filterParams['gender']?.toString().toUpperCase(),
         distance: (_filterParams['distance'] is num)
@@ -932,18 +932,18 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
               ),
               child: Container(
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 4),
-                // decoration: _isListening
-                //     ? BoxDecoration(
-                //         shape: BoxShape.circle,
-                //         boxShadow: [
-                //           BoxShadow(
-                //             color: const Color(0xFF2372EC).withOpacity(0.5),
-                //             blurRadius: 12,
-                //             spreadRadius: 2,
-                //           ),
-                //         ],
-                //       )
-                //     : null,
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 child: SvgPicture.asset(
                   EcliniqIcons.microphone.assetPath,
                   width: 32,
@@ -1504,11 +1504,11 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
     if (doctor.profilePhoto == null || doctor.profilePhoto!.isEmpty) {
       return null;
     }
-    // If already a full URL, return as-is
+    
     if (doctor.profilePhoto!.startsWith('http://') || doctor.profilePhoto!.startsWith('https://')) {
       return doctor.profilePhoto;
     }
-    // Get public URL if it starts with "public/"
+    
     if (doctor.profilePhoto!.startsWith('public/')) {
       return await _storageService.getPublicUrl(doctor.profilePhoto);
     }
@@ -1618,20 +1618,20 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
     setState(() {
       selectedSortOption = null;
     });
-    // Emit empty string to clear sort in parent
+    
     widget.onChanged('');
   }
 
   final List<String> sortOptions = [
     'Relevance',
     'Price: Low - High',
-    // 'Price: High - Low',
+    
     'Experience - Most Experience first',
     'Distance - Nearest First',
-    // 'Order A-Z',
-    // 'Order Z-A',
+    
+    
     'Rating High - low',
-    //'Rating Low - High',
+    
   ];
 
   @override
@@ -1649,7 +1649,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
       ),
       child: Column(
         children: [
-          // Title
+          
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Align(
@@ -1685,7 +1685,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
 
           const SizedBox(height: 4),
 
-          // List of sort options
+          
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1698,7 +1698,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
             ),
           ),
 
-          // Apply button
+          
         ],
       ),
     );

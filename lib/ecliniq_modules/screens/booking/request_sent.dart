@@ -16,7 +16,7 @@ class AppointmentRequestScreen extends StatefulWidget {
   final String patientSubtitle;
   final String patientBadge;
 
-  // Payment details (optional)
+  
   final String? merchantTransactionId;
   final String? paymentMethod;
   final double? totalAmount;
@@ -93,7 +93,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
         backgroundColor: Colors.white,
         body: Column(
           children: [
-            // Scrollable content area
+            
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -226,7 +226,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
               ),
             ),
 
-            // Fixed OK button at bottom
+            
             Container(
               padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
               decoration: BoxDecoration(color: Colors.white),

@@ -32,7 +32,7 @@ class _OtpInputScreenState extends State<OtpInputScreen>
     with WidgetsBindingObserver {
   final TextEditingController _otpController = TextEditingController();
   bool _isButtonPressed = false;
-  int _resendTimer = 150; // 2:30 minutes in seconds
+  int _resendTimer = 150; 
   bool _canResend = false;
   Timer? _timer;
 
@@ -55,9 +55,9 @@ class _OtpInputScreenState extends State<OtpInputScreen>
 
   void _startTimer() {
     _canResend = false;
-    _resendTimer = 150; // Reset to 2:30 minutes
+    _resendTimer = 150; 
 
-    _timer?.cancel(); // Cancel any existing timer
+    _timer?.cancel(); 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -132,7 +132,7 @@ class _OtpInputScreenState extends State<OtpInputScreen>
         return;
       }
 
-      // Use forget MPIN verify API if it's forget PIN flow, otherwise use normal verify
+      
       final success = widget.isForgotPinFlow
           ? await authProvider.forgetMpinVerifyOtp(otp)
           : await authProvider.verifyOTP(otp);
@@ -149,19 +149,19 @@ class _OtpInputScreenState extends State<OtpInputScreen>
          
           );
 
-          // Route based on flow type
+          
           if (widget.isForgotPinFlow) {
-            // Forgot PIN flow: OTP verified → Reset MPIN
-            // Check if user is authenticated (change MPIN from settings) or not (forget PIN from login)
+            
+            
             final hasValidSession = await SessionService.hasValidSession();
             if (hasValidSession) {
-              // User is authenticated - this is change MPIN from security settings
-              // Use push instead of pushAndRemoveUntil to preserve navigation stack
+              
+              
               await SessionService.saveFlowState('mpin_reset');
               EcliniqRouter.push(const MPINSet(isResetMode: true));
             } else {
-              // User is not authenticated - this is forget PIN from login
-              // Use pushAndRemoveUntil to clear navigation stack
+              
+              
               await SessionService.saveFlowState('mpin_reset');
               EcliniqRouter.pushAndRemoveUntil(
                 const MPINSet(isResetMode: true),
@@ -169,41 +169,41 @@ class _OtpInputScreenState extends State<OtpInputScreen>
               );
             }
           } else {
-            // Normal flow: Check API response to determine if user is new
+            
             final redirectTo = authProvider.redirectTo;
             final userStatus = authProvider.userStatus;
 
-            // Determine if this is a new user based on API response
-            // New user if: userStatus is "new" OR redirectTo is "profile_setup"
+            
+            
             final isNewUser =
                 userStatus == 'new' || redirectTo == 'profile_setup';
 
             if (isNewUser) {
-              // New user: Always go through MPIN setup, even if old MPIN exists in storage
-              // Clear any old MPIN from storage for new users
+              
+              
               await SecureStorageService.deleteMPIN();
 
-              // Flow: OTP → MPIN → User Details → Home
+              
               await SessionService.saveFlowState('mpin_setup');
               EcliniqRouter.pushAndRemoveUntil(
                 const MPINSet(),
                 (route) => route.isFirst,
               );
             } else {
-              // Existing user: Check if MPIN exists locally
+              
               final hasMPIN = await SecureStorageService.hasMPIN();
 
               if (!hasMPIN) {
-                // Existing user without MPIN: Set MPIN first
+                
                 await SessionService.saveFlowState('mpin_setup');
                 EcliniqRouter.pushAndRemoveUntil(
                   const MPINSet(),
                   (route) => route.isFirst,
                 );
               } else {
-                // Existing user with MPIN: Navigate to Login Page
-                // User can enter MPIN or use biometric on login page
-                await SessionService.clearFlowState(); // Clear flow state as user is authenticated
+                
+                
+                await SessionService.clearFlowState(); 
                 EcliniqRouter.pushAndRemoveUntil(
                   const LoginPage(),
                   (route) => route.isFirst,
@@ -242,7 +242,7 @@ class _OtpInputScreenState extends State<OtpInputScreen>
   }
 
   void _resendOTP() async {
-    if (!_canResend) return; // Don't allow resend if timer hasn't finished
+    if (!_canResend) return; 
 
     setState(() {
       _isButtonPressed = true;
@@ -250,7 +250,7 @@ class _OtpInputScreenState extends State<OtpInputScreen>
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Use forget MPIN resend if it's forget PIN flow, otherwise use normal resend
+    
     if (widget.isForgotPinFlow) {
       final phoneNumber = authProvider.phoneNumber;
       if (phoneNumber != null) {
@@ -264,8 +264,8 @@ class _OtpInputScreenState extends State<OtpInputScreen>
       setState(() {
         _isButtonPressed = false;
       });
-      _startTimer(); // Restart the timer after resending OTP
-      _otpController.clear(); // Clear the OTP field
+      _startTimer(); 
+      _otpController.clear(); 
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

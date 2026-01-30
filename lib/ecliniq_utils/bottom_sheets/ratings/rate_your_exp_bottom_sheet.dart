@@ -24,7 +24,7 @@ class RatingBottomSheet extends StatefulWidget {
     this.onRefetch,
   });
 
-  /// Static method to show the bottom sheet
+  
   static Future<int?> show({
     required BuildContext context,
     int? initialRating,
@@ -33,7 +33,7 @@ class RatingBottomSheet extends StatefulWidget {
     Function(int rating)? onRatingSubmitted,
     VoidCallback? onRefetch,
   }) {
-    // Don't allow opening if rating already exists
+    
     if (initialRating != null && initialRating > 0) {
       return Future.value(null);
     }
@@ -222,25 +222,25 @@ class _RatingBottomSheetState extends State<RatingBottomSheet> {
       if (!mounted) return;
 
       if (res['success'] == true) {
-        // Call the callback if provided
+        
         if (widget.onRatingSubmitted != null) {
           widget.onRatingSubmitted!(_tempRating);
         }
 
-        // Refetch appointment details to get updated rating
+        
         if (widget.onRefetch != null) {
           widget.onRefetch!();
         }
 
-        // Close bottom sheet first
+        
         Navigator.of(context).pop(_tempRating);
 
-        // Show thank you dialog immediately after submission
+        
         if (mounted) {
           _showThankYouDialog();
         }
 
-        // Show success snackbar after a short delay
+        
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();

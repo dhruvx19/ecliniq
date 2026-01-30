@@ -6,7 +6,7 @@ import 'package:ecliniq/ecliniq_modules/screens/login/login.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/home_screen.dart';
 import 'package:flutter/material.dart';
 
-/// Splash screen that displays the app logo and handles initial navigation
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -21,15 +21,15 @@ class _SplashScreenState extends State<SplashScreen> {
     _navigateToNextScreen();
   }
 
-  /// Determines the initial route and navigates to the appropriate screen
+  
   Future<void> _navigateToNextScreen() async {
-    // Wait for a minimum splash duration (optional - for better UX)
+    
     await Future.delayed(const Duration(milliseconds: 1500));
 
     if (!mounted) return;
 
     try {
-      // Determine the initial route based on auth state
+      
       final initialRoute = await AuthFlowManager.getInitialRoute();
 
       Widget? nextScreen;
@@ -47,12 +47,12 @@ class _SplashScreenState extends State<SplashScreen> {
           nextScreen = const EcliniqWelcomeScreen();
       }
 
-      // Navigate to the determined screen
+      
       if (mounted) {
         EcliniqRouter.pushReplacement(nextScreen!);
       }
     } catch (e) {
-      // On error, navigate to welcome screen
+      
       if (mounted) {
         EcliniqRouter.pushReplacement(const EcliniqWelcomeScreen());
       }
@@ -67,18 +67,18 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  /// Builds the splash logo widget
+  
   Widget _buildLogo() {
-    // Try to use splash screen logo, fallback to main logo
+    
     try {
-      // Check if splash screen logo exists, otherwise use main logo
+      
       return Image.asset(
         EcliniqIcons.splashScreenLogo.assetPath,
         width: 290,
         height: 290,
       );
     } catch (e) {
-      // Fallback to main logo
+      
       return Image.asset(
         EcliniqIcons.main.assetPath,
         width: 200,

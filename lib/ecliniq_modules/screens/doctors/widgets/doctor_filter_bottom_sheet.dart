@@ -253,7 +253,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
       _selectedAvailability = null;
       _selectedDate = null;
     });
-    // Emit empty filter state to clear active filters in parent
+    
     final emptyFilter = FilterDoctorsRequest(
       latitude: widget.currentFilter.latitude,
       longitude: widget.currentFilter.longitude,
@@ -294,7 +294,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
       gender: _selectedGender,
       availability: _selectedAvailability,
       date: _selectedAvailability == 'DATE' ? dateStr : null,
-      page: 1, // Reset to page 1 on new filter
+      page: 1, 
     );
 
     widget.onChanged(newFilter);

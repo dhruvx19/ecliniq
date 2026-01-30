@@ -37,7 +37,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   String? _errorMessage;
   patient_models.PatientDetailsData? _data;
 
-  // form fields
+  
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _bloodGroupController = TextEditingController();
@@ -45,9 +45,9 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   final TextEditingController _weightController = TextEditingController();
   DateTime? _dob;
 
-  // photo
-  String? _profilePhotoKey; // existing or uploaded
-  String? _profilePhotoUrl; // resolved public/download URL
+  
+  String? _profilePhotoKey; 
+  String? _profilePhotoUrl; 
   File? _selectedProfilePhoto;
 
   @override
@@ -170,7 +170,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
     );
   }
 
-  // Blood group mapping helpers
+  
   String _uiBloodGroup(String? backendValue) {
     if (backendValue == null) return '';
     const map = {
@@ -243,7 +243,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
         _weightController.text = d.weight != null ? d.weight.toString() : '';
         _dob = d.dob;
 
-        // Store user name in secure storage
+        
         final firstName = d.user?.firstName ?? '';
         final lastName = d.user?.lastName ?? '';
         final fullName = '$firstName $lastName'.trim();
@@ -251,7 +251,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
           await SecureStorageService.storeUserName(fullName);
         }
 
-        // Fetch raw JSON once to extract profilePhoto key (not present in model)
+        
         try {
           final rawResp = await http.get(
             Uri.parse(Endpoints.getPatientDetails),
@@ -292,7 +292,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   }
 
   Future<void> _resolveImageUrl(String key, {required String token}) async {
-    // Try public URL first
+    
     try {
       final publicUri = Uri.parse(
         '${Endpoints.storagePublicUrl}?key=${Uri.encodeComponent(key)}',
@@ -311,7 +311,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
       }
     } catch (_) {}
 
-    // Fallback: auth-protected download URL
+    
     try {
       final downloadUri = Uri.parse(
         '${Endpoints.storageDownloadUrl}?key=${Uri.encodeComponent(key)}',
@@ -363,7 +363,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
         if (pickedFile != null) {
           setState(() {
             _selectedProfilePhoto = File(pickedFile!.path);
-            _profilePhotoUrl = null; // will refresh after upload
+            _profilePhotoUrl = null; 
           });
         }
       } catch (e) {
@@ -424,7 +424,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
       );
 
       if (success) {
-        // Store user name in secure storage
+        
         final fullName = '$firstName $lastName'.trim();
         if (fullName.isNotEmpty) {
           await SecureStorageService.storeUserName(fullName);
@@ -619,7 +619,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                             ],
                           ),
 
-                          // Personal Details section
+                          
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Row(
@@ -684,7 +684,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                           ),
 
                           const SizedBox(height: 24),
-                          // Health Info section
+                          
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(

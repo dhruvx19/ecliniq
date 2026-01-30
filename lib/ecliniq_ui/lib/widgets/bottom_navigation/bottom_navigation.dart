@@ -95,10 +95,10 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
     required String label,
     required BuildContext context,
   }) {
-    // Selected colors
+    
 
     const selectedTextColor = Color(0xFFF2F7FF);
-    // Unselected colors
+    
 
     const unselectedTextColor = Colors.white;
 
@@ -121,7 +121,7 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
             ),
           ),
           SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
-          // Fixed size container to prevent icon enlargement when selected
+          
           Container(
             width: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
             height: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),

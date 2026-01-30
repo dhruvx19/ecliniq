@@ -11,8 +11,8 @@ import 'package:url_launcher/url_launcher.dart';
 class ClinicLocationCard extends StatefulWidget {
   final String? hospitalId;
   final String? clinicId;
-  final String? locationName; // Optional: Pass location name if available
-  final String? locationAddress; // Optional: Pass location address if available
+  final String? locationName; 
+  final String? locationAddress; 
 
   const ClinicLocationCard({
     super.key,
@@ -42,7 +42,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
       _fetchHospitalDetails();
       _getUserLocationAndCalculateDistance();
     } else {
-      // For clinics, we don't fetch details, just mark as loaded
+      
       setState(() {
         _isLoading = false;
       });
@@ -61,7 +61,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         setState(() {
           if (response.success && response.data != null) {
             _hospitalDetail = response.data;
-            // Calculate distance if we have both user position and hospital location
+            
             if (_userPosition != null) {
               _calculateDistance();
             }
@@ -81,7 +81,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
 
   Future<void> _getUserLocationAndCalculateDistance() async {
     try {
-      // Check if location services are enabled
+      
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (mounted) {
@@ -92,7 +92,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         return;
       }
 
-      // Check location permission
+      
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -115,7 +115,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         return;
       }
 
-      // Get current position
+      
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -124,13 +124,13 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         setState(() {
           _userPosition = position;
         });
-        // Calculate distance if we have hospital details
+        
         if (_hospitalDetail != null) {
           _calculateDistance();
         }
       }
     } catch (e) {
-      // Silently fail - we'll just not show distance
+      
       if (mounted) {
         setState(() {
           _userPosition = null;
@@ -149,7 +149,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
       );
 
       setState(() {
-// Convert to kilometers
+
       });
     }
   }
@@ -160,12 +160,12 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
     final lat = _hospitalDetail!.latitude;
     final lng = _hospitalDetail!.longitude;
 
-    // Try Google Maps first
+    
     final googleMapsUrl = Uri.parse(
       'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
     );
 
-    // Try Apple Maps (will fall back to web on Android)
+    
     final appleMapsUrl = Uri.parse(
       'https://maps.apple.com/?daddr=$lat,$lng',
     );
@@ -174,48 +174,48 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
       bool canLaunchGoogle = false;
       bool canLaunchApple = false;
 
-      // Safely check if URLs can be launched
+      
       try {
         canLaunchGoogle = await canLaunchUrl(googleMapsUrl);
       } catch (e) {
-        // If canLaunchUrl fails, try to launch directly anyway
+        
         canLaunchGoogle = false;
       }
 
       try {
         canLaunchApple = await canLaunchUrl(appleMapsUrl);
       } catch (e) {
-        // If canLaunchUrl fails, try to launch directly anyway
+        
         canLaunchApple = false;
       }
 
-      // Try to launch Google Maps
+      
       if (canLaunchGoogle) {
         try {
           await launchUrl(
             googleMapsUrl,
             mode: LaunchMode.externalApplication,
           );
-          return; // Successfully launched, exit
+          return; 
         } catch (e) {
-          // Continue to next option if Google Maps fails
+          
         }
       }
 
-      // Try to launch Apple Maps
+      
       if (canLaunchApple) {
         try {
           await launchUrl(
             appleMapsUrl,
             mode: LaunchMode.externalApplication,
           );
-          return; // Successfully launched, exit
+          return; 
         } catch (e) {
-          // Continue to web fallback if Apple Maps fails
+          
         }
       }
 
-      // Fall back to web browser with Google Maps
+      
       final webMapsUrl = Uri.parse(
         'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
       );
@@ -225,8 +225,8 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
           mode: LaunchMode.externalApplication,
         );
       } catch (e) {
-        // If all methods fail, try launching without checking first
-        // This works around iOS platform channel issues
+        
+        
         try {
           await launchUrl(
             googleMapsUrl,
@@ -245,19 +245,19 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
         }
       }
     } catch (e) {
-      // Silent fail - don't show error to user unless all methods fail
-      // The error handling above already shows a user-friendly message
+      
+      
     }
   }
 
   String _getHospitalAddress() {
-    // If location address is provided, use it (for clinics or pre-fetched data)
+    
     if (widget.locationAddress != null && widget.locationAddress!.isNotEmpty) {
       return widget.locationAddress!;
     }
     
     if (widget.clinicId != null) {
-      // For clinics without provided address, return a generic message
+      
       return 'Clinic location details';
     }
     
@@ -288,17 +288,17 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
   }
 
   String _getLocationName() {
-    // If location name is provided, use it
+    
     if (widget.locationName != null && widget.locationName!.isNotEmpty) {
       return widget.locationName!;
     }
     
-    // For hospitals, use fetched hospital name
+    
     if (_hospitalDetail != null) {
       return _hospitalDetail!.name;
     }
     
-    // For clinics, use generic name
+    
     if (widget.clinicId != null) {
       return 'Clinic';
     }
@@ -389,7 +389,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
                                 ? Stack(
                                     fit: StackFit.expand,
                                     children: [
-                                      // Map preview - using Google Static Maps or placeholder
+                                      
                                       Container(
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
@@ -427,7 +427,7 @@ class _ClinicLocationCardState extends State<ClinicLocationCard> {
                                           ),
                                         ),
                                       ),
-                                      // Optional: Add a small map icon overlay
+                                      
                                       Positioned(
                                         top: 8,
                                         right: 8,

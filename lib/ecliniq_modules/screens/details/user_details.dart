@@ -129,18 +129,18 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
         );
 
         if (success && mounted) {
-          // Store user name in secure storage
+          
           final fullName = '$firstName $lastName'.trim();
           if (fullName.isNotEmpty) {
             await SecureStorageService.storeUserName(fullName);
           }
           
-          // Mark onboarding as complete
+          
           await SessionService.setOnboardingComplete(true);
 
-          // Profile setup complete - navigate to home
-          // Flow: OTP → MPIN → User Details → Home
-          await SessionService.clearFlowState(); // Clear flow state as onboarding is complete
+          
+          
+          await SessionService.clearFlowState(); 
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
@@ -242,10 +242,10 @@ class _UserDetailsState extends State<UserDetails> with WidgetsBindingObserver {
                 color: authProvider.isLoading
                     ? const Color(0xFF2372EC)
                     : _isButtonPressed
-                    ? const Color(0xFF0E4395) // Pressed color
+                    ? const Color(0xFF0E4395) 
                     : isButtonEnabled
-                    ? const Color(0xFF2372EC) // Enabled color
-                    : const Color(0xFFF9F9F9), // Disabled color
+                    ? const Color(0xFF2372EC) 
+                    : const Color(0xFFF9F9F9), 
                 borderRadius: BorderRadius.circular(4),
               ),
               child: authProvider.isLoading

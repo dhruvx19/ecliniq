@@ -5,7 +5,7 @@ import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:http/http.dart' as http;
 
 class DeviceTokenService {
-  /// Register the device token with the backend
+  
   Future<void> registerDeviceToken({
     required String token,
     required String platform,

@@ -1,5 +1,5 @@
 class Transaction {
-  final String type; // 'credit' or 'debit'
+  final String type; 
   final int amount;
   final DateTime date;
 
@@ -10,7 +10,7 @@ class Transaction {
   });
 }
 
-// Monthly Transaction Group
+
 class MonthlyTransactions {
   final String month;
   final List<Transaction> transactions;

@@ -43,9 +43,9 @@ class _UpcharCoinState extends State<UpcharCoin> {
       return;
     }
 
-    // Fetch balance first, then transactions (so we can use the year from transactions response)
+    
     await _fetchBalance(authToken);
-    // Fetch transactions without specifying year - let API return the year with data
+    
     await _fetchTransactions(authToken);
   }
 
@@ -80,7 +80,7 @@ class _UpcharCoinState extends State<UpcharCoin> {
         setState(() {
           if (response.success && response.data != null) {
             _transactionsData = response.data;
-            // Always use the year from API response (API may return data for a different year)
+            
             _selectedYear = response.data!.year;
           }
           _isLoadingTransactions = false;
@@ -97,7 +97,7 @@ class _UpcharCoinState extends State<UpcharCoin> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -222,13 +222,13 @@ class _UpcharCoinState extends State<UpcharCoin> {
                                           height: 1.0,
                                         ),
                                   ),
-                                  // SizedBox(
-                                  //   height:
-                                  //       EcliniqTextStyles.getResponsiveSpacing(
-                                  //         context,
-                                  //         2.0,
-                                  //       ),
-                                  // ),
+                                  
+                                  
+                                  
+                                  
+                                  
+                                  
+                                  
                                   Text(
                                     'Total Coins Balance Available',
                                     style:

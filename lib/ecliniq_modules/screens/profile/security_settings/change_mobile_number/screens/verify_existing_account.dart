@@ -43,7 +43,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   String? _contact;
   String? _challengeId;
   Timer? _timer;
-  int _resendTimer = 30; // Consistent with other screens
+  int _resendTimer = 30; 
   bool _canResend = false;
   bool _isDisposed = false;
 
@@ -51,17 +51,17 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
   void initState() {
     super.initState();
 
-    // If phone is preloaded, use it and send OTP immediately
+    
     if (widget.preloadedPhone != null && widget.preloadedMaskedPhone != null) {
       _contact = widget.preloadedPhone;
-      // Send OTP immediately without showing loading state
+      
       _sendOTPToExistingContact();
     } else if (widget.challengeId != null && widget.maskedContact != null) {
-      // Use provided data if available
+      
       _challengeId = widget.challengeId;
       _contact = widget.maskedContact;
     } else {
-      // Fallback: fetch OTP (this should rarely happen now)
+      
       _sendOTPToExistingContact();
     }
   }
@@ -119,7 +119,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       if (result['success'] == true) {
         setState(() {
           _challengeId = result['challengeId'];
-          // Only update contact if we don't have preloaded one
+          
           if (widget.preloadedPhone == null) {
             _contact = result['contact'];
           }
@@ -160,7 +160,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       return;
     }
 
-    // Check if already verifying
+    
     if (_isVerifying) return;
 
     setState(() {
@@ -168,7 +168,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       _errorMessage = null;
     });
 
-    // Step 2: Verify existing contact OTP
+    
     try {
       final authToken = await SessionService.getAuthToken();
       final result = await _authService.verifyExistingContactOtp(
@@ -180,12 +180,12 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        // Reset verifying state
+        
         setState(() {
           _isVerifying = false;
         });
 
-        // Navigate to add mobile number screen with verificationToken
+        
         if (!mounted) return;
         final addResult = await Navigator.push(
           context,
@@ -195,7 +195,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
           ),
         );
 
-        // Pass result back to security settings
+        
         if (addResult != null && mounted) {
           Navigator.pop(context, addResult);
         }
@@ -203,7 +203,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
         setState(() {
           _errorMessage = result['message'] ?? 'Failed to verify OTP';
           _isVerifying = false;
-          _otpController.clear(); // Clear OTP on error
+          _otpController.clear(); 
         });
       }
     } catch (e) {
@@ -211,7 +211,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
       setState(() {
         _errorMessage = 'An error occurred: $e';
         _isVerifying = false;
-        _otpController.clear(); // Clear OTP on error
+        _otpController.clear(); 
       });
     }
   }
@@ -243,10 +243,10 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
             color: _isVerifying
                 ? const Color(0xFF2372EC)
                 : _isButtonPressed
-                ? const Color(0xFF0E4395) // Pressed color
+                ? const Color(0xFF0E4395) 
                 : _isOtpValid
-                ? const Color(0xFF2372EC) // Enabled color
-                : const Color(0xffF9F9F9), // Disabled color
+                ? const Color(0xFF2372EC) 
+                : const Color(0xffF9F9F9), 
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(
@@ -418,7 +418,7 @@ class _VerifyExistingAccountState extends State<VerifyExistingAccount> {
                 onChanged: (value) {
                   if (mounted) {
                     setState(() {
-                      // Clear error message when user starts typing
+                      
                       if (_errorMessage != null) {
                         _errorMessage = null;
                       }

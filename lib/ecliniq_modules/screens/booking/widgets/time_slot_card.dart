@@ -153,7 +153,7 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
                         ),
                         
                         const SizedBox(height: 4),
-                        // Only show container when tokens are available
+                        
                         if (widget.available > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -180,7 +180,7 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
                             ),
                           )
                         else
-                          // Simple text without container padding when no tokens
+                          
                           Text(
                             'No tokens available',
                             style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(

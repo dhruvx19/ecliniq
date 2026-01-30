@@ -32,16 +32,16 @@ class Slot {
   });
 
   factory Slot.fromJson(Map<String, dynamic> json) {
-    // Parse times as UTC to ensure correct timezone handling
+    
     parseTime(dynamic timeValue) {
       if (timeValue == null) {
         return DateTime.utc(1970, 1, 1);
       }
-      // Convert to string if it's not already
+      
       final timeStr = timeValue is String ? timeValue : timeValue.toString();
       try {
         final parsed = DateTime.parse(timeStr);
-        // Ensure UTC time - if parsed as local, convert to UTC
+        
         return parsed.isUtc ? parsed : DateTime.utc(
           parsed.year,
           parsed.month,
@@ -57,14 +57,14 @@ class Slot {
       }
     }
     
-    // Helper to safely convert to string
+    
     toString(dynamic value, String defaultValue) {
       if (value == null) return defaultValue;
       if (value is String) return value;
       return value.toString();
     }
     
-    // Helper to safely convert to int
+    
     toInt(dynamic value, int defaultValue) {
       if (value == null) return defaultValue;
       if (value is int) return value;

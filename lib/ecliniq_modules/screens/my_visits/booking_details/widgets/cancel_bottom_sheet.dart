@@ -60,18 +60,18 @@ class _CancelBottomSheetState extends State<CancelBottomSheet> {
 
       if (!mounted) return;
 
-      // Check both outer and inner success flags
+      
       bool isSuccess = response.success;
       if (response.data != null) {
-        // If inner data exists, check its success flag too
+        
         isSuccess = isSuccess && response.data!.success;
       }
 
       if (isSuccess) {
-        // Close the bottom sheet first
+        
         Navigator.of(context).pop();
         
-        // Fetch updated appointment details
+        
         try {
           final detailResponse = await _appointmentService.getAppointmentDetail(
             appointmentId: widget.appointmentId,
@@ -81,12 +81,12 @@ class _CancelBottomSheetState extends State<CancelBottomSheet> {
           if (!mounted) return;
 
           if (detailResponse.success && detailResponse.data != null) {
-            // Convert API response to UI model
+            
             final appointmentDetail = AppointmentDetailModel.fromApiData(
               detailResponse.data!,
             );
 
-            // Navigate to cancelled detail page
+            
             if (mounted) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
@@ -98,17 +98,17 @@ class _CancelBottomSheetState extends State<CancelBottomSheet> {
               );
             }
           } else {
-            // If fetching details fails, still call the callback for backward compatibility
+            
             widget.onCancelled?.call();
           }
         } catch (e) {
-          // If fetching details fails, still call the callback for backward compatibility
+          
           if (mounted) {
             widget.onCancelled?.call();
           }
         }
       } else {
-        // Handle error
+        
         String errorMessage = response.message;
         if (response.data != null) {
           if (response.data!.errors != null) {
@@ -160,9 +160,9 @@ class _CancelBottomSheetState extends State<CancelBottomSheet> {
         children: [
           SvgPicture.asset(
             EcliniqIcons.cancelGif.assetPath,
-            // fit: BoxFit.contain,
-            // height: 115,
-            // width: 115,
+            
+            
+            
           ),
              const SizedBox(height: 12),
            EcliniqText(

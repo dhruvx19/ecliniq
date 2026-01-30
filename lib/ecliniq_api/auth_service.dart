@@ -46,7 +46,7 @@ class AuthService {
     final url = Uri.parse(Endpoints.verifyUser);
 
     try {
-      // Debug logging
+      
 
       final requestBody = {
         'challengeId': challengeId,
@@ -65,18 +65,18 @@ class AuthService {
       if (response.statusCode == 200 && responseData['success'] == true) {
         return OTPVerificationResponse.success(responseData);
       } else {
-        // Try to get the actual error message from the server
+        
         String errorMessage = 'Invalid OTP or verification failed';
 
         if (responseData is Map<String, dynamic>) {
-          // Try different common error message formats
+          
           errorMessage =
               responseData['message'] ??
               responseData['error'] ??
               responseData['data']?['message'] ??
               'Invalid OTP or verification failed';
 
-          // Log specific error details
+          
         }
 
         return OTPVerificationResponse.error(errorMessage);
@@ -96,7 +96,7 @@ class AuthService {
     try {
       final headers = <String, String>{'Content-Type': 'application/json'};
 
-      // Include auth token if provided (user should be authenticated after OTP)
+      
       if (authToken != null && authToken.isNotEmpty) {
         headers['Authorization'] = 'Bearer $authToken';
       }
@@ -136,12 +136,12 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userName':
-              phone, // Backend expects userName (can be email or mobile)
+              phone, 
           'mpin': mpin,
         }),
       );
 
-      // Handle non-200 status codes
+      
       if (response.statusCode != 200) {
         try {
           final errorData = jsonDecode(response.body);
@@ -162,7 +162,7 @@ class AuthService {
         }
       }
 
-      // Parse response body
+      
       Map<String, dynamic> responseData;
       try {
         responseData = jsonDecode(response.body) as Map<String, dynamic>;
@@ -173,13 +173,13 @@ class AuthService {
         };
       }
 
-      // Check if success is explicitly false (error response)
+      
       final isExplicitlyFailed =
           responseData['success'] == false ||
           responseData['success'] == 'false';
 
       if (isExplicitlyFailed) {
-        // API returned explicit failure
+        
         return {
           'success': false,
           'statusCode': responseData['statusCode'] ?? response.statusCode,
@@ -196,10 +196,10 @@ class AuthService {
           (responseData['success'] == null && response.statusCode == 200);
 
       if (isSuccess) {
-        // Try to get data from responseData['data'] first
+        
         dynamic data = responseData['data'];
 
-        // If data is null, check if token is directly in responseData (fallback)
+        
         if (data == null && responseData['token'] != null) {
           data = responseData;
         }
@@ -207,7 +207,7 @@ class AuthService {
         if (data != null && data is Map<String, dynamic>) {
           final token = data['token'];
           if (token != null && token.toString().isNotEmpty) {
-            // Extract userId from token if needed, or use phone as identifier
+            
             return {
               'success': true,
               'token': token.toString(),
@@ -220,13 +220,13 @@ class AuthService {
           } else {}
         } else {}
 
-        // If we got here, token is missing
+        
         return {
           'success': false,
           'message': 'Token not found in response. Response: ${response.body}',
         };
       } else {
-        // Login failed
+        
         return {
           'success': false,
           'message':
@@ -244,7 +244,7 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> sendExistingContactOTP({
-    required String type, // "mobile" or "email"
+    required String type, 
     String? authToken,
   }) async {
     final url = Uri.parse(Endpoints.sendExistingContactOTP);
@@ -268,8 +268,8 @@ class AuthService {
         return {
           'success': true,
           'challengeId': data['challengeId'],
-          'sentTo': data['sentTo'], // "mobile" or "email"
-          'contact': data['contact'], // Masked contact
+          'sentTo': data['sentTo'], 
+          'contact': data['contact'], 
           'message': responseData['message'] ?? 'OTP sent to existing contact',
         };
       } else {
@@ -335,8 +335,8 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> sendNewContactOtp({
-    required String type, // "mobile" or "email"
-    required String newContact, // New mobile number or email
+    required String type, 
+    required String newContact, 
     String? authToken,
   }) async {
     final url = Uri.parse(Endpoints.sendNewContactOtp);
@@ -380,8 +380,8 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> verifyNewContact({
-    required String challengeId, // From send-new-otp response
-    required String otp, // OTP from new contact
+    required String challengeId, 
+    required String otp, 
     String? authToken,
   }) async {
     final url = Uri.parse(Endpoints.verifyNewContactOtp);

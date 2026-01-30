@@ -2,7 +2,7 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-/// Dialog for requesting permissions with explanation
+
 class PermissionRequestDialog extends StatelessWidget {
   final Permission permission;
   final String title;
@@ -32,7 +32,7 @@ class PermissionRequestDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon
+            
             Container(
               width: 80,
               height: 80,
@@ -48,7 +48,7 @@ class PermissionRequestDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Title
+            
             Text(
               title,
               style: const TextStyle(
@@ -60,7 +60,7 @@ class PermissionRequestDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Message
+            
             Text(
               message,
               style:  EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
@@ -72,7 +72,7 @@ class PermissionRequestDialog extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Buttons
+            
             Row(
               children: [
                 Expanded(
@@ -108,7 +108,7 @@ class PermissionRequestDialog extends StatelessWidget {
                       if (status.isGranted || status.isLimited) {
                         onGranted?.call();
                       } else if (status.isPermanentlyDenied) {
-                        // Show settings dialog
+                        
                         _showSettingsDialog(context);
                       } else {
                         onDenied?.call();
@@ -149,7 +149,7 @@ class PermissionRequestDialog extends StatelessWidget {
   }
 
   void _showSettingsDialog(BuildContext context) {
-    final dialogTitle = title; // Capture title for use in closure
+    final dialogTitle = title; 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

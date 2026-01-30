@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 class BookingCompletedDetail extends StatefulWidget {
   final String appointmentId;
   final AppointmentDetailModel?
-  appointment; // Optional for backward compatibility
+  appointment; 
 
   const BookingCompletedDetail({
     super.key,
@@ -33,7 +33,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
   @override
   void initState() {
     super.initState();
-    // If appointment is provided, use it directly (backward compatibility)
+    
     if (widget.appointment != null) {
       _appointment = widget.appointment;
       _isLoading = false;
@@ -73,7 +73,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
         return;
       }
 
-      // Convert API response to UI model
+      
       final appointmentDetail = AppointmentDetailModel.fromApiData(
         response.data!,
       );
@@ -138,7 +138,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Status header shimmer
+          
           Container(
             height: 120,
             margin: const EdgeInsets.all(16),
@@ -149,7 +149,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Doctor info card shimmer
+                
                 SizedBox(
                   height: 150,
                   child: ShimmerLoading(
@@ -157,7 +157,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Rating section shimmer
+                
                 SizedBox(
                   height: 100,
                   child: ShimmerLoading(
@@ -165,7 +165,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Appointment details shimmer
+                
                 SizedBox(
                   height: 200,
                   child: ShimmerLoading(
@@ -173,7 +173,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Clinic location shimmer
+                
                 SizedBox(
                   height: 120,
                   child: ShimmerLoading(
@@ -181,7 +181,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Prescription section shimmer
+                
                 SizedBox(
                   height: 100,
                   child: ShimmerLoading(
@@ -189,7 +189,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Payment details shimmer
+                
                 SizedBox(
                   height: 100,
                   child: ShimmerLoading(
@@ -242,7 +242,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
   Widget _buildContent() {
     return Column(
       children: [
-        // Fixed sections: StatusHeader, DoctorInfoCard, and RatingSection
+        
         StatusHeader(status: _appointment!.status),
         Padding(
           padding: const EdgeInsets.all(16),
@@ -271,7 +271,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
           ),
         ),
         const SizedBox(height: 24),
-        // Scrollable content starting after RatingSection
+        
         Expanded(
           child: SingleChildScrollView(
             child: Padding(
@@ -404,7 +404,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
         label: 'Book Again',
         type: BookingButtonType.primary,
         onPressed: () {
-          // Handle book again
+          
         },
       ),
     );

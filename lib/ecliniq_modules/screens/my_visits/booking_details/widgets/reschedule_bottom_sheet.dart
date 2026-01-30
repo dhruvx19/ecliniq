@@ -50,7 +50,7 @@ class _RescheduleBottomSheetState extends State<RescheduleBottomSheet> {
                   flex: 1,
                   child: GestureDetector(
                     onTap: () {
-                      // Check if appointment is already rescheduled
+                      
                       final isAlreadyRescheduled =
                           widget.appointment.isRescheduled ?? false;
                       if (isAlreadyRescheduled) {

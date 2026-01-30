@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:ecliniq/ecliniq_core/notifications/appointment_notification_test_helper.dart';
 import 'package:ecliniq/ecliniq_core/notifications/appointment_lock_screen_notification.dart';
 
-/// Test widget for appointment lock screen notifications
-/// @description Add this widget to any screen for quick testing
-/// 
-/// Usage:
-/// ```dart
-/// TestNotificationWidget()
-/// ```
+
+
+
+
+
+
+
 class TestNotificationWidget extends StatefulWidget {
   const TestNotificationWidget({super.key});
 

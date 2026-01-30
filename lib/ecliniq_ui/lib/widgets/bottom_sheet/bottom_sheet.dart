@@ -19,7 +19,7 @@ class EcliniqBottomSheet with WidgetsBindingObserver {
     bool? isDismissible = true,
     double? borderRadius,
   }) {
-    // Use responsive defaults if not provided
+    
     final responsiveHorizontalPadding = horizontalPadding != null
         ? horizontalPadding
         : EcliniqTextStyles.getResponsiveSpacing(context, 12.0);
@@ -74,7 +74,7 @@ class EcliniqBottomSheet with WidgetsBindingObserver {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Drag handle
+                      
                       if (isDismissible ?? true)
                         Container(
                           height: EcliniqTextStyles.getResponsiveSize(context, 4.0),

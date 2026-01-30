@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+
 
 import 'dart:io';
 
@@ -57,9 +57,9 @@ class _HealthFilesState extends State<HealthFiles> {
   @override
   void initState() {
     super.initState();
-    // Load files when page loads
-    // NOTE: We don't request permissions upfront on iOS to avoid them becoming permanently denied
-    // Permissions will be requested when user actually tries to upload (handled in upload_bottom_sheet.dart)
+    
+    
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthFilesProvider>().loadFiles();
       Provider.of<NotificationProvider>(
@@ -77,17 +77,15 @@ class _HealthFilesState extends State<HealthFiles> {
           if (mounted) {
             setState(() => _isListening = false);
           }
-          // Log but don't show expected errors during initialization
+          
           final errorMsg = error.errorMsg.toLowerCase();
           if (!errorMsg.contains('no_match') &&
               !errorMsg.contains('listen_failed')) {
-            debugPrint(
-              'Speech recognition initialization error: ${error.errorMsg}',
-            );
+            
           }
         },
         onStatus: (status) {
-          debugPrint('Speech recognition status: $status');
+          
           if (mounted) {
             if (status == 'notListening' ||
                 status == 'done' ||
@@ -102,9 +100,9 @@ class _HealthFilesState extends State<HealthFiles> {
       if (mounted) {
         setState(() {});
       }
-      debugPrint('Speech recognition initialized: $_speechEnabled');
+      
     } catch (e) {
-      debugPrint('Error initializing speech recognition: $e');
+      
       _speechEnabled = false;
       if (mounted) {
         setState(() {});
@@ -113,12 +111,12 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   void _startListening() async {
-    // If already listening, don't start again
+    
     if (_isListening) {
       return;
     }
 
-    // Initialize if not already initialized
+    
     if (!_speechEnabled) {
       await _initSpeech();
       if (!_speechEnabled) {
@@ -136,25 +134,25 @@ class _HealthFilesState extends State<HealthFiles> {
       }
     }
 
-    // Ensure speech recognition is initialized with proper callbacks
+    
     final isAvailable = await _speechToText.initialize(
       onError: (error) {
-        debugPrint('Speech recognition error: ${error.errorMsg}');
+        
 
-        // Don't show error for expected errors like no_match
+        
         final errorMsg = error.errorMsg.toLowerCase();
         if (errorMsg.contains('no_match') ||
             errorMsg.contains('listen_failed') ||
             errorMsg.contains('error_network_error')) {
-          // These are expected errors, just log them
-          debugPrint('Expected speech recognition error: ${error.errorMsg}');
+          
+          
           if (mounted) {
             setState(() => _isListening = false);
           }
           return;
         }
 
-        // Show error for unexpected issues
+        
         if (mounted) {
           setState(() => _isListening = false);
           if (errorMsg.contains('error_permission') ||
@@ -178,7 +176,7 @@ class _HealthFilesState extends State<HealthFiles> {
         }
       },
       onStatus: (status) {
-        debugPrint('Speech recognition status: $status');
+        
         if (mounted) {
           if (status == 'notListening' ||
               status == 'done' ||
@@ -205,26 +203,26 @@ class _HealthFilesState extends State<HealthFiles> {
       return;
     }
 
-    // Start listening - listen() returns void, not bool
+    
     try {
       await _speechToText.listen(
         onResult: _onSpeechResult,
         listenFor: const Duration(seconds: 30),
         pauseFor: const Duration(seconds: 3),
-        partialResults: true, // Get results as user speaks
-        localeId: 'en_US', // You can make this configurable
+        partialResults: true, 
+        localeId: 'en_US', 
         cancelOnError: false,
-        listenMode: ListenMode.confirmation, // Better for search queries
+        listenMode: ListenMode.confirmation, 
       );
 
-      // Set listening state - the status callback will also update this
+      
       if (mounted) {
         setState(() {
           _isListening = true;
         });
       }
     } catch (e) {
-      debugPrint('Error starting speech recognition: $e');
+      
       if (mounted) {
         setState(() => _isListening = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -245,9 +243,9 @@ class _HealthFilesState extends State<HealthFiles> {
           _isListening = false;
         });
       }
-      debugPrint('Speech recognition stopped');
+      
     } catch (e) {
-      debugPrint('Error stopping speech recognition: $e');
+      
       if (mounted) {
         setState(() {
           _isListening = false;
@@ -257,11 +255,9 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
-    debugPrint(
-      'Speech result: ${result.recognizedWords}, final: ${result.finalResult}',
-    );
+    
 
-    // Update the search controller with recognized words
+    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -271,10 +267,10 @@ class _HealthFilesState extends State<HealthFiles> {
       _searchQuery = result.recognizedWords;
     });
 
-    // Trigger search with the recognized words
+    
     _onSearch(result.recognizedWords);
 
-    // Stop listening when we get the final result
+    
     if (result.finalResult) {
       _stopListening();
     }
@@ -294,7 +290,7 @@ class _HealthFilesState extends State<HealthFiles> {
       _searchController.clear();
     });
     context.read<HealthFilesProvider>().searchFiles('');
-    // Stop listening if active
+    
     if (_isListening) {
       _stopListening();
     }
@@ -314,7 +310,7 @@ class _HealthFilesState extends State<HealthFiles> {
       child: ActionBottomSheet(
         healthFile: file,
         onEditDocument: () {
-          Navigator.pop(context); // Close action bottom sheet first
+          Navigator.pop(context); 
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
               EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
@@ -322,22 +318,22 @@ class _HealthFilesState extends State<HealthFiles> {
           });
         },
         onDownloadDocument: () async {
-          Navigator.pop(context); // Close action bottom sheet first
+          Navigator.pop(context); 
           await Future.delayed(const Duration(milliseconds: 200));
           if (mounted) {
             await _handleFileDownload(file);
           }
         },
         onDeleteDocument: () async {
-          // Close action bottom sheet first
+          
           Navigator.of(context, rootNavigator: false).pop();
 
-          // Wait for bottom sheet animation to complete
+          
           await Future.delayed(const Duration(milliseconds: 300));
 
           if (!mounted) return;
 
-          // Call the delete method which will show confirmation and handle deletion
+          
           await _proceedWithDelete(file);
         },
       ),
@@ -345,7 +341,7 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   Future<void> _proceedWithDelete(HealthFile file) async {
-    // Show confirmation bottom sheet first
+    
     final confirmed = await EcliniqBottomSheet.show<bool>(
       context: context,
       child: const DeleteFileBottomSheet(),
@@ -356,7 +352,7 @@ class _HealthFilesState extends State<HealthFiles> {
     BuildContext? dialogContext;
 
     try {
-      // Show loading indicator
+      
       if (mounted) {
         showDialog(
           context: context,
@@ -370,20 +366,20 @@ class _HealthFilesState extends State<HealthFiles> {
 
       final provider = context.read<HealthFilesProvider>();
 
-      // Delete the file (provider handles both physical file and metadata)
+      
       final success = await provider.deleteFile(file);
 
-      // Refresh the file list to ensure UI updates
+      
       if (success && mounted) {
         await provider.refresh();
       }
 
-      // Close loading indicator - ensure it closes even if refresh fails
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (e) {
-          debugPrint('Error closing loading dialog: $e');
+          
         }
         dialogContext = null;
       }
@@ -405,12 +401,12 @@ class _HealthFilesState extends State<HealthFiles> {
         );
       }
     } catch (e) {
-      // Close loading indicator if still open
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (_) {
-          debugPrint('Error closing loading dialog in catch:');
+          
         }
         dialogContext = null;
       }
@@ -423,12 +419,12 @@ class _HealthFilesState extends State<HealthFiles> {
         duration: const Duration(seconds: 3),
       );
     } finally {
-      // Ensure dialog is closed even if something unexpected happens
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (_) {
-          // Dialog might already be closed, ignore error
+          
         }
       }
     }
@@ -440,29 +436,29 @@ class _HealthFilesState extends State<HealthFiles> {
   }) async {
     if (!mounted) return;
 
-    // Check storage permissions for Android - use default Android dialog like location
+    
     if (Platform.isAndroid) {
-      // Check both permission statuses
+      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      // If neither permission is granted, request permission using default Android dialog
+      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        // Determine which permission to request
+        
         Permission storagePermission = Permission.storage;
 
-        // For Android 11+, try manageExternalStorage first if not permanently denied
+        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        // Request permission directly (shows default Android dialog)
+        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (mounted) {
             if (result.isPermanentlyDenied) {
-              // Show dialog to open settings
+              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -502,7 +498,7 @@ class _HealthFilesState extends State<HealthFiles> {
       }
     }
 
-    // Proceed with download
+    
     await _proceedWithDownload(file, showSnackbar: showSnackbar);
   }
 
@@ -512,7 +508,7 @@ class _HealthFilesState extends State<HealthFiles> {
   }) async {
     if (!mounted) return;
 
-    // Show "Download started" message immediately
+    
     if (showSnackbar) {
       SnackBarHelper.showSnackBar(
         context,
@@ -543,12 +539,12 @@ class _HealthFilesState extends State<HealthFiles> {
         try {
           Directory targetDir;
 
-          // Try primary download directory first
+          
           final primaryDir = Directory('/storage/emulated/0/Download');
           if (await primaryDir.exists()) {
             targetDir = primaryDir;
           } else {
-            // Fallback to app's external storage directory
+            
             final externalDir = await getExternalStorageDirectory();
             if (externalDir == null) {
               throw Exception(
@@ -574,10 +570,10 @@ class _HealthFilesState extends State<HealthFiles> {
             counter++;
           }
 
-          // Download file in background
+          
           await sourceFile.copy(destFile.path);
 
-          // Verify file was copied successfully
+          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -586,7 +582,7 @@ class _HealthFilesState extends State<HealthFiles> {
 
           if (!mounted) return;
 
-          // Show success snackbar
+          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -596,7 +592,7 @@ class _HealthFilesState extends State<HealthFiles> {
             );
           }
 
-          // Show local notification
+          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
           return;
         } catch (e) {
@@ -613,7 +609,7 @@ class _HealthFilesState extends State<HealthFiles> {
         }
       }
 
-      // For iOS - save to app's Documents directory in a Downloads subfolder
+      
       if (Platform.isIOS) {
         try {
           final documentsDir = await getApplicationDocumentsDirectory();
@@ -621,16 +617,16 @@ class _HealthFilesState extends State<HealthFiles> {
             path.join(documentsDir.path, 'Downloads'),
           );
 
-          // Create Downloads directory if it doesn't exist
+          
           if (!await downloadsDir.exists()) {
             await downloadsDir.create(recursive: true);
-            debugPrint('📁 Created Downloads directory: ${downloadsDir.path}');
+            
           }
 
           String fileName = file.fileName;
           File destFile = File(path.join(downloadsDir.path, fileName));
 
-          // Handle duplicate file names
+          
           int counter = 1;
           while (await destFile.exists()) {
             final nameWithoutExt = path.basenameWithoutExtension(fileName);
@@ -640,11 +636,11 @@ class _HealthFilesState extends State<HealthFiles> {
             counter++;
           }
 
-          // Copy file to Downloads directory
+          
           await sourceFile.copy(destFile.path);
-          debugPrint('✅ File copied to: ${destFile.path}');
+          
 
-          // Verify file was copied successfully
+          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -653,7 +649,7 @@ class _HealthFilesState extends State<HealthFiles> {
 
           if (!mounted) return;
 
-          // Show success message
+          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -663,13 +659,13 @@ class _HealthFilesState extends State<HealthFiles> {
             );
           }
 
-          // Show local notification
+          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
 
-          debugPrint('✅ iOS download completed: $fileName');
+          
           return;
         } catch (e) {
-          debugPrint('❌ iOS download error: $e');
+          
 
           if (!mounted) return;
 
@@ -684,7 +680,7 @@ class _HealthFilesState extends State<HealthFiles> {
         }
       }
     } catch (e) {
-      debugPrint('❌ Download error: $e');
+      
 
       if (!mounted) return;
 
@@ -707,12 +703,12 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   void _onTabTapped(int index) {
-    // Don't navigate if already on the same tab
+    
     if (index == _currentIndex) {
       return;
     }
 
-    // Navigate using the navigation helper with smooth left-to-right transitions
+    
     NavigationHelper.navigateToTab(context, index, _currentIndex);
   }
 
@@ -721,12 +717,12 @@ class _HealthFilesState extends State<HealthFiles> {
       context: context,
       child: UploadBottomSheet(
         onFileUploaded: () async {
-          // Refresh files after upload - ensure UI updates immediately
+          
           if (mounted) {
             final provider = context.read<HealthFilesProvider>();
-            // Force refresh to reload files from storage
+            
             await provider.refresh();
-            // Ensure listeners are notified
+            
             if (mounted) {
               provider.notifyListeners();
             }
@@ -799,7 +795,7 @@ class _HealthFilesState extends State<HealthFiles> {
   Widget _buildMainContent() {
     return Consumer<HealthFilesProvider>(
       builder: (context, provider, child) {
-        // Show normal content with files directly
+        
         return CustomRefreshIndicator(
           onRefresh: () async {
             await context.read<HealthFilesProvider>().refresh();

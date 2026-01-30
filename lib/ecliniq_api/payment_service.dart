@@ -44,7 +44,7 @@ class PaymentService {
     }
   }
 
-  /// Get payment details for an appointment
+  
   Future<PaymentDetailResponse> getPaymentDetails({
     required String appointmentId,
     required String authToken,
@@ -101,21 +101,21 @@ class PaymentService {
         if (response.success && response.data != null) {
           final statusData = response.data!;
 
-          // Notify caller of status update
+          
           onStatusUpdate?.call(statusData);
 
-          // Check if terminal state reached
+          
           if (statusData.isTerminal) {
             return statusData;
           }
         }
 
-        // Wait before next attempt
+        
         if (attempt < maxAttempts - 1) {
           await Future.delayed(interval);
         }
       } catch (e) {
-        // On error, wait and retry unless it's the last attempt
+        
         if (attempt == maxAttempts - 1) {
           rethrow;
         }
@@ -123,7 +123,7 @@ class PaymentService {
       }
     }
 
-    // Timeout reached
+    
     return null;
   }
 }

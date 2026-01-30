@@ -60,11 +60,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     super.dispose();
   }
 
-  /// Get image URL from storage key
-  /// @description Gets the public URL for a storage key if it starts with "public/",
-  /// otherwise returns a fallback URL
-  /// @param imageKey - Image key or URL
-  /// @returns Future<String> - Public URL or fallback URL
+  
+  
+  
+  
+  
   Future<String> _getImageUrl(String? imageKey) async {
     return await _storageService.getImageUrl(
       imageKey,
@@ -110,20 +110,20 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildContent(hospital) {
     return Stack(
       children: [
-        // Tab Content
+        
         IndexedStack(
           index: _currentTabIndex,
           children: [
-            // Details Tab
+            
             _buildDetailsContent(hospital),
-            // Doctors Tab
+            
             _buildDoctorsContent(hospital),
 
             _buildSurgeriesContent(),
             _buildBranchesContent(),
           ],
         ),
-        // Floating Tab Section (only show for Details tab)
+        
         if (_currentTabIndex == 0)
           Positioned(
             left: 0,
@@ -131,7 +131,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             bottom: 80,
             child: _buildFloatingTabSection(),
           ),
-        // Bottom Section (only show for Details tab)
+        
         if (_currentTabIndex == 0)
           Positioned(
             left: 0,
@@ -222,7 +222,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   80.0,
                 );
                 final circleRadius = circleSize / 2;
-                // Position circle so it's half on background and half below
+                
                 final topPosition = headerHeight - circleRadius;
 
                 return Positioned(
@@ -718,9 +718,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             color: isActive ? Color(0xff2372EC) : Colors.white,
             fontWeight: FontWeight.w400,
           ),
-          // overflow: TextOverflow.ellipsis,
+          
           maxLines: 1,
-          //  textAlign: TextAlign.center,
+          
         ),
       ),
     );

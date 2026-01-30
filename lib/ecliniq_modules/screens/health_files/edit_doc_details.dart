@@ -16,9 +16,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class EditDocumentDetailsPage extends StatefulWidget {
-  final HealthFile? healthFile; // Existing file (for editing)
-  final String? filePath; // New file path (for new uploads)
-  final String? fileName; // New file name (for new uploads)
+  final HealthFile? healthFile; 
+  final String? filePath; 
+  final String? fileName; 
 
   const EditDocumentDetailsPage({
     super.key,
@@ -55,7 +55,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // If editing existing file, use its data; otherwise use new file data
+    
     if (widget.healthFile != null) {
       _fileNameController = TextEditingController(
         text: widget.healthFile!.fileName,
@@ -77,7 +77,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
     super.dispose();
   }
 
-  /// Check if file is an image based on extension
+  
   bool _isImageFile(String filePath) {
     final extension = filePath.split('.').last.toLowerCase();
     return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].contains(extension);
@@ -459,7 +459,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 24.0),
               ),
 
-              // File Preview
+              
               Container(
                 width: double.infinity,
                 height: EcliniqTextStyles.getResponsiveHeight(context, 480.0),
@@ -500,7 +500,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                         child: GestureDetector(
                           onTap: () {
                             if (filePath != null) {
-                              // Show full screen preview
+                              
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -605,8 +605,8 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                           : _isButtonPressed
                           ? const Color(
                               0xFF0E4395,
-                            ) // Pressed color (darker blue)
-                          : const Color(0xFF2372EC), // Normal color
+                            ) 
+                          : const Color(0xFF2372EC), 
                       borderRadius: BorderRadius.circular(
                         EcliniqTextStyles.getResponsiveBorderRadius(
                           context,
@@ -721,7 +721,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
     if (selected != null && mounted) {
       final selectedName = selected.fullName;
       if (selectedName != _selectedRecordFor) {
-        // Use post-frame callback to avoid state updates during navigation
+        
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {
@@ -744,7 +744,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
       return;
     }
 
-    if (_isSaving) return; // Prevent multiple saves
+    if (_isSaving) return; 
 
     setState(() {
       _isSaving = true;
@@ -755,7 +755,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
       HealthFile savedFile;
 
       if (widget.healthFile != null) {
-        // Updating existing file
+        
         final updatedFile = widget.healthFile!.copyWith(
           fileName: _fileNameController.text.trim(),
           fileType: _selectedFileType,
@@ -763,7 +763,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           fileDate: _selectedDate,
         );
 
-        // Update file via provider
+        
         if (mounted) {
           final success = await context.read<HealthFilesProvider>().updateFile(
             updatedFile,
@@ -778,7 +778,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           return;
         }
       } else {
-        // Saving new file - this is where the file actually gets saved
+        
         if (widget.filePath == null) {
           throw Exception('File path is required');
         }
@@ -788,30 +788,30 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           throw Exception('File does not exist');
         }
 
-        // Save the file to storage with user-provided details
+        
         savedFile = await _storageService.saveFile(
           file: file,
           fileType: _selectedFileType,
           fileName: _fileNameController.text.trim(),
         );
 
-        // Update with additional metadata
+        
         savedFile = savedFile.copyWith(
           recordFor: _selectedRecordFor,
           fileDate: _selectedDate,
         );
 
-        // Save metadata with additional fields
+        
         await _storageService.saveFileMetadata(savedFile);
 
-        // Refresh provider to include new file
+        
         if (mounted) {
           await context.read<HealthFilesProvider>().refresh();
         }
       }
 
       if (mounted) {
-        // Instead of ScaffoldMessenger.of(context).showSnackBar(...)
+        
         CustomSuccessSnackBar.show(
           context: context,
           title: 'Success!',
@@ -819,7 +819,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           duration: const Duration(seconds: 5),
         );
 
-        // Navigate back with saved file
+        
         Navigator.pop(context, savedFile);
       }
     } catch (e) {
@@ -897,7 +897,7 @@ class _FullScreenPreview extends StatelessWidget {
   }
 }
 
-// File Type Bottom Sheet
+
 class FileTypeBottomSheet extends StatelessWidget {
   final List<String> fileTypes;
   final String selectedFileType;
@@ -993,7 +993,7 @@ class FileTypeBottomSheet extends StatelessWidget {
   }
 }
 
-// Record For Bottom Sheet
+
 class RecordForBottomSheet extends StatelessWidget {
   final List<String> recordForOptions;
   final String selectedRecordFor;

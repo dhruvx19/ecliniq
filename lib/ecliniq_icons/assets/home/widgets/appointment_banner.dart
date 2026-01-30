@@ -9,9 +9,9 @@ import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// Model for appointment banner data
+
 class AppointmentBanner {
-  final String type; // REQUESTED, ACTIVE, UPCOMING, RESCHEDULE
+  final String type; 
   final String appointmentId;
   final String doctorName;
   final String doctorSpecialization;
@@ -20,11 +20,11 @@ class AppointmentBanner {
   final String appointmentDateFormatted;
   final String appointmentTime;
   final String hospitalName;
-  final String bookedFor; // SELF or DEPENDENT
+  final String bookedFor; 
   final String patientName;
   final String status;
   final bool?
-  isInQueue; // For confirmed appointments - whether patient is in queue
+  isInQueue; 
 
   AppointmentBanner({
     required this.type,
@@ -61,7 +61,7 @@ class AppointmentBanner {
   }
 }
 
-/// Widget to display appointment banners
+
 class AppointmentBannerWidget extends StatelessWidget {
   final AppointmentBanner banner;
   final VoidCallback? onTap;
@@ -90,11 +90,11 @@ class AppointmentBannerWidget extends StatelessWidget {
       case 'RESCHEDULE':
         return _buildRescheduleBanner(context);
       default:
-        return _buildUpcomingBanner(context); // Default to upcoming
+        return _buildUpcomingBanner(context); 
     }
   }
 
-  /// REQUESTED Banner - Yellow/Orange theme (no left padding)
+  
   Widget _buildRequestedBanner(BuildContext context) {
     return GestureDetector(
       onTap: onTap ?? () => _navigateToAppointmentDetails(context),
@@ -172,7 +172,7 @@ class AppointmentBannerWidget extends StatelessWidget {
     );
   }
 
-  /// ACTIVE Banner - Green theme (Confirmed)
+  
   Widget _buildActiveBanner(BuildContext context) {
     return _buildBannerContainer(
       context,
@@ -183,7 +183,7 @@ class AppointmentBannerWidget extends StatelessWidget {
     );
   }
 
-  /// UPCOMING Banner - Blue theme with custom styling
+  
   Widget _buildUpcomingBanner(BuildContext context) {
     String subtitle = '';
     if (banner.doctorName.isNotEmpty) {
@@ -277,7 +277,7 @@ class AppointmentBannerWidget extends StatelessWidget {
     );
   }
 
-  /// RESCHEDULE Banner - Red/Orange theme
+  
   Widget _buildRescheduleBanner(BuildContext context) {
     return _buildBannerContainer(
       context,
@@ -374,7 +374,7 @@ class AppointmentBannerWidget extends StatelessWidget {
     );
   }
 
-  /// Build the appropriate icon/image widget based on banner type
+  
   Widget _buildBannerIcon(Color iconColor, BuildContext context) {
     final type = banner.type.toUpperCase();
     final status = banner.status.toUpperCase();
@@ -408,7 +408,7 @@ class AppointmentBannerWidget extends StatelessWidget {
     }
   }
 
-  /// Build GIF icon widget
+  
   Widget _buildGifIcon(BuildContext context) {
     return Image.asset(
       EcliniqIcons.bannerRequested.assetPath,
@@ -417,12 +417,12 @@ class AppointmentBannerWidget extends StatelessWidget {
     );
   }
 
-  /// Build SVG icon widget
+  
   Widget _buildSvgIcon() {
     return SvgPicture.asset(EcliniqIcons.bannerConfirmed.assetPath);
   }
 
-  /// Build special container for upcoming appointments
+  
   Widget _buildUpcomingIconContainer(BuildContext context, Color iconColor) {
     return Container(
       padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
@@ -466,7 +466,7 @@ class AppointmentBannerWidget extends StatelessWidget {
   void _navigateToAppointmentDetails(BuildContext context) {
     Widget detailScreen;
 
-    // Determine which detail screen to show based on banner type and status
+    
     final status = banner.status.toUpperCase();
     final type = banner.type.toUpperCase();
 
@@ -489,7 +489,7 @@ class AppointmentBannerWidget extends StatelessWidget {
         appointmentId: banner.appointmentId,
       );
     } else if (type == 'UPCOMING') {
-      // For upcoming appointments, check status
+      
       if (status == 'CONFIRMED') {
         detailScreen = BookingConfirmedDetail(
           appointmentId: banner.appointmentId,
@@ -500,7 +500,7 @@ class AppointmentBannerWidget extends StatelessWidget {
         );
       }
     } else {
-      // Default to requested
+      
       detailScreen = BookingRequestedDetail(
         appointmentId: banner.appointmentId,
       );
@@ -510,8 +510,8 @@ class AppointmentBannerWidget extends StatelessWidget {
   }
 }
 
-/// Widget to display multiple banners in a scrollable list
-/// Widget to display multiple banners in a scrollable list
+
+
 class AppointmentBannersList extends StatelessWidget {
   final List<AppointmentBanner> banners;
   final Function(String)? onBannerTap;
@@ -530,7 +530,7 @@ class AppointmentBannersList extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // If multiple banners, show in horizontal scroll, each taking full width
+    
     if (banners.length > 1) {
       return LayoutBuilder(
         builder: (context, constraints) {
@@ -563,7 +563,7 @@ class AppointmentBannersList extends StatelessWidget {
       );
     }
 
-    // Single banner - full width
+    
     return SizedBox(
       height: EcliniqTextStyles.getResponsiveHeight(context, 76.0),
       child: AppointmentBannerWidget(

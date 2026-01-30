@@ -28,55 +28,55 @@ class Doctor {
   });
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
-    // Helper to parse hospital - handle both singular and plural
+    
     Hospital? parseHospital() {
-      // Try singular first
+      
       if (json['hospital'] != null) {
         try {
           return Hospital.fromJson(json['hospital'] as Map<String, dynamic>);
         } catch (e) {
-          // If parsing fails, try plural
+          
         }
       }
-      // Try plural (array) - take first item
+      
       if (json['hospitals'] != null) {
         final hospitals = json['hospitals'] as List<dynamic>?;
         if (hospitals != null && hospitals.isNotEmpty) {
           try {
             return Hospital.fromJson(hospitals.first as Map<String, dynamic>);
           } catch (e) {
-            // If parsing fails, return null
+            
           }
         }
       }
       return null;
     }
 
-    // Helper to parse clinic - handle both singular and plural
+    
     Clinic? parseClinic() {
-      // Try singular first
+      
       if (json['clinic'] != null) {
         try {
           return Clinic.fromJson(json['clinic'] as Map<String, dynamic>);
         } catch (e) {
-          // If parsing fails, try plural
+          
         }
       }
-      // Try plural (array) - take first item
+      
       if (json['clinics'] != null) {
         final clinics = json['clinics'] as List<dynamic>?;
         if (clinics != null && clinics.isNotEmpty) {
           try {
             return Clinic.fromJson(clinics.first as Map<String, dynamic>);
           } catch (e) {
-            // If parsing fails, return null
+            
           }
         }
       }
       return null;
     }
 
-    // Distance can be provided as a simple number or as an object { meters, km }
+    
     double? parseDistanceKm(dynamic d) {
       if (d == null) return null;
       if (d is num) return d.toDouble();
@@ -97,7 +97,7 @@ class Doctor {
               ?.map((item) => item.toString())
               .toList() ??
           [],
-      // New response uses 'qualifications' instead of 'degrees'
+      
       degrees: (json['qualifications'] as List<dynamic>?)
               ?.map((item) => item.toString())
               .toList() ??
@@ -105,9 +105,9 @@ class Doctor {
                   ?.map((item) => item.toString())
                   .toList() ??
               []),
-      // New response uses 'experience' instead of 'yearOfExperience'
+      
       yearOfExperience: json['experience'] ?? json['yearOfExperience'],
-      // Handle distance object { meters, km }
+      
       distanceKm: parseDistanceKm(json['distance']) ?? (json['distanceKm'] != null ? (json['distanceKm'] as num).toDouble() : null),
       hospital: parseHospital(),
       clinic: parseClinic(),
@@ -133,7 +133,7 @@ class Doctor {
     };
   }
 
-  // Helper methods
+  
   String get primarySpecialization =>
       specializations.isNotEmpty ? specializations.first : 'Doctor';
 
@@ -168,12 +168,12 @@ class Doctor {
       return null;
     }
 
-    // If already a full URL, return as-is
+    
     if (profilePhoto!.startsWith('http://') || profilePhoto!.startsWith('https://')) {
       return profilePhoto;
     }
 
-    // If starts with "public/", get public URL from API
+    
     if (profilePhoto!.startsWith('public/')) {
       final publicUrl = await storageService.getPublicUrl(profilePhoto!);
       if (publicUrl != null && publicUrl.isNotEmpty) {
@@ -181,7 +181,7 @@ class Doctor {
       }
     }
 
-    // Return null if we couldn't get a valid URL
+    
     return null;
   }
 }
@@ -306,7 +306,7 @@ class Hospital {
   });
 
   factory Hospital.fromJson(Map<String, dynamic> json) {
-    // Handle nested address object if present
+    
     String getCity() {
       if (json['city'] != null) return json['city'].toString();
       if (json['address'] != null && json['address'] is Map) {
@@ -334,7 +334,7 @@ class Hospital {
       return '';
     }
 
-    // Handle both distanceKm and distance fields
+    
     double getDistanceKm() {
       if (json['distanceKm'] != null) {
         return (json['distanceKm'] is num) 
@@ -404,7 +404,7 @@ class Clinic {
   });
 
   factory Clinic.fromJson(Map<String, dynamic> json) {
-    // Handle nested address object if present
+    
     String getCity() {
       if (json['city'] != null) return json['city'].toString();
       if (json['address'] != null && json['address'] is Map) {
@@ -432,7 +432,7 @@ class Clinic {
       return '';
     }
 
-    // Handle both distanceKm and distance fields
+    
     double getDistanceKm() {
       if (json['distanceKm'] != null) {
         return (json['distanceKm'] is num) 

@@ -90,30 +90,30 @@ class _ActionBottomSheetState extends State<ActionBottomSheet> {
             title: 'Delete Document',
             isDestructive: true,
             onTap: () async {
-              // Get parent context before closing this bottom sheet
+              
               final parentCtx = widget.parentContext ?? context;
               Navigator.pop(context);
               await Future.delayed(const Duration(milliseconds: 200));
               
-              // Show delete confirmation bottom sheet using parent context
+              
               if (parentCtx.mounted) {
                 final confirmed = await EcliniqBottomSheet.show<bool>(
                   context: parentCtx,
                   child: const DeleteFileBottomSheet(),
                 );
                 
-                debugPrint('Delete confirmation result: $confirmed');
                 
-                // If user confirmed deletion, call the delete callback
+                
+                
                 if (confirmed == true && parentCtx.mounted) {
-                  debugPrint('Calling delete callback...');
+                  
                   widget.onDeleteDocument?.call();
-                  debugPrint('Delete callback called');
+                  
                 } else {
-                  debugPrint('Delete not confirmed or context not mounted. confirmed: $confirmed, mounted: ${parentCtx.mounted}');
+                  
                 }
               } else {
-                debugPrint('Parent context not mounted');
+                
               }
             },
           ),

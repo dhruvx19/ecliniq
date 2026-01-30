@@ -23,7 +23,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-/// Search page with recent searches, frequent specialities, and search results
+
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key, this.shouldStartVoiceSearch = false});
 
@@ -49,7 +49,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _speechEnabled = false;
   bool _isListening = false;
 
-  // Random search suggestions if no recent searches
+  
   final List<String> _randomSuggestions = [
     'Cardiologist',
     'Dermatologist',
@@ -61,7 +61,7 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     _loadRecentSearches();
     _initSpeech().then((_) {
-      // Start voice search if requested from home screen, after speech is initialized
+      
       if (widget.shouldStartVoiceSearch && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
@@ -261,7 +261,7 @@ CustomErrorSnackBar.show(
       'Speech result: ${result.recognizedWords}, final: ${result.finalResult}',
     );
 
-    // Update the search controller with recognized words
+    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -286,7 +286,7 @@ CustomErrorSnackBar.show(
     }
   }
 
-  /// Load recent searches from SharedPreferences
+  
   Future<void> _loadRecentSearches() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -299,7 +299,7 @@ CustomErrorSnackBar.show(
     }
   }
 
-  /// Save search query to recent searches
+  
   Future<void> _saveRecentSearch(String query) async {
     if (query.trim().isEmpty) return;
 
@@ -307,11 +307,11 @@ CustomErrorSnackBar.show(
       final prefs = await SharedPreferences.getInstance();
       List<String> searches = prefs.getStringList(_recentSearchesKey) ?? [];
 
-      // Remove if already exists
+      
       searches.remove(query.trim());
-      // Add to beginning
+      
       searches.insert(0, query.trim());
-      // Keep only last 10
+      
       if (searches.length > 10) {
         searches = searches.sublist(0, 10);
       }
@@ -325,7 +325,7 @@ CustomErrorSnackBar.show(
     }
   }
 
-  /// Perform search
+  
   Future<void> _performSearch(String query) async {
     if (query.length < 3) {
       setState(() {
@@ -341,7 +341,7 @@ CustomErrorSnackBar.show(
       _errorMessage = null;
     });
 
-    // Save to recent searches
+    
     await _saveRecentSearch(query);
 
     try {
@@ -375,7 +375,7 @@ CustomErrorSnackBar.show(
     }
   }
 
-  /// Clear search
+  
   void _clearSearch() {
     _searchController.clear();
     setState(() {
@@ -386,12 +386,12 @@ CustomErrorSnackBar.show(
     _searchFocusNode.requestFocus();
   }
 
-  /// Navigate to doctor details
+  
   void _navigateToDoctor(String doctorId) {
     EcliniqRouter.push(DoctorDetailScreen(doctorId: doctorId));
   }
 
-  /// Navigate to hospital details
+  
   void _navigateToHospital(String hospitalId) {
     EcliniqRouter.push(HospitalDetailScreen(hospitalId: hospitalId));
   }
@@ -427,9 +427,9 @@ CustomErrorSnackBar.show(
       ),
       body: Column(
         children: [
-          // Search Bar
+          
           _buildSearchBar(),
-          // Content
+          
           Expanded(
             child: _isSearching
                 ? _buildSearchResults()
@@ -475,7 +475,7 @@ CustomErrorSnackBar.show(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Recent Searches
+          
           if (_recentSearches.isNotEmpty || _randomSuggestions.isNotEmpty) ...[
             Padding(
               padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
@@ -516,7 +516,7 @@ CustomErrorSnackBar.show(
               height: EcliniqTextStyles.getResponsiveSpacing(context, 12),
             ),
           ],
-          // Most Searched Specialities
+          
           const MostSearchedSpecialities(),
         ],
       ),
@@ -782,21 +782,21 @@ Widget _buildShimmerLoading() {
     );
   }
 
-  /// Get full image URL from storage key
-  /// @description Gets the public URL for a storage key if it starts with "public/",
-  /// otherwise returns the key as-is (assuming it's already a full URL)
-  /// @param imagePath - Image key or URL
-  /// @returns Future<String?> - Public URL, original key, or null
+  
+  
+  
+  
+  
   Future<String?> _getImageUrl(String? imagePath) async {
     if (imagePath == null || imagePath.isEmpty) return null;
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    // If starts with "public/", get public URL from API
+    
     if (imagePath.startsWith('public/')) {
       return await _storageService.getPublicUrl(imagePath);
     }
-    // Fallback to constructing URL from relative path
+    
     return '${Endpoints.localhost}/$imagePath';
   }
 
@@ -1015,9 +1015,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
-    // Initialize query from controller if it has text
+    
     query = _controller.text;
-    // Always add listener to sync state with controller changes (for voice search)
+    
     _controller.addListener(_onControllerChanged);
     if (widget.autofocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1029,7 +1029,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   void didUpdateWidget(SearchBarWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If controller changed, update listener and sync state
+    
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller?.removeListener(_onControllerChanged);
       _controller = widget.controller ?? TextEditingController();
@@ -1081,7 +1081,7 @@ CustomErrorSnackBar.show(
   @override
   void dispose() {
     _timer?.cancel();
-    // Remove listener before disposing
+    
     _controller.removeListener(_onControllerChanged);
     if (widget.controller == null) {
       _controller.dispose();
@@ -1093,7 +1093,7 @@ CustomErrorSnackBar.show(
   @override
   Widget build(BuildContext context) {
     return Container(
-      // margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      
       height: 48,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1134,7 +1134,7 @@ CustomErrorSnackBar.show(
               ),
             ),
           ),
-          // Clear or Voice Icon
+          
           if (query.isNotEmpty)
             GestureDetector(
               onTap: _clearSearch,
@@ -1154,18 +1154,18 @@ CustomErrorSnackBar.show(
                 padding: const EdgeInsets.only(right: 12),
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  // decoration: widget.isListening
-                  //     ? BoxDecoration(
-                  //         shape: BoxShape.circle,
-                  //         boxShadow: [
-                  //           BoxShadow(
-                  //             color: const Color(0xFF2372EC).withOpacity(0.5),
-                  //             blurRadius: 12,
-                  //             spreadRadius: 2,
-                  //           ),
-                  //         ],
-                  //       )
-                  //     : null,
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   child: SvgPicture.asset(
                     EcliniqIcons.microphone.assetPath,
                     width: 32,
@@ -1511,35 +1511,35 @@ class MostSearchedSpecialities extends StatelessWidget {
     );
   }
 
-  /// Build shimmer loading widget for search results
+  
   Widget _buildShimmerLoading() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Section header shimmer
+        
         ShimmerLoading(
           width: 120,
           height: 20,
           borderRadius: BorderRadius.circular(4),
         ),
         const SizedBox(height: 12),
-        // Doctor card shimmers
+        
         ...List.generate(3, (index) => _buildDoctorCardShimmer()),
         const SizedBox(height: 24),
-        // Section header shimmer for hospitals
+        
         ShimmerLoading(
           width: 120,
           height: 20,
           borderRadius: BorderRadius.circular(4),
         ),
         const SizedBox(height: 12),
-        // Hospital card shimmers
+        
         ...List.generate(2, (index) => _buildHospitalCardShimmer()),
       ],
     );
   }
 
-  /// Build shimmer for a doctor card
+  
   Widget _buildDoctorCardShimmer() {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1573,7 +1573,7 @@ class MostSearchedSpecialities extends StatelessWidget {
     );
   }
 
-  /// Build shimmer for a hospital card
+  
   Widget _buildHospitalCardShimmer() {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

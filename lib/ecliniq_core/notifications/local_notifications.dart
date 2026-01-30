@@ -27,7 +27,7 @@ class LocalNotifications {
   }) async {
     await init();
 
-    // Create notification channel for Android (required for Android 8.0+)
+    
     const androidChannel = AndroidNotificationChannel(
       'downloads_channel',
       'Downloads',
@@ -37,7 +37,7 @@ class LocalNotifications {
       enableVibration: true,
     );
 
-    // Create the channel (idempotent - safe to call multiple times)
+    
     await _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
@@ -64,7 +64,7 @@ class LocalNotifications {
 
     const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
-    // Use timestamp as ID to show multiple download notifications
+    
     final notificationId = DateTime.now().millisecondsSinceEpoch % 2147483647;
 
     await _plugin.show(

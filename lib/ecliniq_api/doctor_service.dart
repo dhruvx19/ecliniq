@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class DoctorService {
-  /// Get top doctors based on location
+  
   Future<TopDoctorsResponse> getTopDoctors({
     required double latitude,
     required double longitude,
@@ -14,7 +14,7 @@ class DoctorService {
     try {
       final url = Uri.parse(Endpoints.topDoctors);
 
-      // Hardcoded latitude and longitude
+      
       final requestBody = TopDoctorsRequest(
         latitude: 12.9173,
         longitude: 77.6377,
@@ -40,7 +40,7 @@ class DoctorService {
         );
       }
     } catch (e) {
-      debugPrint('Error in getTopDoctors: $e');
+      
       return TopDoctorsResponse(
         success: false,
         message: 'Network error: $e',
@@ -52,13 +52,13 @@ class DoctorService {
     }
   }
 
-  /// Get filtered doctors
+  
   Future<FilterDoctorsResponse> getFilteredDoctors(
       FilterDoctorsRequest request) async {
     try {
       final url = Uri.parse(Endpoints.filteredDoctors);
 
-      // Override with hardcoded latitude and longitude
+      
       final requestJson = request.toJson();
       requestJson['latitude'] = 12.9173;
       requestJson['longitude'] = 77.6377;
@@ -83,7 +83,7 @@ class DoctorService {
         );
       }
     } catch (e) {
-      debugPrint('Error in getFilteredDoctors: $e');
+      
       return FilterDoctorsResponse(
         success: false,
         message: 'Network error: $e',
@@ -95,7 +95,7 @@ class DoctorService {
     }
   }
 
-  /// Get doctor details by ID for patient
+  
   Future<DoctorDetailsResponse> getDoctorDetailsById({
     required String doctorId,
     String? authToken,
@@ -105,7 +105,7 @@ class DoctorService {
 
       final headers = <String, String>{'Content-Type': 'application/json'};
 
-      // Include auth token if provided
+      
       if (authToken != null && authToken.isNotEmpty) {
         headers['Authorization'] = 'Bearer $authToken';
         headers['x-access-token'] = authToken;
@@ -129,7 +129,7 @@ class DoctorService {
         );
       }
     } catch (e) {
-      debugPrint('Error in getDoctorDetailsById: $e');
+      
       return DoctorDetailsResponse(
         success: false,
         message: 'Network error: $e',
@@ -141,7 +141,7 @@ class DoctorService {
     }
   }
 
-  /// Get doctor details for booking
+  
   Future<DoctorBookingDetailsResponse> getDoctorDetailsForBooking({
     required String doctorId,
     String? authToken,
@@ -151,7 +151,7 @@ class DoctorService {
 
       final headers = <String, String>{'Content-Type': 'application/json'};
 
-      // Include auth token if provided
+      
       if (authToken != null && authToken.isNotEmpty) {
         headers['Authorization'] = 'Bearer $authToken';
         headers['x-access-token'] = authToken;
@@ -176,7 +176,7 @@ class DoctorService {
         );
       }
     } catch (e) {
-      debugPrint('Error in getDoctorDetailsForBooking: $e');
+      
       return DoctorBookingDetailsResponse(
         success: false,
         message: 'Network error: $e',

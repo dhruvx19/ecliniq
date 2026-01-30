@@ -4,7 +4,7 @@ import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-/// Login trouble page header + terms heading.
+
 class ProfileHelpPage extends StatelessWidget {
   const ProfileHelpPage({super.key});
 
@@ -109,7 +109,7 @@ class ProfileHelpPage extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
                       onTap: () {
-                        // Your onPressed logic here
+                        
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -193,7 +193,7 @@ class ProfileHelpPage extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
                       onTap: () {
-                        // Your onPressed logic here
+                        
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(

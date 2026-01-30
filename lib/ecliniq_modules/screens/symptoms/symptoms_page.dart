@@ -30,7 +30,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter symptoms based on search query
+    
     final filteredSymptoms = _allSymptoms.where((symptom) {
       final title = (symptom['title'] as String).toLowerCase();
       final query = _searchQuery.toLowerCase();
@@ -99,7 +99,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
                         symptom['title'] as String,
                         symptom['icon'] as EcliniqIcons,
                         () {
-                          // Handle symptom tap
+                          
                         },
                       );
                     },
@@ -145,7 +145,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
                       icon.assetPath,
                       width: EcliniqTextStyles.getResponsiveIconSize(
                         context,
-                        24.0, // adjusted size for icon inside the circle
+                        24.0, 
                       ),
                       height: EcliniqTextStyles.getResponsiveIconSize(
                         context,
@@ -170,7 +170,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
                       .copyWith(
                         color: const Color(0xff424242),
                         fontWeight: FontWeight.w400,
-                        fontSize: 12, // slightly smaller font for grid
+                        fontSize: 12, 
                       ),
                 ),
               ],

@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 class BookingRequestedDetail extends StatefulWidget {
   final String appointmentId;
   final AppointmentDetailModel?
-  appointment; // Optional for backward compatibility
+  appointment; 
 
   const BookingRequestedDetail({
     super.key,
@@ -39,7 +39,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
   @override
   void initState() {
     super.initState();
-    // If appointment is provided, use it directly (backward compatibility)
+    
     if (widget.appointment != null) {
       _appointment = widget.appointment;
       _isLoading = false;
@@ -78,7 +78,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
         return;
       }
 
-      // Convert API response to UI model
+      
       final appointmentDetail = AppointmentDetailModel.fromApiData(
         response.data!,
       );
@@ -164,7 +164,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Status header shimmer
+          
           Container(
             height: 120,
             margin: const EdgeInsets.all(16),
@@ -175,7 +175,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Doctor info card shimmer
+                
                 SizedBox(
                   height: 150,
                   child: ShimmerLoading(
@@ -183,7 +183,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Request note shimmer
+                
                 SizedBox(
                   height: 100,
                   child: ShimmerLoading(
@@ -191,7 +191,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Appointment details shimmer
+                
                 SizedBox(
                   height: 200,
                   child: ShimmerLoading(
@@ -199,7 +199,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Clinic location shimmer
+                
                 SizedBox(
                   height: 120,
                   child: ShimmerLoading(
@@ -207,7 +207,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Payment details shimmer
+                
                 SizedBox(
                   height: 100,
                   child: ShimmerLoading(
@@ -260,12 +260,12 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
   Widget _buildContent() {
     return Column(
       children: [
-        // Fixed StatusHeader
+        
         StatusHeader(
           status: _appointment!.status,
           currentTokenNumber: _appointment!.currentTokenNumber,
         ),
-        // Scrollable content starting from DoctorInfoCard
+        
         Expanded(
           child: SingleChildScrollView(
             child: Padding(
@@ -345,7 +345,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
             icon: EcliniqIcons.rescheduleIcon,
             type: BookingButtonType.reschedule,
             onPressed: () async {
-              // Check if appointment is already rescheduled
+              
               final isAlreadyRescheduled = _appointment?.isRescheduled ?? false;
               if (isAlreadyRescheduled) {
         
@@ -366,7 +366,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
               );
 
               if (result == true && mounted && _appointment != null) {
-                // Navigate to slot screen for reschedule
+                
                 final appointment = _appointment!;
                 if (appointment.doctorId != null &&
                     (appointment.hospitalId != null ||
@@ -401,7 +401,7 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                 child: CancelBottomSheet(
                   appointmentId: widget.appointmentId,
                   onCancelled: () async {
-                    // Show shimmer loading state
+                    
                     if (mounted) {
                       setState(() {
                         _isLoading = true;
@@ -409,15 +409,15 @@ class _BookingRequestedDetailState extends State<BookingRequestedDetail> {
                       });
                     }
 
-                    // Reload appointment details to get updated status
+                    
                     await _loadAppointmentDetails();
 
-                    // Check if status changed to cancelled
+                    
                     if (mounted &&
                         _appointment != null &&
                         (_appointment!.status.toLowerCase() == 'cancelled' ||
                             _appointment!.status.toLowerCase() == 'failed')) {
-                      // Navigate to cancelled detail page
+                      
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => BookingCancelledDetail(

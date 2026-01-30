@@ -1,16 +1,16 @@
 import 'dart:io';
 
-/// Model representing a health file stored locally
+
 class HealthFile {
   final String id;
   final String fileName;
-  final String filePath; // Local file path
-  final HealthFileType fileType; // Category type
+  final String filePath; 
+  final HealthFileType fileType; 
   final DateTime createdAt;
-  final int fileSize; // Size in bytes
+  final int fileSize; 
   final String? mimeType;
-  final String? recordFor; // Who the record is for
-  final DateTime? fileDate; // Date of the file/document
+  final String? recordFor; 
+  final DateTime? fileDate; 
 
   HealthFile({
     required this.id,
@@ -24,7 +24,7 @@ class HealthFile {
     this.fileDate,
   });
 
-  /// Create from JSON for persistence
+  
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -39,7 +39,7 @@ class HealthFile {
     };
   }
 
-  /// Create from JSON
+  
   factory HealthFile.fromJson(Map<String, dynamic> json) {
     return HealthFile(
       id: json['id'] as String,
@@ -59,7 +59,7 @@ class HealthFile {
     );
   }
 
-  /// Create a copy with updated fields
+  
   HealthFile copyWith({
     String? fileName,
     HealthFileType? fileType,
@@ -79,7 +79,7 @@ class HealthFile {
     );
   }
 
-  /// Check if file still exists on disk
+  
   bool exists() {
     try {
       final file = File(filePath);
@@ -89,19 +89,19 @@ class HealthFile {
     }
   }
 
-  /// Get file extension
+  
   String get extension {
     return fileName.split('.').last.toLowerCase();
   }
 
-  /// Check if file is an image
+  
   bool get isImage {
     return mimeType?.startsWith('image/') ?? false ||
         ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].contains(extension);
   }
 }
 
-/// File categories/types
+
 enum HealthFileType {
   labReports,
   scanImaging,

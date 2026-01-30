@@ -122,27 +122,27 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   bool _isBiometricAvailable = false;
   bool _isBiometricEnabled = false;
   bool _showMPINScreen =
-      false; // Track if we should show MPIN screen or phone input
-  bool _isOTPMode = false; // Track if OTP mode is active
-  String _phoneNumber = ''; // Store phone number for MPIN verification
-  bool _isButtonPressed = false; // Track button press state
-  bool _isOTPButtonPressed = false; // Track OTP button press state
+      false; 
+  bool _isOTPMode = false; 
+  String _phoneNumber = ''; 
+  bool _isButtonPressed = false; 
+  bool _isOTPButtonPressed = false; 
   bool _userExplicitlyChoseMPIN =
-      false; // Track if user explicitly chose MPIN (don't auto-trigger biometric)
-  bool _showLoadingOverlay = false; // Track if loading overlay should be shown
-  String? _userName; // Store user's name for welcome message
+      false; 
+  bool _showLoadingOverlay = false; 
+  String? _userName; 
   final TextEditingController _textController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   Timer? _mpinSubmitTimer;
 
-  // OTP Resend Timer variables
-  int _resendTimer = 150; // 2:30 minutes in seconds
+  
+  int _resendTimer = 150; 
   bool _canResend = false;
   Timer? _otpResendTimer;
 
-  /// Getter to check if button should be enabled based on phone number validity
+  
   bool get isButtonEnabled => _phoneNumber.length == 10 && !_isLoading;
 
   @override
@@ -151,18 +151,18 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _textController.addListener(_onMPINChanged);
     _phoneController.addListener(_onPhoneNumberChanged);
-    // Reset loading state when page is initialized
+    
     _isLoading = false;
-    // Optimize: Defer heavy operations to post-frame callback
+    
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Load saved phone number and pre-fill
+      
       await _loadSavedPhoneNumber();
-      // Load user name from JWT token
+      
       await _loadUserName();
-      // Check biometric availability
+      
       await _checkBiometricAvailability();
 
-      // Don't auto-trigger biometric - user must explicitly click the button
+      
     });
   }
 
@@ -180,12 +180,12 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Start the OTP resend timer
+  
   void _startOTPResendTimer() {
     _canResend = false;
-    _resendTimer = 150; // Reset to 2:30 minutes
+    _resendTimer = 150; 
 
-    _otpResendTimer?.cancel(); // Cancel any existing timer
+    _otpResendTimer?.cancel(); 
     _otpResendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -200,16 +200,16 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     });
   }
 
-  /// Format timer seconds to MM:SS format
+  
   String _formatResendTimer(int seconds) {
     final minutes = seconds ~/ 60;
     final secs = seconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
-  /// Resend OTP
+  
   Future<void> _resendOTP() async {
-    if (!_canResend) return; // Don't allow resend if timer hasn't finished
+    if (!_canResend) return; 
 
     setState(() {
       _isLoading = true;
@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
           ? _phoneNumber
           : _phoneController.text.trim();
 
-      // Call API to resend OTP
+      
       final success = await authProvider.loginOrRegisterUser(phone);
 
       if (mounted) {
@@ -232,8 +232,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         });
 
         if (success) {
-          _startOTPResendTimer(); // Restart the timer after resending OTP
-          _otpController.clear(); // Clear the OTP field
+          _startOTPResendTimer(); 
+          _otpController.clear(); 
 
           CustomSuccessSnackBar.show(
             context: context,
@@ -266,12 +266,12 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     }
   }
 
-  /// Load saved phone number from secure storage and pre-fill the input
+  
   Future<void> _loadSavedPhoneNumber() async {
     try {
       final savedPhone = await SecureStorageService.getPhoneNumber();
       if (savedPhone != null && savedPhone.isNotEmpty && mounted) {
-        // Remove country code if present (e.g., +91 or 91)
+        
         String phoneNumber = savedPhone
             .replaceAll(RegExp(r'^\+?91'), '')
             .trim();
@@ -285,7 +285,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     } catch (e) {}
   }
 
-  /// Load user name from secure storage
+  
   Future<void> _loadUserName() async {
     try {
       final name = await SecureStorageService.getUserName();
@@ -295,7 +295,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         });
       }
     } catch (e) {
-      // Silently fail - name is optional
+      
     }
   }
 
@@ -309,8 +309,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // Re-check biometric availability when app comes to foreground
-    // This helps if user enabled biometric in device settings while app was in background
+    
+    
     if (state == AppLifecycleState.resumed && mounted) {
       _checkBiometricAvailability();
     }
@@ -319,7 +319,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Reset loading state when dependencies change (e.g., when navigating back)
+    
     if (_isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -341,32 +341,32 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       return;
     }
 
-    // Update UI without full setState for better performance
+    
     if (_entered != v) {
       setState(() {
         _entered = v;
-        // Reset show PIN when PIN is cleared
+        
         if (v.isEmpty) {
           _showPin = false;
-          // Hide loader if user clears MPIN
+          
           _isLoading = false;
           _showLoadingOverlay = false;
         }
       });
     }
 
-    // Cancel previous timer
+    
     _mpinSubmitTimer?.cancel();
 
-    // Auto-submit immediately when 4 digits entered
+    
     if (v.length == 4) {
-      // Show loader immediately when user enters 4th digit
+      
       setState(() {
         _isLoading = true;
         _showLoadingOverlay = true;
       });
 
-      // Use microtask to ensure UI updates first, then submit immediately
+      
       _mpinSubmitTimer = Timer(Duration.zero, () {
         if (mounted) {
           _handleMPINLogin(v);
@@ -385,11 +385,11 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       return;
     }
 
-    // Update UI
+    
     if (_entered != v) {
       setState(() {
         _entered = v;
-        // Reset show PIN when OTP is cleared
+        
         if (v.isEmpty) {
           _showPin = false;
           _isLoading = false;
@@ -398,18 +398,18 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       });
     }
 
-    // Cancel previous timer
+    
     _mpinSubmitTimer?.cancel();
 
-    // Auto-submit immediately when 6 digits entered
+    
     if (v.length == 6) {
-      // Show loader immediately when user enters 6th digit
+      
       setState(() {
         _isLoading = true;
         _showLoadingOverlay = true;
       });
 
-      // Use microtask to ensure UI updates first, then submit immediately
+      
       _mpinSubmitTimer = Timer(Duration.zero, () {
         if (mounted) {
           _handleOTPLogin(v);
@@ -419,7 +419,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   Future<void> _handleOTPLogin(String otp) async {
-    // Ensure we have phone number
+    
     if (_phoneNumber.isEmpty) {
       setState(() {
         _isLoading = false;
@@ -436,7 +436,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      // Verify OTP using the API
+      
       final success = await authProvider.verifyOTP(otp);
 
       if (mounted) {
@@ -445,11 +445,11 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             _isLoading = false;
           });
 
-          // Check if this is a new user or needs profile setup
-          // We might need to redirect to MPIN setup if they don't have one
-          // But for now, following existing flow to Home
+          
+          
+          
 
-          // Navigate to home screen
+          
           scheduleMicrotask(() {
             if (!mounted) return;
             try {
@@ -468,7 +468,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   (route) => false,
                 );
               } catch (e2) {
-                // Handle error
+                
               }
             }
           });
@@ -503,10 +503,10 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     }
   }
 
-  // Removed _autoTriggerBiometric - biometric only triggers when user explicitly clicks the button
+  
 
-  /// Handle phone number submission - move to MPIN screen
-  /// User explicitly chose MPIN, so always show MPIN screen (don't skip to biometric)
+  
+  
   Future<void> _handlePhoneSubmit() async {
     final phone = _phoneController.text.trim();
 
@@ -520,27 +520,27 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       return;
     }
 
-    // Save phone number to secure storage
+    
     await SecureStorageService.storePhoneNumber(phone);
 
-    // Check biometric availability first
+    
     await _checkBiometricAvailability();
 
-    // User explicitly clicked "Login Using MPin", so always show MPIN screen
-    // Don't skip to biometric even if it's enabled
+    
+    
     setState(() {
       _phoneNumber = phone;
       _showMPINScreen = true;
       _isOTPMode = false;
       _isLoading = false;
-      _userExplicitlyChoseMPIN = true; // Mark that user explicitly chose MPIN
+      _userExplicitlyChoseMPIN = true; 
     });
 
-    // Don't auto-trigger biometric when user explicitly chose MPIN
-    // User can still use biometric button on MPIN screen if they want
+    
+    
   }
 
-  /// Handle phone number submission - move to OTP screen
+  
   Future<void> _handleOTPPhoneSubmit() async {
     final phone = _phoneController.text.trim();
 
@@ -560,20 +560,20 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     });
 
     try {
-      // Save phone number to secure storage
+      
       await SecureStorageService.storePhoneNumber(phone);
 
-      // Check biometric availability first
+      
       await _checkBiometricAvailability();
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Call API to send OTP
+      
       final success = await authProvider.loginOrRegisterUser(phone);
 
       if (mounted) {
         if (success) {
-          // User explicitly clicked "Login using OTP", so show OTP screen
+          
           setState(() {
             _phoneNumber = phone;
             _showMPINScreen = true;
@@ -584,10 +584,10 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             _otpController.clear();
           });
 
-          // Start the OTP resend timer
+          
           _startOTPResendTimer();
 
-          // Show success snackbar for OTP sent
+          
           CustomSuccessSnackBar.show(
             context: context,
             title: 'OTP Sent',
@@ -635,33 +635,33 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         });
       }
     } catch (e) {
-      // On error, still try to show the button if we can't determine availability
-      // This is better UX than hiding it completely
+      
+      
       if (mounted) {
         try {
-          // Try to get enabled status even if availability check failed
+          
           final isEnabled = await SecureStorageService.isBiometricEnabled();
           setState(() {
-            // If biometric was previously enabled, assume it's available
-            // This prevents the button from disappearing if check temporarily fails
+            
+            
             _isBiometricAvailable = isEnabled || _isBiometricAvailable;
             _isBiometricEnabled = isEnabled;
           });
         } catch (_) {
-          // If everything fails, keep current state
+          
         }
       }
     }
   }
 
   void _navigateToForgotPin() {
-    // Navigate to phone input for forgot PIN flow
+    
     final phoneController = TextEditingController();
     EcliniqRouter.push(
       PhoneInputScreen(
         phoneController: phoneController,
         onClose: () {
-          // Reset loading state when coming back
+          
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -676,14 +676,14 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   void _navigateToCreateNewMPIN() {
-    // Navigate to phone input for create new MPIN flow
-    // User will set MPIN, then verify with OTP on same number
+    
+    
     final phoneController = TextEditingController();
     EcliniqRouter.push(
       PhoneInputScreen(
         phoneController: phoneController,
         onClose: () {
-          // Reset loading state when coming back
+          
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -692,15 +692,15 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
           EcliniqRouter.pop();
         },
         fadeAnimation: AlwaysStoppedAnimation(1.0),
-        isForgotPinFlow: false, // Normal flow but will create new MPIN
+        isForgotPinFlow: false, 
       ),
     );
   }
 
   void _navigateToPhoneInputForSessionRenewal() {
-    // Navigate to phone input to get new session (MPIN already exists, so will skip MPIN setup)
+    
     final phoneController = TextEditingController();
-    // Reset loading state before navigation
+    
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -710,7 +710,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       PhoneInputScreen(
         phoneController: phoneController,
         onClose: () {
-          // Reset loading state when coming back
+          
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -720,22 +720,22 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         },
         fadeAnimation: AlwaysStoppedAnimation(1.0),
         isForgotPinFlow:
-            false, // Normal flow, but MPIN exists so will skip MPIN setup
+            false, 
       ),
       (route) => route.isFirst,
     );
   }
 
-  /// Request biometric permission using native dialog (like location permission)
-  /// This will trigger the native biometric permission dialog automatically
+  
+  
   Future<void> _requestBiometricPermission(String mpin) async {
     try {
-      // Check if biometric is available
+      
       if (!await BiometricService.isAvailable()) {
         return;
       }
 
-      // Check if already enabled
+      
       if (await SecureStorageService.isBiometricEnabled()) {
         if (mounted) {
           setState(() {
@@ -745,27 +745,27 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         return;
       }
 
-      // This will trigger the native biometric permission dialog automatically
-      // The native dialog will appear just like location permission dialog
+      
+      
       final success = await SecureStorageService.storeMPINWithBiometric(mpin);
 
       if (success) {
-        // Update local state
+        
         if (mounted) {
           setState(() {
             _isBiometricEnabled = true;
           });
         }
       } else {
-        // User skipped or denied - that's okay, continue without biometric
+        
       }
     } catch (e) {
-      // Continue without biometric if permission request fails
+      
     }
   }
 
   Future<void> _handleMPINLogin(String mpin) async {
-    // Ensure we have phone number
+    
     if (_phoneNumber.isEmpty) {
       setState(() {
         _isLoading = false;
@@ -780,45 +780,45 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       return;
     }
 
-    // Loading state and overlay already set when 4th digit was entered
+    
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      // Phone number is already stored in secure storage, loginWithMPIN will retrieve it
+      
       final success = await authProvider.loginWithMPIN(mpin);
 
-      // Removed debug logging for performance
+      
 
       if (mounted) {
         if (success) {
-          // Keep loading overlay showing (already shown when 4th digit entered)
+          
           setState(() {
             _isLoading = false;
-            // _showLoadingOverlay already true from when user entered 4th digit
+            
           });
 
-          // After successful MPIN login, ask for biometric permission if available and not enabled
-          // Run in background (non-blocking) so it doesn't delay navigation
+          
+          
           if (_isBiometricAvailable && !_isBiometricEnabled) {
-            // Don't await - let it run in background while we navigate
+            
             _requestBiometricPermission(mpin)
                 .timeout(
                   const Duration(seconds: 1),
                   onTimeout: () {
-                    // Silently timeout
+                    
                   },
                 )
                 .catchError((e) {
-                  // Silently handle errors
+                  
                 });
           }
 
-          // Navigate immediately using microtask for fastest execution
+          
           scheduleMicrotask(() {
             if (!mounted) return;
 
             try {
-              // Use the router's navigator key directly - most reliable method
+              
               final navigator = EcliniqRouter.navigatorKey.currentState;
               if (navigator != null) {
                 navigator.pushAndRemoveUntil(
@@ -828,7 +828,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 return;
               }
             } catch (e) {
-              // Fallback: Use router method
+              
               try {
                 EcliniqRouter.pushAndRemoveUntil(
                   const HomeScreen(),
@@ -836,7 +836,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 );
                 return;
               } catch (e2) {
-                // Last resort: Use post-frame callback
+                
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     try {
@@ -866,16 +866,16 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             }
           });
         } else {
-          // Check if session expired - go back to phone input
+          
           if (authProvider.errorMessage == 'SESSION_EXPIRED') {
-            // Reset state and go back to phone input
+            
             setState(() {
               _isLoading = false;
               _showLoadingOverlay = false;
               _entered = '';
               _textController.clear();
               _showMPINScreen = false;
-              _userExplicitlyChoseMPIN = false; // Reset flag
+              _userExplicitlyChoseMPIN = false; 
             });
             CustomActionSnackBar.show(
               context: context,
@@ -916,20 +916,20 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   Future<void> _handleBiometricLogin() async {
-    // Prevent multiple simultaneous calls
+    
     if (_isLoading) {
       return;
     }
 
     if (!mounted) return;
 
-    // Show loader immediately when user clicks biometric button
+    
     setState(() {
       _isLoading = true;
       _showLoadingOverlay = true;
     });
 
-    // Check if biometric is actually available before proceeding
+    
     if (!_isBiometricAvailable) {
       if (mounted) {
         setState(() {
@@ -947,14 +947,14 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     }
 
     if (!_isBiometricEnabled) {
-      // Get MPIN from storage to enable biometric
+      
       final mpin = await SecureStorageService.getMPIN();
       if (mpin != null && mpin.isNotEmpty) {
         await _requestBiometricPermission(mpin);
-        // Re-check if enabled after permission request
+        
         final isEnabled = await SecureStorageService.isBiometricEnabled();
         if (!isEnabled) {
-          // User skipped or denied, can't proceed with biometric login
+          
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -963,15 +963,15 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
           }
           return;
         }
-        // Update state and continue with biometric login
+        
         if (mounted) {
           setState(() {
             _isBiometricEnabled = true;
-            // Keep loading overlay showing
+            
           });
         }
       } else {
-        // Can't enable biometric without MPIN
+        
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -988,16 +988,16 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       }
     }
 
-    // Loading state already set when function was called
+    
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Add timeout wrapper to ensure we don't hang forever
+      
       final success = await authProvider.loginWithBiometric().timeout(
         const Duration(
           seconds: 35,
-        ), // Slightly longer than auth_provider timeout
+        ), 
         onTimeout: () {
           if (mounted) {
             setState(() {
@@ -1015,7 +1015,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         },
       );
 
-      // Always reset loading state first, before any navigation
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -1027,15 +1027,15 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       }
 
       if (success) {
-        // Keep loading overlay showing (already shown when user clicked button)
+        
         if (mounted) {
           setState(() {
             _isLoading = false;
-            // _showLoadingOverlay already true from when user clicked button
+            
           });
         }
 
-        // Navigate immediately using microtask for fastest execution
+        
         scheduleMicrotask(() {
           if (mounted) {
             EcliniqRouter.pushAndRemoveUntil(
@@ -1045,25 +1045,25 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
           }
         });
       } else {
-        // Hide loading overlay on error
+        
         if (mounted) {
           setState(() {
             _showLoadingOverlay = false;
           });
         }
 
-        // Check if session expired - navigate to phone input
+        
         if (authProvider.errorMessage == 'SESSION_EXPIRED') {
-          // Add a small delay to ensure state is reset before navigation
+          
           await Future.delayed(const Duration(milliseconds: 100));
           if (mounted) {
             _navigateToPhoneInputForSessionRenewal();
           }
         } else {
-          // Don't show error if user cancelled biometric
+          
           final errorMsg = authProvider.errorMessage ?? '';
 
-          // Check if it's a cancellation or user error
+          
           final isUserCancellation =
               errorMsg.toLowerCase().contains('cancel') ||
               errorMsg.toLowerCase().contains('cancelled') ||
@@ -1082,25 +1082,25 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               );
             }
           } else if (errorMsg.toLowerCase().contains('not enabled')) {
-            // If biometric is not enabled, redirect to setup
+            
             final mpin = await SecureStorageService.getMPIN();
             if (mpin != null && mpin.isNotEmpty) {
               await _requestBiometricPermission(mpin);
-              // Re-check availability after permission request
+              
               await _checkBiometricAvailability();
             }
           }
         }
       }
     } catch (e) {
-      // Always reset loading state on exception
+      
       if (mounted) {
         setState(() {
           _isLoading = false;
           _showLoadingOverlay = false;
         });
 
-        // Check if it's a timeout exception
+        
         if (e.toString().toLowerCase().contains('timeout')) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -1111,7 +1111,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             duration: const Duration(seconds: 3),
           );
         } else {
-          // Only show error for unexpected exceptions
+          
           CustomErrorSnackBar.show(
             context: context,
             title: 'Biometric Login Failed',
@@ -1123,13 +1123,13 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     }
   }
 
-  /// Build phone input screen
+  
   Widget _buildPhoneInputScreen() {
-    // Calculate spacing: Profile photo bottom is at 59px (-35 + 94)
-    // Text should start at 59 + 16 = 75px
-    // Content padding is 56px, so we need 75 - 56 = 19px spacing
+    
+    
+    
     final spacingFromPhoto = 16.0;
-    final profilePhotoBottom = 59.0; // -35 (top) + 94 (height)
+    final profilePhotoBottom = 59.0; 
     final contentPaddingTop = 56.0;
     final requiredSpacing =
         (profilePhotoBottom + spacingFromPhoto) - contentPaddingTop;
@@ -1162,7 +1162,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  // Phone input field
+                  
                   Container(
                     width: double.infinity,
                     height: EcliniqTextStyles.getResponsiveButtonHeight(
@@ -1241,7 +1241,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Next button
+                  
                   SizedBox(
                     width: double.infinity,
                     height: EcliniqTextStyles.getResponsiveButtonHeight(
@@ -1308,7 +1308,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // OTP button
+                  
                   GestureDetector(
                     onTapDown: isButtonEnabled
                         ? (_) {
@@ -1350,7 +1350,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
                   const Spacer(),
 
-                  // Trouble signing in link
+                  
                   Padding(
                     padding: EdgeInsets.only(bottom: keyboardVisible ? 16 : 16),
                     child: GestureDetector(
@@ -1380,81 +1380,81 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     );
   }
 
-  /// Build MPIN screen
+  
   Widget _buildMPINScreen() {
-    // Calculate responsive dimensions based on available screen width
+    
     final screenW = MediaQuery.of(context).size.width;
-    // Fixed 16 padding on each side (32 total)
+    
     final availableWidth = (screenW - 32.0).clamp(120.0, double.infinity);
 
-    // Minimum and maximum constraints
+    
     const minSlotWidth = 30.0;
     const maxSlotWidth = 80.0;
     const minMargin = 4.0;
     const preferredMargin = 8.0;
 
-    // Calculate optimal slot width and margin
+    
     double finalSlotWidth;
     double finalMargin;
 
-    // Try with preferred margin first
+    
     final preferredTotalMarginSpace =
-        3 * (preferredMargin * 2); // 3 gaps * 16 pixels each
+        3 * (preferredMargin * 2); 
     final calculatedSlotWidth =
         (availableWidth - preferredTotalMarginSpace) / 4;
 
     if (calculatedSlotWidth >= minSlotWidth) {
-      // Preferred margin works, use it
+      
       finalSlotWidth = calculatedSlotWidth.clamp(minSlotWidth, maxSlotWidth);
       finalMargin = preferredMargin;
     } else {
-      // Need to reduce margin to fit minimum slot width
-      // Calculate maximum margin space available
+      
+      
       final maxMarginSpace = availableWidth - (minSlotWidth * 4);
       if (maxMarginSpace > 0) {
-        // Calculate margin per gap (divide by 3 gaps, then by 2 for each side)
+        
         finalMargin = (maxMarginSpace / 6).clamp(minMargin, preferredMargin);
-        // Recalculate slot width with reduced margin
+        
         final totalMarginSpace = 3 * (finalMargin * 2);
         finalSlotWidth = ((availableWidth - totalMarginSpace) / 4).clamp(
           minSlotWidth,
           maxSlotWidth,
         );
       } else {
-        // Extremely small screen - use minimum values
+        
         finalSlotWidth = minSlotWidth;
         finalMargin = minMargin;
       }
     }
 
-    // Calculate final total width
+    
     final totalMarginSpace = 3 * (finalMargin * 2);
     var calculatedTotalWidth = (finalSlotWidth * 4) + totalMarginSpace;
 
-    // Final safety check: ensure total width never exceeds available width
+    
     if (calculatedTotalWidth > availableWidth) {
-      // Scale down proportionally to fit exactly
+      
       final scaleFactor = availableWidth / calculatedTotalWidth;
       finalSlotWidth = (finalSlotWidth * scaleFactor);
       finalMargin = (finalMargin * scaleFactor);
       calculatedTotalWidth = (finalSlotWidth * 4) + (3 * (finalMargin * 2));
     }
 
-    // Ensure values are within bounds
+    
     finalSlotWidth = finalSlotWidth.clamp(minSlotWidth, maxSlotWidth);
     finalMargin = finalMargin.clamp(minMargin, preferredMargin);
 
-    // Final total width - must be <= availableWidth
+    
     final finalTotalWidth = ((finalSlotWidth * 4) + (3 * (finalMargin * 2)))
         .clamp(0.0, availableWidth);
     final responsiveLetterSpacing = finalSlotWidth + 4;
 
-    // Calculate spacing: Profile photo bottom is at 59px (-35 + 94)
-    // Text should start at 59 + 16 = 75px
-    // Content padding is 56px, and there's an 8px SizedBox before text
-    // So we need 75 - 56 - 8 = 11px for first SizedBox
+    
+    
+    
+    
     final spacingFromPhoto = 16.0;
-    final profilePhotoBottom = 59.0; // -35 (top) + 94 (height)
+    final profilePhotoBottom = 59.0; 
     final contentPaddingTop = 56.0;
     final secondSizedBoxHeight = 8.0;
     final requiredSpacing =
@@ -1474,7 +1474,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
         children: [
           SizedBox(height: requiredSpacing.clamp(16.0, double.infinity)),
 
-          // Back button to go back to phone input
+          
           const SizedBox(height: 12),
           Text(
             _isOTPMode
@@ -1550,7 +1550,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                       children: [
                         LayoutBuilder(
                           builder: (context, constraints) {
-                            // Ensure we never exceed the available width
+                            
                             final maxWidth = constraints.maxWidth.isFinite
                                 ? constraints.maxWidth
                                 : finalTotalWidth;
@@ -1656,7 +1656,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (_isOTPMode)
-                    // OTP mode: Show "Didn't receive OTP?" with timer and resend
+                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1691,7 +1691,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                       ],
                     )
                   else
-                    // MPIN mode: Show "Forgot PIN?"
+                    
                     TextButton(
                       onPressed: _isLoading
                           ? null
@@ -1732,9 +1732,9 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                           ),
                 ],
               ),
-              // OTP mode: Show Resend button (enabled when timer completes)
+              
 
-              // MPIN mode: Show PIN toggle
+              
               if (!_isOTPMode)
                 GestureDetector(
                   onTap: _entered.isEmpty
@@ -1781,7 +1781,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             ],
           ),
 
-          //if (_isBiometricAvailable) ...[
+          
           const SizedBox(height: 40),
           Row(
             children: [
@@ -1905,7 +1905,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   ),
           ),
         ],
-        // ],
+        
       ),
     );
   }
@@ -2054,7 +2054,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                                     ],
                                   ),
                                 ),
-                                // if (_showMPINScreen)
+                                
                                 Positioned(
                                   top: -35,
                                   left: 16,
@@ -2112,7 +2112,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             ),
           ),
         ),
-        // Loading overlay with spinner
+        
         if (_showLoadingOverlay)
           Container(
             color: Colors.transparent,

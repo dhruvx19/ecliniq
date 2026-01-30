@@ -6,7 +6,7 @@ class DateSelector extends StatelessWidget {
   final String selectedDate;
   final DateTime? selectedDateValue;
   final Function(DateTime) onDateChanged;
-  final Map<DateTime, int>? tokenCounts; // Map of date to token count
+  final Map<DateTime, int>? tokenCounts; 
   final bool isLoading;
 
   const DateSelector({
@@ -23,7 +23,7 @@ class DateSelector extends StatelessWidget {
     final now = DateTime.now();
     final dates = <DateTime>[];
 
-    // Generate dates for next 7 days
+    
     for (int i = 0; i < 7; i++) {
       dates.add(now.add(Duration(days: i)));
     }
@@ -40,7 +40,7 @@ class DateSelector extends StatelessWidget {
 
           final label = _formatDateLabel(date);
 
-          // Find matching token count for this date
+          
           int? tokenCount;
           if (tokenCounts != null && !isLoading) {
             final dateOnly = DateTime(date.year, date.month, date.day);

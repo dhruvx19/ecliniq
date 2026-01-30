@@ -49,17 +49,17 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   }
 
   Future<void> _initializeFilter() async {
-    // Hardcoded location values
+    
     const double latitude = 12.9173;
     const double longitude = 77.6377;
 
-    // Use stored/provider location or fallback to defaults
+    
     setState(() {
       _currentFilter =
           widget.initialFilter ??
           FilterDoctorsRequest(
-            latitude: 12.9173, // Hardcoded latitude
-            longitude: 77.6377, // Hardcoded longitude
+            latitude: 12.9173, 
+            longitude: 77.6377, 
           );
     });
     _fetchDoctors();
@@ -72,7 +72,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         initialSortOption: _selectedSortOption,
         onChanged: (option) {
           setState(() {
-            // Handle reset (empty string) - clear sort
+            
             if (option.isEmpty) {
               _selectedSortOption = null;
             } else {
@@ -164,7 +164,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
           break;
         case 'Relevance':
         default:
-          // no-op
+          
           break;
       }
     });

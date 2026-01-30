@@ -93,7 +93,7 @@ class BookingPaymentData {
   bool get isHybrid => paymentRequired && walletAmount > 0 && gatewayAmount > 0;
 }
 
-/// Payment status data
+
 class PaymentStatusData {
   final String? paymentId;
   final String merchantTransactionId;
@@ -142,7 +142,7 @@ class PaymentStatusData {
     };
   }
 
-  /// Check if payment is in a terminal state
+  
   bool get isTerminal {
     return [
       'SUCCEEDED',
@@ -153,13 +153,13 @@ class PaymentStatusData {
     ].contains(status);
   }
 
-  /// Check if payment was successful
+  
   bool get isSuccess {
     return status == 'SUCCEEDED' || status == 'COMPLETED';
   }
 }
 
-/// Payment status response
+
 class PaymentStatusResponse {
   final bool success;
   final String message;
@@ -203,7 +203,7 @@ class PaymentStatusResponse {
   }
 }
 
-/// Payment detail data
+
 class PaymentDetailData {
   final String id;
   final String merchantTransactionId;
@@ -277,7 +277,7 @@ class PaymentDetailData {
   }
 }
 
-/// Payment details response
+
 class PaymentDetailResponse {
   final bool success;
   final String message;

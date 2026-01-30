@@ -30,7 +30,7 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
   @override
   void initState() {
     super.initState();
-    // Initialize controllers after first frame to get provider values
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeControllers();
     });
@@ -80,12 +80,12 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
     final screenSize = ResponsiveHelper.getScreenSize(context);
     final provider = Provider.of<AddDependentProvider>(context);
 
-    // Initialize controllers if not done yet
+    
     if (!_controllersInitialized) {
       _initializeControllers();
     }
 
-    // Sync controllers with provider values if they differ
+    
     if (_controllersInitialized) {
       if (_firstNameController.text != provider.firstName) {
         _firstNameController.text = provider.firstName;
@@ -194,7 +194,7 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
               thickness: 0.5,
               height: 0,
             ),
-            // Gender
+            
             Container(
               margin: EdgeInsets.symmetric(
                 vertical: screenSize.getResponsiveValue(
@@ -217,27 +217,25 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
                 hint: 'Select Gender',
                 value: provider.gender ?? provider.selectedGender,
                 onTap: () async {
-                  print('🔵 Opening gender selection sheet');
+                  
                   final selected = await EcliniqBottomSheet.show(
                     context: context,
                     child: GenderSelectionSheet(provider: provider),
                   );
-                  // showModalBottomSheet<String>(
-                  //   context: context,
-                  //   isScrollControlled: true,
-                  //   backgroundColor: Colors.transparent,
-                  //   builder: (_) => GenderSelectionSheet(provider: provider),
-                  // );
-                  print('🔵 Gender selected: $selected');
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   if (selected != null) {
-                    print('🔵 Setting gender to: $selected');
+                    
                     provider.setGender(selected);
-                    provider.selectGender(selected); // Sync both
-                    print(
-                      '🔵 Gender after setting: ${provider.gender}, selectedGender: ${provider.selectedGender}',
-                    );
+                    provider.selectGender(selected); 
+                    
                   } else {
-                    print('🔵 No gender selected (null)');
+                    
                   }
                 },
               ),
@@ -248,7 +246,7 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
               thickness: 0.5,
               height: 0,
             ),
-            // Date of Birth
+            
             Container(
               margin: EdgeInsets.symmetric(
                 vertical: screenSize.getResponsiveValue(
@@ -303,22 +301,20 @@ class _PersonalDetailsWidgetState extends State<PersonalDetailsWidget> {
                 hint: 'Select Relation',
                 value: provider.relation ?? provider.selectedRelation,
                 onTap: () async {
-                  print('🟢 Opening relation selection sheet');
+                  
                   final selected = await EcliniqBottomSheet.show(
                     context: context,
                     child: RelationSelectionSheet(provider: provider),
                   );
 
-                  print('🟢 Relation selected: $selected');
+                  
                   if (selected != null) {
-                    print('🟢 Setting relation to: $selected');
+                    
                     provider.setRelation(selected);
-                    provider.selectRelation(selected); // Sync both
-                    print(
-                      '🟢 Relation after setting: ${provider.relation}, selectedRelation: ${provider.selectedRelation}',
-                    );
+                    provider.selectRelation(selected); 
+                    
                   } else {
-                    print('🟢 No relation selected (null)');
+                    
                   }
                 },
               ),

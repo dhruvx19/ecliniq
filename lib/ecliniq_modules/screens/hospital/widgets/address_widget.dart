@@ -19,62 +19,62 @@ class _AddressWidgetState extends State<AddressWidget> {
     final lat = widget.hospital!.latitude;
     final lng = widget.hospital!.longitude;
 
-    // Try Google Maps first
+    
     final googleMapsUrl = Uri.parse(
       'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
     );
 
-    // Try Apple Maps (will fall back to web on Android)
+    
     final appleMapsUrl = Uri.parse('https://maps.apple.com/?daddr=$lat,$lng');
 
     try {
       bool canLaunchGoogle = false;
       bool canLaunchApple = false;
 
-      // Safely check if URLs can be launched
+      
       try {
         canLaunchGoogle = await canLaunchUrl(googleMapsUrl);
       } catch (e) {
-        // If canLaunchUrl fails, try to launch directly anyway
+        
         canLaunchGoogle = false;
       }
 
       try {
         canLaunchApple = await canLaunchUrl(appleMapsUrl);
       } catch (e) {
-        // If canLaunchUrl fails, try to launch directly anyway
+        
         canLaunchApple = false;
       }
 
-      // Try to launch Google Maps
+      
       if (canLaunchGoogle) {
         try {
           await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-          return; // Successfully launched, exit
+          return; 
         } catch (e) {
-          // Continue to next option if Google Maps fails
+          
         }
       }
 
-      // Try to launch Apple Maps
+      
       if (canLaunchApple) {
         try {
           await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
-          return; // Successfully launched, exit
+          return; 
         } catch (e) {
-          // Continue to web fallback if Apple Maps fails
+          
         }
       }
 
-      // Fall back to web browser with Google Maps
+      
       final webMapsUrl = Uri.parse(
         'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
       );
       try {
         await launchUrl(webMapsUrl, mode: LaunchMode.externalApplication);
       } catch (e) {
-        // If all methods fail, try launching without checking first
-        // This works around iOS platform channel issues
+        
+        
         try {
           await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
         } catch (finalLaunchError) {
@@ -92,8 +92,8 @@ class _AddressWidgetState extends State<AddressWidget> {
         }
       }
     } catch (e) {
-      // Silent fail - don't show error to user unless all methods fail
-      // The error handling above already shows a user-friendly message
+      
+      
     }
   }
 
@@ -185,7 +185,7 @@ class _AddressWidgetState extends State<AddressWidget> {
                                   ? Stack(
                                       fit: StackFit.expand,
                                       children: [
-                                        // Map preview - using gradient background
+                                        
                                         Center(
                                           child: Column(
                                             mainAxisAlignment:
@@ -206,7 +206,7 @@ class _AddressWidgetState extends State<AddressWidget> {
                                           ),
                                         ),
 
-                                        // Optional: Add a small map icon overlay
+                                        
                                       ],
                                     )
                                   : Center(

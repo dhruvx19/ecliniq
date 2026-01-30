@@ -21,15 +21,15 @@ class EcliniqText extends StatelessWidget {
   final bool isSelectable;
   final TextOverflow? overflow;
   
-  /// If true, automatically applies responsive font scaling based on screen size
-  /// This scales down fonts for smaller devices while keeping original size for iPhone 12/13+
+  
+  
   final bool useResponsiveScaling;
 
   @override
   Widget build(BuildContext context) {
     TextStyle? finalStyle = style;
     
-    // Apply responsive scaling if enabled and style has fontSize
+    
     if (useResponsiveScaling && style != null && style!.fontSize != null) {
       finalStyle = EcliniqTextStyles.getResponsiveStyle(context, style!);
     }

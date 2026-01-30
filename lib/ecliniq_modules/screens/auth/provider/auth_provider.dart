@@ -43,36 +43,36 @@ class AuthProvider with ChangeNotifier {
   String? get redirectTo => _redirectTo;
   String? get userStatus => _userStatus;
 
-  /// Initialize AuthProvider - production-grade initialization
-  /// Performs storage health check and migration if needed
+  
+  
   Future<void> initialize() async {
     try {
-      // Initialize secure storage (migration, health check)
+      
       await SecureStorageService.initializeStorage();
 
-      // Load saved token
+      
       await _loadSavedToken();
 
-      // Check token expiration
+      
       final isExpired = await SessionService.isTokenExpired();
       if (isExpired && _authToken != null) {
-        // Token expired, clear session
+        
         await clearSession();
       } else if (_authToken != null && !isExpired) {
-        // User has valid session, register device token
+        
         try {
           await EcliniqPushNotifications.registerDeviceToken(
             authToken: _authToken!,
           );
         } catch (e) {
-          // Log error but don't fail initialization if device token registration fails
-          print('Warning: Failed to register device token on app init: $e');
+          
+          
         }
       }
 
-      //   print('⚠️ Storage health issues detected: ${health['issues']}');
-      // }
-      // ignore: empty_catches
+      
+      
+      
     } catch (e) {}
   }
 
@@ -127,20 +127,20 @@ class AuthProvider with ChangeNotifier {
       if (result.success) {
         if (result.data != null) {
           try {
-            // Extract data from response structure: { success, message, data: { token, userStatus, redirectTo } }
+            
             final responseData = result.data!;
             final data = responseData['data'];
 
             if (data != null && data['token'] != null) {
               _authToken = data['token'];
 
-              // Extract userStatus and redirectTo if available
+              
               _redirectTo = data['redirectTo'];
               _userStatus = data['userStatus'];
 
-              // Set onboarding status based on redirectTo (matches backend logic)
-              // redirectTo: 'home' means patient profile exists (onboarding complete)
-              // redirectTo: 'profile_setup' means patient profile doesn't exist (onboarding not complete)
+              
+              
+              
               if (_redirectTo == 'home') {
                 await SessionService.setOnboardingComplete(true);
               } else if (_redirectTo == 'profile_setup') {
@@ -153,14 +153,14 @@ class AuthProvider with ChangeNotifier {
               return false;
             }
 
-            // User ID should already be set from loginOrRegisterUser response
-            // But we can also check if it's in the verify response
+            
+            
             if (_userId == null && data != null && data['userId'] != null) {
               _userId = data['userId'];
             }
 
             if (_authToken != null) {
-              // Store user info in secure storage with verification
+              
               if (_userId != null && _phoneNumber != null) {
                 final stored = await SecureStorageService.storeUserInfo(
                   _userId!,
@@ -169,18 +169,18 @@ class AuthProvider with ChangeNotifier {
                 if (!stored) {}
               }
 
-              // Store tokens - JWT decoder will extract expiration from token
-              // No need to pass expiresInSeconds as it will be decoded from JWT
+              
+              
               await SessionService.storeTokens(authToken: _authToken!);
               
-              // Register device token after successful login
+              
               try {
                 await EcliniqPushNotifications.registerDeviceToken(
                   authToken: _authToken!,
                 );
               } catch (e) {
-                // Log error but don't fail login if device token registration fails
-                print('Warning: Failed to register device token after login: $e');
+                
+                
               }
             } else {}
           } catch (e) {
@@ -330,8 +330,8 @@ class AuthProvider with ChangeNotifier {
       _isSavingDetails = false;
 
       if (response.success) {
-        // Patient profile saved successfully - mark onboarding as complete
-        // This matches backend logic: after profile setup, redirectTo becomes 'home'
+        
+        
         await SessionService.setOnboardingComplete(true);
 
         _profilePhotoKey = null;
@@ -363,7 +363,7 @@ class AuthProvider with ChangeNotifier {
     String? bloodGroup,
     int? height,
     int? weight,
-    String? dob, // YYYY-MM-DD
+    String? dob, 
     String? profilePhoto,
   }) async {
     if (_authToken == null) {
@@ -420,11 +420,11 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Load saved token from session storage
-  /// Only loads if token is valid and not expired
+  
+  
   Future<void> _loadSavedToken() async {
     try {
-      // Check if token is valid before loading
+      
       final hasValidSession = await SessionService.hasValidSession();
       if (hasValidSession) {
         _authToken = await SessionService.getAuthToken();
@@ -432,7 +432,7 @@ class AuthProvider with ChangeNotifier {
         _userId = userInfo['userId'];
         notifyListeners();
       } else {
-        // Token expired or doesn't exist
+        
         _authToken = null;
         _userId = null;
         notifyListeners();
@@ -444,10 +444,10 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Clear session - production-grade with proper cleanup
+  
   Future<bool> clearSession() async {
     try {
-      // Clear in-memory state
+      
       _challengeId = null;
       _phoneNumber = null;
       _errorMessage = null;
@@ -458,7 +458,7 @@ class AuthProvider with ChangeNotifier {
       _redirectTo = null;
       _userStatus = null;
 
-      // Clear session using SessionService
+      
       final success = await SessionService.clearSession();
 
       notifyListeners();
@@ -473,18 +473,18 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Login with MPIN
-  /// Returns: true if successful, false if failed
-  /// Sets _errorMessage to 'SESSION_EXPIRED' if session expired and backend MPIN login fails
-  ///
-  /// Matches Alaan's approach: Sends MPIN directly to backend for verification (no local verification)
+  
+  
+  
+  
+  
   Future<bool> loginWithMPIN(String mpin) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Get phone number from storage
+      
       final userInfo = await SecureStorageService.getUserInfo();
       final phoneNumber = userInfo['phoneNumber'];
 
@@ -495,20 +495,20 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      // Send MPIN directly to backend for verification (matches Alaan's approach)
+      
       final result = await _authService.loginWithMPIN(phoneNumber, mpin);
 
-      // Debug: Log the result to help diagnose issues
-      print('Login result: success=${result['success']}, hasToken=${result['token'] != null}');
+      
+      
 
-      // Check success (handle both bool true and string 'true')
+      
       final isSuccess = result['success'] == true || result['success'] == 'true';
       
       if (isSuccess) {
-        // Store token and user info
+        
         final token = result['token'];
         
-        // Validate token exists and is not empty
+        
         if (token == null || token.toString().isEmpty) {
           _isLoading = false;
           _errorMessage = 'Token not received from server';
@@ -518,7 +518,7 @@ class AuthProvider with ChangeNotifier {
 
         _authToken = token.toString();
 
-        // Extract userId from JWT token payload
+        
         String? extractedUserId;
         try {
           if (_authToken != null && _authToken!.isNotEmpty) {
@@ -529,13 +529,13 @@ class AuthProvider with ChangeNotifier {
             }
           }
         } catch (e) {
-          // Log JWT decoding error but continue - userId extraction is optional
-          print('Warning: Failed to decode JWT payload: $e');
+          
+          
         }
 
-        // Store token and user info (optimized for speed)
+        
         try {
-          // Store token and user info in parallel for faster execution
+          
           final userIdToStore = extractedUserId ?? phoneNumber;
           await Future.wait([
             SessionService.storeTokens(authToken: _authToken!),
@@ -545,16 +545,16 @@ class AuthProvider with ChangeNotifier {
             ),
           ]);
           
-          // Register device token asynchronously (non-blocking) after successful login
-          // This doesn't block the login flow - it runs in the background
+          
+          
           EcliniqPushNotifications.registerDeviceToken(
             authToken: _authToken!,
           ).catchError((e) {
-            // Log error but don't fail login if device token registration fails
-            print('Warning: Failed to register device token after login: $e');
+            
+            
           });
         } catch (e) {
-          // If token storage fails, login should fail
+          
           _isLoading = false;
           _errorMessage = 'Failed to store authentication token: $e';
           notifyListeners();
@@ -565,8 +565,8 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        // Backend login failed - do NOT use existing session for security
-        // Always fail and show error message, especially for 401 (Invalid MPIN)
+        
+        
         final statusCode = result['statusCode'] as int?;
         final errorMessage = result['message'] ?? 'MPIN login failed';
         
@@ -574,13 +574,13 @@ class AuthProvider with ChangeNotifier {
         _errorMessage = errorMessage;
         notifyListeners();
         
-        // For 401 (Unauthorized) or explicit invalid MPIN, always fail
-        // Do not fallback to existing session as this is a security risk
+        
+        
         if (statusCode == 401 || errorMessage.toLowerCase().contains('invalid mpin')) {
           return false;
         }
         
-        // For other errors, also fail (removed session fallback for security)
+        
         return false;
       }
     } catch (e) {
@@ -591,16 +591,16 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Login with biometric
-  /// Returns: true if successful, false if failed
-  /// Sets _errorMessage to 'SESSION_EXPIRED' if session expired (special case)
+  
+  
+  
   Future<bool> loginWithBiometric() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Check if biometric is available and enabled
+      
       final isAvailable = await BiometricService.isAvailable();
       if (!isAvailable) {
         _isLoading = false;
@@ -618,7 +618,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      // Get MPIN using biometric
+      
       final authConfig = BiometricAuthConfig(
         localizedReason: 'Use your biometric to authenticate',
         signInTitle: 'Biometric Authentication',
@@ -636,7 +636,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      // Use MPIN login with the retrieved MPIN
+      
       return await loginWithMPIN(mpin);
     } catch (e) {
       _isLoading = false;
@@ -646,22 +646,22 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Setup MPIN via backend API
-  /// User should be authenticated (have valid token) after OTP verification
+  
+  
   Future<bool> setupMPIN(String mpin) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Get auth token if available (user should be authenticated after OTP)
+      
       final authToken = _authToken ?? await SessionService.getAuthToken();
 
-      // Call backend API to setup MPIN
+      
       final result = await _authService.setupMPIN(mpin, authToken: authToken);
 
       if (result['success'] == true) {
-        // Store MPIN locally for biometric and convenience
+        
         await SecureStorageService.storeMPIN(mpin);
 
         _isLoading = false;
@@ -681,9 +681,9 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Logout user - clears session
-  /// After logout, user will be redirected to login page
-  /// Production-grade: Returns success status for proper error handling
+  
+  
+  
   Future<bool> logout() async {
     try {
       final success = await clearSession();
@@ -697,7 +697,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Check if onboarding is complete
+  
   Future<bool> isOnboardingComplete() async {
     try {
       return await SessionService.isOnboardingComplete();
@@ -706,14 +706,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Step 1: Send OTP for forget MPIN
+  
   Future<bool> forgetMpinSendOtp(String phone) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Include Authorization header if user has a valid session
+      
       final authToken = _authToken ?? await SessionService.getAuthToken();
       final result = await _authService.forgetMpinSendOtp(
         phone: phone,
@@ -739,7 +739,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Step 2: Verify OTP for forget MPIN
+  
   Future<bool> forgetMpinVerifyOtp(String otp) async {
     if (_challengeId == null || _phoneNumber == null) {
       _errorMessage = 'Session expired. Please try again.';
@@ -775,7 +775,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Step 3: Reset MPIN
+  
   Future<bool> forgetMpinReset(String mpin) async {
     if (_phoneNumber == null) {
       _errorMessage = 'Phone number not found. Please start over.';
@@ -795,7 +795,7 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success'] == true) {
-        // Store MPIN locally after successful reset
+        
         await SecureStorageService.storeMPIN(mpin);
         notifyListeners();
         return true;

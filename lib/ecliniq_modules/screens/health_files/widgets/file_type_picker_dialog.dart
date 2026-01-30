@@ -4,7 +4,7 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-/// Dialog for selecting file type/category
+
 class FileTypePickerDialog extends StatelessWidget {
   final Function(HealthFileType) onFileTypeSelected;
 

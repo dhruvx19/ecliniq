@@ -30,8 +30,8 @@ class HospitalBranchDetail extends StatelessWidget {
                     padding: const EdgeInsets.all(10.0),
                     child: SvgPicture.asset(
                       EcliniqIcons.hospitalBuilding.assetPath,
-                      // width: 40,
-                      // height: 40,
+                      
+                      
                     ),
                   ),
                 ),

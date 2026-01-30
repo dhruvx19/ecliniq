@@ -67,14 +67,14 @@ class AppointmentData {
   });
 
   factory AppointmentData.fromJson(Map<String, dynamic> json) {
-    // Helper to safely convert to string
+    
     toString(dynamic value, String defaultValue) {
       if (value == null) return defaultValue;
       if (value is String) return value;
       return value.toString();
     }
 
-    // Helper to safely convert to int
+    
     toInt(dynamic value, int defaultValue) {
       if (value == null) return defaultValue;
       if (value is int) return value;
@@ -83,7 +83,7 @@ class AppointmentData {
       return defaultValue;
     }
 
-    // Helper to safely parse DateTime
+    
     parseDateTime(dynamic value, DateTime defaultValue) {
       if (value == null) return defaultValue;
       try {
@@ -136,7 +136,7 @@ class BookAppointmentResponse {
   final bool success;
   final String message;
   final dynamic
-  data; // Changed from AppointmentData? to dynamic to support both AppointmentData and payment data
+  data; 
   final dynamic errors;
   final dynamic meta;
   final String timestamp;
@@ -151,26 +151,26 @@ class BookAppointmentResponse {
   });
 
   factory BookAppointmentResponse.fromJson(Map<String, dynamic> json) {
-    // Keep data as raw Map if it contains payment fields, otherwise parse as AppointmentData
+    
     dynamic parsedData;
     if (json['data'] != null) {
       final dataMap = json['data'] as Map<String, dynamic>;
 
-      // Debug: Log the data structure
+      
 
-      // Check if response contains payment-related fields
-      // Backend returns: { appointmentId, status, paymentRequired, payment: {...} }
+      
+      
       if (dataMap.containsKey('paymentRequired') ||
           dataMap.containsKey('payment') ||
           dataMap.containsKey('merchantTransactionId')) {
-        // Keep as Map for payment data - this structure has paymentRequired and payment object
+        
         parsedData = dataMap;
       } else {
-        // Parse as AppointmentData for regular booking response (free appointments or wallet-only)
+        
         try {
           parsedData = AppointmentData.fromJson(dataMap);
         } catch (e) {
-          // If parsing fails, keep as Map
+          
           parsedData = dataMap;
         }
       }
@@ -367,7 +367,7 @@ class AppointmentListResponse {
   }
 }
 
-// Appointment Detail Models
+
 class AppointmentDetailResponse {
   final bool success;
   final String message;

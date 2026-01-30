@@ -22,7 +22,7 @@ import 'package:provider/provider.dart';
 class BookingConfirmedDetail extends StatefulWidget {
   final String appointmentId;
   final AppointmentDetailModel?
-  appointment; // Optional for backward compatibility
+  appointment; 
 
   const BookingConfirmedDetail({
     super.key,
@@ -47,7 +47,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
   @override
   void initState() {
     super.initState();
-    // If appointment is provided, use it directly (backward compatibility)
+    
     if (widget.appointment != null) {
       _appointment = widget.appointment;
       _isLoading = false;
@@ -89,7 +89,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
         return;
       }
 
-      // Convert API response to UI model
+      
       final appointmentDetail = AppointmentDetailModel.fromApiData(
         response.data!,
       );
@@ -144,25 +144,25 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
       if (!mounted) return;
 
       if (eta != null) {
-        // API returns tokenNo (current running token)
+        
         final tokenNo = eta['tokenNo'] as int?;
         final appointmentStatus = eta['appointmentStatus'] as String?;
         final timestamp = eta['timestamp'] as String?;
         
-        // Only update ETA if appointment is confirmed
+        
         if (appointmentStatus == 'CONFIRMED' && tokenNo != null && _appointment != null) {
           String? formattedEta;
           
-          // Use timestamp from API if available
+          
           if (timestamp != null && timestamp.isNotEmpty) {
             try {
-              // Parse ISO 8601 timestamp from API
+              
               final dateTime = DateTime.parse(timestamp);
-              // Format as "hh:mm a" (e.g., "2:30 PM")
+              
               final timeFormat = DateFormat('hh:mm a');
               formattedEta = timeFormat.format(dateTime);
             } catch (e) {
-              // If parsing fails, don't set expected time
+              
             }
           }
           
@@ -174,7 +174,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
             _isLoadingETA = false;
           });
         } else {
-          // Not confirmed or no token, just update current token if available
+          
           setState(() {
             if (tokenNo != null) {
               _currentTokenNumber = tokenNo.toString();
@@ -267,7 +267,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Status header shimmer
+          
           Container(
             height: 120,
             margin: const EdgeInsets.all(16),
@@ -278,7 +278,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Doctor info card shimmer
+                
                 SizedBox(
                   height: 150,
                   child: ShimmerLoading(
@@ -286,7 +286,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Appointment details shimmer
+                
                 SizedBox(
                   height: 200,
                   child: ShimmerLoading(
@@ -294,7 +294,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Clinic location shimmer
+                
                 SizedBox(
                   height: 120,
                   child: ShimmerLoading(
@@ -302,7 +302,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Payment details shimmer
+                
                 SizedBox(
                   height: 100,
                   child: ShimmerLoading(
@@ -355,7 +355,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
   Widget _buildContent() {
     return Column(
       children: [
-        // Fixed StatusHeader
+        
         StatusHeader(
           status: _appointment!.status,
           tokenNumber: _appointment!.tokenNumber,
@@ -363,32 +363,32 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
           currentTokenNumber:
               _currentTokenNumber ?? _appointment!.currentTokenNumber,
         ),
-        // Current Running Token info (just after green area)
-        // Padding(
-        //   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        //   child: _isLoadingETA
-        //       ? SizedBox(
-        //           height: 48,
-        //           child: ShimmerLoading(
-        //             borderRadius: BorderRadius.circular(8),
-        //           ),
-        //         )
-        //       : (_currentTokenNumber != null)
-        //           ? Container(
-        //               padding: const EdgeInsets.symmetric(
-        //                 horizontal: 12,
-        //                 vertical: 10,
-        //               ),
-        //               decoration: BoxDecoration(
-        //                 color: const Color(0xFFF2FFF3),
-        //                 border: Border.all(color: const Color(0xFF3EAF3F), width: 0.5),
-        //                 borderRadius: BorderRadius.circular(8),
-        //               ),
-        //               child: 
-        //             )
-        //           : const SizedBox.shrink(),
-        // ),
-        // Scrollable content starting from DoctorInfoCard
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         Expanded(
           child: RefreshIndicator(
             onRefresh: _loadAppointmentDetails,
@@ -442,7 +442,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
             icon: EcliniqIcons.rescheduleIcon,
             type: BookingButtonType.reschedule,
             onPressed: () async {
-              // Check if appointment is already rescheduled
+              
               final isAlreadyRescheduled = _appointment?.isRescheduled ?? false;
               if (isAlreadyRescheduled) {
               
@@ -463,7 +463,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
               );
 
               if (result == true && mounted && _appointment != null) {
-                // Navigate to slot screen for reschedule
+                
                 final appointment = _appointment!;
                 if (appointment.doctorId != null &&
                     (appointment.hospitalId != null ||
@@ -498,7 +498,7 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
                 child: CancelBottomSheet(
                   appointmentId: widget.appointmentId,
                   onCancelled: () async {
-                    // Show shimmer loading state
+                    
                     if (mounted) {
                       setState(() {
                         _isLoading = true;
@@ -506,15 +506,15 @@ class _BookingConfirmedDetailState extends State<BookingConfirmedDetail> {
                       });
                     }
 
-                    // Reload appointment details to get updated status
+                    
                     await _loadAppointmentDetails();
 
-                    // Check if status changed to cancelled
+                    
                     if (mounted &&
                         _appointment != null &&
                         (_appointment!.status.toLowerCase() == 'cancelled' ||
                             _appointment!.status.toLowerCase() == 'failed')) {
-                      // Navigate to cancelled detail page
+                      
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => BookingCancelledDetail(

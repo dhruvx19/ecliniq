@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:phonepe_payment_sdk/phonepe_payment_sdk.dart';
 
-/// Service wrapper for PhonePe Payment SDK
+
 class PhonePeService {
   static final PhonePeService _instance = PhonePeService._internal();
   factory PhonePeService() => _instance;
@@ -10,13 +10,13 @@ class PhonePeService {
   bool _isInitialized = false;
   String _environment = 'SANDBOX';
   String _packageName = 'com.phonepe.simulator';
-  String? _merchantId; // Store merchantId for constructing payment payload
+  String? _merchantId; 
 
-  /// Initialize PhonePe SDK
-  /// [isProduction] - Set true for production, false for sandbox
-  /// [merchantId] - Your PhonePe merchant ID
-  /// [flowId] - Unique user ID or session identifier
-  /// [enableLogs] - Enable SDK logging (recommended false for production)
+  
+  
+  
+  
+  
   Future<bool> initialize({
     required bool isProduction,
     required String merchantId,
@@ -25,7 +25,7 @@ class PhonePeService {
   }) async {
     if (_isInitialized) return true;
 
-    // Validate required parameters
+    
     if (merchantId.isEmpty) {
       throw PhonePeException('merchantId cannot be empty');
     }
@@ -36,7 +36,7 @@ class PhonePeService {
     try {
       _environment = isProduction ? 'PRODUCTION' : 'SANDBOX';
       _packageName = isProduction ? 'com.phonepe.app' : 'com.phonepe.simulator';
-      _merchantId = merchantId; // Store merchantId for later use
+      _merchantId = merchantId; 
 
       final isInitialized = await PhonePePaymentSdk.init(
         _environment,
@@ -52,18 +52,18 @@ class PhonePeService {
     }
   }
 
-  /// Start payment transaction
-  /// 
-  /// PhonePe SDK will automatically:
-  /// - Open PhonePe app (or simulator in sandbox)
-  /// - Show all payment options (UPI apps, UPI ID, Card, Net Banking)
-  /// - User selects and completes payment
-  /// - Returns to app via deep link
-  /// 
-  /// [requestPayload] - Base64-encoded payment payload from backend (preferred method)
-  /// [token] - PhonePe SDK token from backend (fallback if requestPayload not available)
-  /// [orderId] - PhonePe order ID from backend (fallback if requestPayload not available)
-  /// [appSchema] - Your app's custom URL scheme for callback (e.g., 'ecliniq')
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<PhonePePaymentResult> startPayment({
     String? requestPayload,
     String? token,
@@ -74,51 +74,51 @@ class PhonePeService {
       throw PhonePeException('PhonePe SDK not initialized. Call initialize() first.');
     }
 
-    print('========== PHONEPE SERVICE: START PAYMENT ==========');
-    print('Request payload present: ${requestPayload != null}');
+    
+    
     if (requestPayload != null) {
-      print('Request payload length: ${requestPayload.length}');
-      print('Request payload (first 100 chars): ${requestPayload.substring(0, requestPayload.length > 100 ? 100 : requestPayload.length)}');
+      
+      
     } else {
-      print('Token length: ${token?.length ?? 0}');
-      print('Order ID: $orderId');
-      print('Merchant ID: $_merchantId');
+      
+      
+      
     }
-    print('App schema: $appSchema');
-    print('Environment: $_environment');
-    print('Expected package: $_packageName');
+    
+    
+    
     
     try {
       String requestToSend;
       
-      // Use requestPayload directly if available (preferred method as per PhonePe docs)
-      // The backend provides requestPayload as base64-encoded string
-      // PhonePe SDK expects JSON string (not base64), so we need to decode it
+      
+      
+      
       if (requestPayload != null && requestPayload.isNotEmpty) {
-        // Backend provides base64-encoded payload
-        // PhonePe SDK expects JSON string, so decode base64 to get JSON string
-        // This matches the article pattern: decode base64 -> get JSON -> pass JSON to SDK
+        
+        
+        
         try {
           final decodedBytes = base64Decode(requestPayload);
           final jsonString = utf8.decode(decodedBytes);
           
-          // Verify it's valid JSON by parsing it
-          final decodedMap = jsonDecode(jsonString);
-          print('Using requestPayload from backend (decoded from base64)');
-          print('Decoded payload structure: ${decodedMap.keys}');
           
-          // Pass the JSON string to SDK (not the base64)
+          final decodedMap = jsonDecode(jsonString);
+          
+          
+          
+          
           requestToSend = jsonString;
         } catch (e) {
           throw PhonePeException('Failed to decode requestPayload from base64: $e');
         }
       } else {
-        // Fallback: Construct payload from token and orderId (legacy support)
+        
         if (_merchantId == null || _merchantId!.isEmpty) {
           throw PhonePeException('Merchant ID not available. Please initialize SDK with merchantId first.');
         }
         
-        // Validate token and orderId
+        
         if (token == null || token.isEmpty) {
           throw PhonePeException('Payment token cannot be empty');
         }
@@ -126,8 +126,8 @@ class PhonePeService {
           throw PhonePeException('Order ID cannot be empty');
         }
         
-        // Construct the payment payload
-        // PhonePe SDK expects: Base64(JSON.stringify({orderId, merchantId, token, paymentMode}))
+        
+        
         final payload = {
           'orderId': orderId,
           'merchantId': _merchantId,
@@ -135,47 +135,47 @@ class PhonePeService {
           'paymentMode': {'type': 'PAY_PAGE'},
         };
         
-        // Convert to JSON string
-        final jsonString = jsonEncode(payload);
-        print('Payment payload JSON: $jsonString');
         
-        // Pass JSON string directly to SDK (not base64)
+        final jsonString = jsonEncode(payload);
+        
+        
+        
         requestToSend = jsonString;
-        print('Using constructed payload from token/orderId');
+        
       }
       
-      print('===================================================');
-      print('Sending to PhonePe SDK (JSON string):');
-      print('Length: ${requestToSend.length}');
-      print('First 200 chars: ${requestToSend.substring(0, requestToSend.length > 200 ? 200 : requestToSend.length)}');
-      print('===================================================');
       
-      // PhonePe SDK startTransaction automatically:
-      // 1. Opens PhonePe app (or simulator in sandbox mode based on environment)
-      // 2. Shows payment method selector (UPI apps, UPI ID, Card, etc.)
-      // 3. User completes payment
-      // 4. Returns to app via deep link (appSchema)
-      // 
-      // Note: PhonePe SDK expects JSON string (not base64), matching the article pattern
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       final response = await PhonePePaymentSdk.startTransaction(
-        requestToSend, // JSON string (decoded from base64 if using requestPayload)
-        appSchema, // callback URL schema (e.g., 'ecliniq')
+        requestToSend, 
+        appSchema, 
       );
 
-      print('========== PHONEPE SDK RESPONSE ==========');
-      print('Response: $response');
-      print('Response type: ${response.runtimeType}');
-      print('==========================================');
+      
+      
+      
+      
       
       return PhonePePaymentResult.fromSdkResult(response);
     } catch (e) {
-      print('========== PHONEPE PAYMENT ERROR ==========');
-      print('Error: $e');
-      print('Error type: ${e.runtimeType}');
-      print('Error details: ${e.toString()}');
-      print('==========================================');
       
-      // Check for specific error types and provide helpful guidance
+      
+      
+      
+      
+      
+      
       final errorString = e.toString().toLowerCase();
       if (errorString.contains('signature') || 
           errorString.contains('package') ||
@@ -207,7 +207,7 @@ class PhonePeService {
         );
       }
       
-      // Check for specific Android SDK JSON parsing error
+      
       e.toString().toLowerCase();
       if (errorString.contains('cannot be converted to jsonobject') ||
           errorString.contains('jsonobject')) {
@@ -228,17 +228,17 @@ class PhonePeService {
   }
 
 
-  /// Get the current environment
+  
   String? get environment => _environment;
 
-  /// Get the package name
+  
   String? get packageName => _packageName;
 
-  /// Check if SDK is initialized
+  
   bool get isInitialized => _isInitialized;
 }
 
-/// Payment result from PhonePe SDK
+
 class PhonePePaymentResult {
   final bool success;
   final String status;
@@ -253,12 +253,12 @@ class PhonePePaymentResult {
   });
 
   factory PhonePePaymentResult.fromSdkResult(dynamic result) {
-    print('Parsing SDK result: $result');
-    print('Result type: ${result.runtimeType}');
     
-    // PhonePe SDK returns different formats:
-    // - String: "SUCCESS", "FAILURE", "INCOMPLETE"
-    // - Map: {"status": "SUCCESS", ...}
+    
+    
+    
+    
+    
     
     if (result == null) {
       return PhonePePaymentResult(
@@ -280,7 +280,7 @@ class PhonePePaymentResult {
       status = result.toString().toUpperCase();
     }
 
-    // Normalize status
+    
     final success = status.contains('SUCCESS') || status == 'COMPLETED';
     
     return PhonePePaymentResult(
@@ -292,7 +292,7 @@ class PhonePePaymentResult {
   }
 }
 
-/// Custom exception for PhonePe operations
+
 class PhonePeException implements Exception {
   final String message;
 

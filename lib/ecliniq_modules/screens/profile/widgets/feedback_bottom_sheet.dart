@@ -41,7 +41,7 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
 
     setState(() => _isLoading = true);
 
-    // TODO: Add your API call here
+    
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() => _isLoading = false);
@@ -85,10 +85,10 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
             color: _isLoading
                 ? const Color(0xff2372EC)
                 : _isButtonPressed
-                ? const Color(0xFF0E4395) // Pressed color
+                ? const Color(0xFF0E4395) 
                 : _isFormValid
-                ? const Color(0xff2372EC) // Enabled color
-                : const Color(0xffF9F9F9), // Disabled color
+                ? const Color(0xff2372EC) 
+                : const Color(0xffF9F9F9), 
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(
@@ -132,7 +132,7 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
+            
              Padding(
               padding: EdgeInsets.all(20),
               child: Text(
@@ -145,7 +145,7 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
               ),
             ),
 
-            // Rating Section
+            
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
@@ -193,7 +193,7 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
 
             const SizedBox(height: 20),
 
-            // Feedback Text Section
+            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -236,7 +236,7 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
 
             const SizedBox(height: 24),
 
-            // Submit Button
+            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: _buildSubmitButton(),

@@ -15,7 +15,7 @@ class PrescriptionCardList extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onMenuTap;
 
-  // Selection mode properties
+  
   final bool isSelectionMode;
   final bool isSelected;
   final VoidCallback? onSelectionToggle;
@@ -43,7 +43,7 @@ class PrescriptionCardList extends StatelessWidget {
 
 
   String _getRecordForDisplay() {
-    // Show "Uploaded for: [Name]" if recordFor exists, otherwise show file type
+    
     if (file.recordFor != null && file.recordFor!.isNotEmpty) {
       return '${file.recordFor}';
     }
@@ -169,7 +169,7 @@ class PrescriptionCardList extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Show checkbox in selection mode, otherwise show date
+            
             if (isSelectionMode)
               GestureDetector(
                 onTap: onSelectionToggle,
@@ -216,7 +216,7 @@ class PrescriptionCardList extends StatelessWidget {
                           color: Color(0xff424242),
                         ),
                     maxLines: 1,
-                    //overflow: TextOverflow.ellipsis,
+                    
                   ),
 
                   Text(
@@ -229,7 +229,7 @@ class PrescriptionCardList extends StatelessWidget {
               ),
             ),
 
-            // Hide menu button in selection mode
+            
             if (!isSelectionMode && onMenuTap != null)
               GestureDetector(
                 onTap: onMenuTap,

@@ -78,7 +78,7 @@ class _TopHospitalsWidgetState extends State<TopHospitalsWidget>
       listen: false,
     );
 
-    // Use hardcoded location values
+    
     await hospitalProvider.fetchTopHospitals(
       latitude: 12.9173,
       longitude: 77.6377,

@@ -83,7 +83,7 @@ class _VerifyNewEmailAddressState extends State<VerifyNewEmailAddress> {
 
     try {
       final authToken = await SessionService.getAuthToken();
-      // Resend OTP using the same API that was used initially
+      
       final result = await _authService.sendNewContactOtp(
         type: 'email',
         newContact: widget.newEmail,
@@ -137,7 +137,7 @@ class _VerifyNewEmailAddressState extends State<VerifyNewEmailAddress> {
 
     try {
       final authToken = await SessionService.getAuthToken();
-      // Step 4: Verify new contact OTP (type is stored in Redis from step 3)
+      
       final result = await _authService.verifyNewContact(
         challengeId: _currentChallengeId,
         otp: _otpController.text,
@@ -151,9 +151,9 @@ class _VerifyNewEmailAddressState extends State<VerifyNewEmailAddress> {
           _isLoading = false;
         });
         
-        // Pop back to security settings with success result
-        // The snackbar will be shown in security_settings.dart
-        // Pop all the way back: VerifyNewEmailAddress -> AddEmailAddress -> VerifyExistingEmail -> SecuritySettings
+        
+        
+        
         Navigator.pop(context, {'success': true, 'type': 'email'});
       } else {
         setState(() {
@@ -199,10 +199,10 @@ class _VerifyNewEmailAddressState extends State<VerifyNewEmailAddress> {
             color: _isLoading
                 ? const Color(0xFF2372EC)
                 : _isButtonPressed
-                    ? const Color(0xFF0E4395) // Pressed color
+                    ? const Color(0xFF0E4395) 
                     : _isOtpValid
-                        ? const Color(0xFF2372EC) // Enabled color
-                        : const Color(0xffF9F9F9), // Disabled color
+                        ? const Color(0xFF2372EC) 
+                        : const Color(0xffF9F9F9), 
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(
@@ -351,7 +351,7 @@ class _VerifyNewEmailAddressState extends State<VerifyNewEmailAddress> {
               onChanged: (value) {
                 if (mounted) {
                   setState(() {
-                    // Clear error message when user starts typing
+                    
                     if (_errorMessage != null) {
                       _errorMessage = null;
                     }

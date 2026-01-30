@@ -24,7 +24,7 @@ class _SurgeryListState extends State<SurgeryList> {
   bool _isListening = false;
   String _searchQuery = '';
 
-  // List of surgeries data
+  
   final List<Map<String, dynamic>> surgeries = [
     {
       'name': 'Appendectomy',

@@ -16,7 +16,7 @@ class _EasyWayToBookWidgetState extends State<EasyWayToBookWidget> {
 
   void _callUs() {
 
-    print('Call us tapped');
+    
   }
 
   void _toggleWhatsAppUpdates(bool value) {

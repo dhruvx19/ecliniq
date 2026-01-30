@@ -32,7 +32,7 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
   String? _errorMessage;
   DependentData? _self;
   List<DependentData> _dependents = [];
-  List<DependentData> _allMembers = []; // Combined list with self first
+  List<DependentData> _allMembers = []; 
   String? _authToken;
   final Map<String, String> _imageUrlCache = {};
 
@@ -78,16 +78,16 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
         setState(() {
           _self = response.self;
           _dependents = response.dependents;
-          // Combine self and dependents, with self first
+          
           _allMembers = [];
           if (_self != null) {
             _allMembers.add(_self!);
           }
           _allMembers.addAll(_dependents);
 
-          // Find the index of currently selected member
+          
           if (widget.currentlySelectedDependent != null) {
-            // Find the index of the currently selected dependent
+            
             final currentIndex = _allMembers.indexWhere(
               (member) => member.id == widget.currentlySelectedDependent!.id,
             );
@@ -95,8 +95,8 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                 ? currentIndex
                 : (_self != null ? 0 : -1);
           } else {
-            // If no dependent is selected, it means "self" is selected
-            // Find self in the list and select it
+            
+            
             if (_self != null) {
               final selfIndex = _allMembers.indexWhere(
                 (member) => member.isSelf,
@@ -210,7 +210,7 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                             setState(() {
                               selectedIndex = index;
                             });
-                            // Close bottom sheet with selected member
+                            
                             Navigator.of(context).pop<DependentData>(d);
                           },
                           child: Container(
@@ -266,7 +266,7 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                                   ),
                                 ),
 
-                                // Avatar
+                                
                                 Container(
                                   width: EcliniqTextStyles.getResponsiveWidth(
                                     context,
@@ -294,7 +294,7 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                                             image: NetworkImage(cached),
                                           );
                                         } else {
-                                          // kick off fetch, show initials till then
+                                          
                                           _ensureDownloadUrl(
                                             key,
                                             isPublic: false,
@@ -332,7 +332,7 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                                   ),
                                 ),
 
-                                // Name and Relation
+                                
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -376,14 +376,14 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
             ),
           ),
 
-          // SizedBox(
-          //                         height: EcliniqTextStyles.getResponsiveSpacing(
-          //                           context,
-          //                           12,
-          //                         ),
-          //                       ),
+          
+          
+          
+          
+          
+          
 
-          // Add Dependents Section
+          
           Container(
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12, top: 0),
@@ -402,7 +402,7 @@ class _SelectMemberBottomSheetState extends State<SelectMemberBottomSheet> {
                       context: context,
                       child: AddDependentBottomSheet(),
                     );
-                    // If user added a dependent successfully, refresh the list
+                    
                     if (mounted && result != null) {
                       await _fetchDependents();
                     }

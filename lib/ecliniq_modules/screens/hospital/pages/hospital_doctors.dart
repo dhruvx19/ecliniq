@@ -1,4 +1,4 @@
-// lib/ecliniq_modules/screens/hospital/hospital_doctors_screen.dart
+
 
 import 'dart:async';
 
@@ -58,7 +58,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   bool _speechEnabled = false;
   bool _isListening = false;
 
-  // Filter state
+  
   List<String>? _selectedSpecialities;
   String? _selectedAvailability;
   Map<String, dynamic>? _otherFilters;
@@ -269,7 +269,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
           break;
         case 'Relevance':
         default:
-          // no-op
+          
           break;
       }
     });
@@ -352,14 +352,14 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   }
 
   Future<void> _applyFilters() async {
-    // Check if any filters are actually applied
+    
     final hasFilters =
         (_selectedSpecialities != null && _selectedSpecialities!.isNotEmpty) ||
         _selectedAvailability != null ||
         (_otherFilters != null && _otherFilters!.isNotEmpty);
 
     if (!hasFilters) {
-      // No filters, fetch original hospital doctors
+      
       _fetchDoctors();
       return;
     }
@@ -370,11 +370,11 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     });
 
     try {
-      // Hardcoded location values
+      
       const double latitude = 12.9173;
       const double longitude = 77.6377;
 
-      // Build filter request
+      
       final request = api_doctor.FilterDoctorsRequest(
         latitude: latitude,
         longitude: longitude,
@@ -390,8 +390,8 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       final response = await _doctorService.getFilteredDoctors(request);
 
       if (response.success && response.data != null && mounted) {
-        // Filter API returns data.data (nested structure)
-        // Convert API doctors to hospital doctor model
+        
+        
         final convertedDoctors = response.data!.doctors.map((apiDoctor) {
           return Doctor(
             id: apiDoctor.id,
@@ -403,8 +403,8 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
             experience: apiDoctor.yearOfExperience,
             rating: apiDoctor.rating,
             fee: apiDoctor.fee,
-            timings: null, // Not available in filter API
-            availability: null, // Not available in filter API
+            timings: null, 
+            availability: null, 
             profilePhoto: apiDoctor.profilePhoto,
             hospitals: apiDoctor.hospitals.map((h) {
               return DoctorHospital(
@@ -501,7 +501,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
 
   String _stripParentheses(String s) {
     final withoutParen = s.replaceAll(RegExp(r"\s*\(.*?\)"), '').trim();
-    // Handle common suffixes
+    
     if (withoutParen.contains('/')) {
       return withoutParen.split('/').first.trim();
     }
@@ -569,7 +569,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
   Widget _buildAvailabilityStatusWidget(Doctor doctor) {
     if (doctor.availability == null ||
         doctor.availability!.status == 'UNAVAILABLE') {
-      // Queue Not Started - yellow container, grey text
+      
       return Container(
         height: EcliniqTextStyles.getResponsiveButtonHeight(
           context,
@@ -596,7 +596,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     }
 
     if (doctor.availability!.status == 'AVAILABLE') {
-      // Queue Started - green container, green text
+      
       return Container(
         height: EcliniqTextStyles.getResponsiveButtonHeight(
           context,
@@ -623,9 +623,9 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
     }
 
     if (doctor.availability!.status == 'NEXT_DAY') {
-      // Next available - white container, "Next available" in grey, day/time in blue
+      
       final message = doctor.availability!.message;
-      // Parse message like "Next available Wednesday, 3:30 AM"
+      
       String prefix = '';
       String dayTime = message;
 
@@ -669,7 +669,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
       );
     }
 
-    // Default case
+    
     return Container(
       height: EcliniqTextStyles.getResponsiveButtonHeight(
         context,
@@ -850,7 +850,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                   initialSortOption: _selectedSortOption,
                   onChanged: (option) {
                     setState(() {
-                      // Handle reset (empty string) - clear sort
+                      
                       if (option.isEmpty) {
                         _selectedSortOption = null;
                       } else {
@@ -876,12 +876,12 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                 child: DoctorFilterBottomSheet(
                   onFilterChanged: (filterData) {
                     setState(() {
-                      // Check if filters are empty (reset was called)
+                      
                       if (!_hasActiveFiltersInParams(filterData)) {
                         _otherFilters = null;
                         _selectedSpecialities = null;
                         _selectedAvailability = null;
-                        // Call initial API when filters are reset
+                        
                         _fetchDoctors();
                       } else {
                         _otherFilters = filterData;
@@ -893,7 +893,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                         if (avail is String?) {
                           _selectedAvailability = avail;
                         }
-                        // Call filtered API when filters are applied
+                        
                         _applyFiltersDebounced();
                       }
                     });
@@ -1149,7 +1149,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Avatar
+                  
                   Container(
                     width: EcliniqTextStyles.getResponsiveWidth(context, 80),
                     height: EcliniqTextStyles.getResponsiveHeight(context, 80),
@@ -1240,7 +1240,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                   SizedBox(
                     width: EcliniqTextStyles.getResponsiveSpacing(context, 16),
                   ),
-                  // Doctor Info
+                  
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1288,7 +1288,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Experience and Rating
+                  
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -1396,7 +1396,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                       8.0,
                     ),
                   ),
-                  // Availability Time
+                  
                   Row(
                     children: [
                       SvgPicture.asset(
@@ -1432,7 +1432,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
                       4.0,
                     ),
                   ),
-                  // Token Availability
+                  
                   Container(
                     padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
                       context,
@@ -1461,7 +1461,7 @@ class _HospitalDoctorsScreenState extends State<HospitalDoctorsScreen> {
               SizedBox(
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
               ),
-              // Booking Section
+              
               Row(
                 children: [
                   Expanded(

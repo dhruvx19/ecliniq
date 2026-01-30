@@ -9,13 +9,13 @@ class ETAWebSocketService {
   bool _isConnected = false;
   bool _isConnecting = false;
 
-  // Stream controllers for different events
+  
   final _etaUpdateController = StreamController<ETAUpdate>.broadcast();
   final _slotDisplayUpdateController = StreamController<SlotDisplayUpdate>.broadcast();
   final _connectionStatusController = StreamController<bool>.broadcast();
   final _errorController = StreamController<String>.broadcast();
 
-  // Getters for streams
+  
   Stream<ETAUpdate> get etaUpdateStream => _etaUpdateController.stream;
   Stream<SlotDisplayUpdate> get slotDisplayUpdateStream => _slotDisplayUpdateController.stream;
   Stream<bool> get connectionStatusStream => _connectionStatusController.stream;
@@ -24,7 +24,7 @@ class ETAWebSocketService {
   bool get isConnected => _isConnected;
   bool get isConnecting => _isConnecting;
 
-  /// Connect to WebSocket server
+  
   Future<void> connect() async {
     if (_isConnected || _isConnecting) {
       return;
@@ -33,7 +33,7 @@ class ETAWebSocketService {
     try {
       _isConnecting = true;
 
-      // Extract base URL from endpoints (remove /api path)
+      
       final baseUrl = Endpoints.localhost.replaceAll('/api', '');
 
       _socket = IO.io(
@@ -57,11 +57,11 @@ class ETAWebSocketService {
     }
   }
 
-  /// Setup event handlers for socket events
+  
   void _setupEventHandlers() {
     if (_socket == null) return;
 
-    // Connection events
+    
     _socket!.onConnect((_) {
       _isConnected = true;
       _isConnecting = false;
@@ -79,7 +79,7 @@ class ETAWebSocketService {
       _errorController.add('Connection error: $error');
     });
 
-    // Join response
+    
     _socket!.on('joined', (data) {
       try {
         if (data is Map<String, dynamic>) {
@@ -95,7 +95,7 @@ class ETAWebSocketService {
       }
     });
 
-    // ETA update event
+    
     _socket!.on('eta_update', (data) {
       try {
         if (data is Map<String, dynamic>) {
@@ -106,7 +106,7 @@ class ETAWebSocketService {
       }
     });
 
-    // Current token update for display screens
+    
     _socket!.on('current_token_update', (data) {
       try {
         if (data is Map<String, dynamic>) {
@@ -117,7 +117,7 @@ class ETAWebSocketService {
       }
     });
 
-    // Error event
+    
     _socket!.on('error', (data) {
       String errorMessage = 'Unknown error';
       if (data is Map<String, dynamic> && data['message'] != null) {
@@ -129,17 +129,17 @@ class ETAWebSocketService {
     });
   }
 
-  /// Join appointment room to receive ETA updates
-  /// 
-  /// [appointmentId] - The appointment ID to join
-  /// [patientId] - Optional patient ID for verification
+  
+  
+  
+  
   Future<void> joinAppointment({
     required String appointmentId,
     String? patientId,
   }) async {
     if (!_isConnected) {
       await connect();
-      // Wait a bit for connection to establish
+      
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
@@ -153,10 +153,10 @@ class ETAWebSocketService {
     });
   }
 
-  /// Join doctor session room to receive slot updates
-  /// 
-  /// [doctorId] - The doctor ID
-  /// [slotId] - The slot ID
+  
+  
+  
+  
   Future<void> joinDoctorSession({
     required String doctorId,
     required String slotId,
@@ -176,9 +176,9 @@ class ETAWebSocketService {
     });
   }
 
-  /// Join slot display room for display screens
-  /// 
-  /// [slotId] - The slot ID to display
+  
+  
+  
   Future<void> joinSlotDisplay({
     required String slotId,
   }) async {
@@ -196,7 +196,7 @@ class ETAWebSocketService {
     });
   }
 
-  /// Leave all rooms and disconnect
+  
   Future<void> disconnect() async {
     if (_socket != null) {
       _socket!.disconnect();
@@ -208,7 +208,7 @@ class ETAWebSocketService {
     }
   }
 
-  /// Dispose all resources
+  
   void dispose() {
     disconnect();
     _etaUpdateController.close();

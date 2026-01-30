@@ -3,7 +3,7 @@ import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
 
-/// A simplified copy of the OTP screen's header/appbar area for the "terms and conditions" page.
+
 class TermsAndConditionsPage extends StatelessWidget {
   const TermsAndConditionsPage({super.key});
 
@@ -39,7 +39,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                   ),
                 ),
 
-                // Right-side placeholder to balance the left IconButton width.
+                
                 const SizedBox(width: 48),
               ],
             ),
@@ -79,7 +79,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                             ),
                           ),
 
-                          // Right: small circular illustration placeholder
+                          
                           SizedBox(
                             width: 80,
                             height: 80,
@@ -96,7 +96,7 @@ class TermsAndConditionsPage extends StatelessWidget {
 
                       const Divider(height: 1),
 
-                      // Body content placeholder
+                      
                       const SizedBox(height: 16),
                       Expanded(
                         child: SingleChildScrollView(

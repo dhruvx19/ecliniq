@@ -84,7 +84,7 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
     setState(() => _isEnabling = true);
 
     try {
-      // Get MPIN from storage
+      
       final mpin = await SecureStorageService.getMPIN();
 
       if (mpin == null || mpin.isEmpty) {
@@ -93,7 +93,7 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
         return;
       }
 
-      // Store MPIN with biometric protection
+      
       final success = await SecureStorageService.storeMPINWithBiometric(mpin);
 
       if (success) {
@@ -117,7 +117,7 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
   }
 
   void _showSuccessDialog() {
-    // Check if we came from login page (for setting up biometric)
+    
     final cameFromLogin = Navigator.of(context).canPop();
 
     showDialog(
@@ -149,12 +149,12 @@ class _BiometricSetupPageState extends State<BiometricSetupPage>
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // If we came from login page, go back to login
-              // Otherwise, continue with normal flow (always go to user details for new user)
+              
+              
               if (cameFromLogin) {
-                Navigator.of(context).pop(); // Go back to login
+                Navigator.of(context).pop(); 
               } else {
-                // Normal flow: After biometric setup, always go to user details page
+                
                 _navigateToUserDetails();
               }
             },

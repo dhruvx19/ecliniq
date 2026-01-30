@@ -24,14 +24,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   log('Handling background message: ${message.messageId}');
   log('Background message data: ${message.data}');
   
-  // Initialize notification services
+  
   try {
     await LocalNotifications.init();
     await AppointmentLockScreenNotification.init();
     
     final data = message.data;
     
-    // Handle appointment token updates for lock screen
+    
     final type = data['type'] as String?;
     if (type == 'appointment_token_update' || type == 'token_update') {
       final appointmentId = data['appointmentId'] as String?;
@@ -74,18 +74,18 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           log('Error updating lock screen notification in background: $e');
         }
       }
-      return; // Don't process other notification types
+      return; 
     }
     
-    // Handle other appointment updates (non-token updates)
-    // These can be handled by regular FCM notifications or other services
-    // The lock screen notification service handles token-specific updates
+    
+    
+    
   } catch (e) {
     log('Error handling background notification: $e');
   }
 }
 
-/// Push notification service for handling Firebase Cloud Messaging
+
 class EcliniqPushNotifications {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static RemoteMessage? _initialMessage;
@@ -102,14 +102,14 @@ class EcliniqPushNotifications {
     }
   }
 
-  /// Initialize push notifications
-  /// Sets up background message handler and notification presentation options
+  
+  
   static Future<void> init() async {
     try {
-      // Register background message handler
+      
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      // Configure notification presentation options for iOS
+      
       await _messaging.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
@@ -117,20 +117,20 @@ class EcliniqPushNotifications {
       );
 
 
-      // Check if app was opened from a notification
+      
       _initialMessage = await _messaging.getInitialMessage();
       
       log('Push notifications initialized');
 
-      // Note: Device token registration will be called after user login
+      
     } catch (e) {
       log('Error initializing push notifications: $e');
     }
   }
 
-  /// Register device token with backend
-  /// Should be called after user successfully logs in
-  /// @param authToken - Authentication token for the logged-in user
+  
+  
+  
   static Future<void> registerDeviceToken({String? authToken}) async {
     try {
       final token = await getToken();
@@ -157,7 +157,7 @@ class EcliniqPushNotifications {
         platform = 'ANDROID';
         final androidInfo = await deviceInfo.androidInfo;
         deviceId = androidInfo.id;
-        deviceName = androidInfo.brand; // or model
+        deviceName = androidInfo.brand; 
         deviceModel = androidInfo.model;
         osVersion = 'Android ${androidInfo.version.release}';
       } else if (Platform.isIOS) {
@@ -182,11 +182,11 @@ class EcliniqPushNotifications {
       
       log('Device token registration initiated with auth token');
       
-      // Listen for token refresh
+      
       _messaging.onTokenRefresh.listen((newToken) async {
         log('FCM Token refreshed: $newToken');
         
-        // Get current auth token from storage
+        
         final prefs = await SharedPreferences.getInstance();
         final currentAuthToken = prefs.getString('auth_token');
         
@@ -211,38 +211,38 @@ class EcliniqPushNotifications {
     }
   }
 
-  /// Set up notification listeners
-  /// Should be called after app initialization
+  
+  
   static void setNotificationListeners() {
     log('Setting up notification listeners');
 
-    // Handle notification that opened the app
+    
     if (_initialMessage != null) {
       _handleNotification(data: _initialMessage!.data);
       _initialMessage = null;
     }
 
-    // Handle notification when app is opened from background
+    
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       log('Notification opened app: ${message.messageId}');
       log('Notification data: ${message.data}');
       _handleNotification(data: message.data);
     });
 
-    // Handle foreground notifications
+    
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       log('Foreground notification received: ${message.messageId}');
       log('Notification title: ${message.notification?.title}');
       log('Notification body: ${message.notification?.body}');
       log('Notification data: ${message.data}');
       
-      // Handle appointment token updates for lock screen notification
+      
       _handleAppointmentTokenUpdate(message);
     });
   }
 
-  /// Handle notification data and navigate accordingly
-  /// @param data - Notification data payload
+  
+  
   static void _handleNotification({
     required Map<String, dynamic>? data,
   }) {
@@ -254,13 +254,13 @@ class EcliniqPushNotifications {
     final path = data['path'] as String?;
     final screen = data['screen'] as String?;
 
-    // Check if this is an appointment token update
+    
     if (type == 'appointment_token_update' || type == 'token_update') {
       _handleAppointmentTokenUpdateFromData(data);
       return;
     }
 
-    // Determine navigation based on notification data
+    
     final navigationTarget = type ?? path ?? screen;
 
     switch (navigationTarget) {
@@ -285,27 +285,27 @@ class EcliniqPushNotifications {
         _navigateToProfile();
         break;
 
-      // Add more cases for specific screens
-      // Example: appointment details
+      
+      
       case 'appointment':
       case 'APPOINTMENT':
         final appointmentId = data['appointmentId'] as String?;
         if (appointmentId != null) {
-          // Navigate to appointment details
-          // _navigateToAppointmentDetails(appointmentId);
+          
+          
         }
         break;
 
       default:
         log('Unknown notification type: $navigationTarget');
-        // Default to home if unknown type
+        
         _navigateToHome();
     }
   }
 
-  /// Handle appointment token update from FCM message
-  /// @description Processes FCM messages for token updates and shows/updates lock screen notification
-  /// @param message - FCM RemoteMessage with token update data
+  
+  
+  
   static Future<void> _handleAppointmentTokenUpdate(RemoteMessage message) async {
     try {
       final data = message.data;
@@ -313,7 +313,7 @@ class EcliniqPushNotifications {
 
       final type = data['type'] as String?;
       if (type != 'appointment_token_update' && type != 'token_update') {
-        return; // Not a token update notification
+        return; 
       }
 
       await _handleAppointmentTokenUpdateFromData(data);
@@ -322,9 +322,9 @@ class EcliniqPushNotifications {
     }
   }
 
-  /// Handle appointment token update from notification data
-  /// @description Fetches appointment details and updates lock screen notification
-  /// @param data - Notification data payload with appointment and token info
+  
+  
+  
   static Future<void> _handleAppointmentTokenUpdateFromData(
       Map<String, dynamic> data) async {
     try {
@@ -341,14 +341,14 @@ class EcliniqPushNotifications {
         return;
       }
 
-      // Get auth token
+      
       final authToken = await SessionService.getAuthToken();
       if (authToken == null) {
         log('Auth token not available for fetching appointment details');
         return;
       }
 
-      // Fetch appointment details from backend
+      
       final appointmentService = AppointmentService();
       final appointmentDetailResponse =
           await appointmentService.getAppointmentDetail(
@@ -367,7 +367,7 @@ class EcliniqPushNotifications {
       final location = appointmentDetail.location;
       final schedule = appointmentDetail.schedule;
 
-      // Extract appointment data
+      
       final appointmentData = api_models.AppointmentData(
         id: appointmentDetail.appointmentId,
         patientId: appointmentDetail.patient.name,
@@ -380,7 +380,7 @@ class EcliniqPushNotifications {
         updatedAt: appointmentDetail.updatedAt,
       );
 
-      // Show or update lock screen notification
+      
       await AppointmentLockScreenNotification.updateNotification(
         appointment: appointmentData,
         currentRunningToken: currentRunningToken,
@@ -395,7 +395,7 @@ class EcliniqPushNotifications {
     }
   }
 
-  /// Navigate to home screen
+  
   static void _navigateToHome() {
     EcliniqRouter.pushReplacement(
       const HomeScreen(),
@@ -403,7 +403,7 @@ class EcliniqPushNotifications {
     );
   }
 
-  /// Navigate to my visits screen
+  
   static void _navigateToMyVisits() {
     EcliniqRouter.pushReplacement(
       const MyVisits(),
@@ -411,7 +411,7 @@ class EcliniqPushNotifications {
     );
   }
 
-  /// Navigate to health files screen
+  
   static void _navigateToHealthFiles() {
     EcliniqRouter.pushReplacement(
       const HealthFiles(),
@@ -419,7 +419,7 @@ class EcliniqPushNotifications {
     );
   }
 
-  /// Navigate to profile screen
+  
   static void _navigateToProfile() {
     EcliniqRouter.pushReplacement(
       const ProfilePage(),
@@ -427,8 +427,8 @@ class EcliniqPushNotifications {
     );
   }
 
-  /// Request notification permissions
-  /// @returns true if permission granted, false otherwise
+  
+  
   static Future<bool> requestPermission() async {
     try {
       final settings = await _messaging.requestPermission(
@@ -452,8 +452,8 @@ class EcliniqPushNotifications {
     }
   }
 
-  /// Subscribe to a topic
-  /// @param topic - Topic name to subscribe to
+  
+  
   static Future<void> subscribeToTopic(String topic) async {
     try {
       await _messaging.subscribeToTopic(topic);
@@ -463,8 +463,8 @@ class EcliniqPushNotifications {
     }
   }
 
-  /// Unsubscribe from a topic
-  /// @param topic - Topic name to unsubscribe from
+  
+  
   static Future<void> unsubscribeFromTopic(String topic) async {
     try {
       await _messaging.unsubscribeFromTopic(topic);
@@ -474,7 +474,7 @@ class EcliniqPushNotifications {
     }
   }
 
-  /// Delete FCM token
+  
   static Future<void> deleteToken() async {
     try {
       await _messaging.deleteToken();

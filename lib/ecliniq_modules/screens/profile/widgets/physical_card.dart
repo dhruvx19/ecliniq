@@ -88,9 +88,9 @@ class _BMIVisualization extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth;
-        const bmiValueWidth = 45.0; // Reduced from 60.0
+        const bmiValueWidth = 45.0; 
         final barWidth =
-            totalWidth - bmiValueWidth - 8; // Reduced spacing from 16
+            totalWidth - bmiValueWidth - 8; 
         final position = _calculatePosition();
 
         const indicatorWidth = 80.0;

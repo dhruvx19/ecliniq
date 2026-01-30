@@ -16,21 +16,21 @@ import 'dart:io';
 class PaymentProcessingScreen extends StatefulWidget {
   final String appointmentId;
   final String merchantTransactionId;
-  final String? token; // PhonePe SDK token (fallback if requestPayload not available)
-  final String? orderId; // PhonePe order ID (fallback if requestPayload not available)
-  final String? requestPayload; // Base64-encoded payment payload from backend (preferred)
+  final String? token; 
+  final String? orderId; 
+  final String? requestPayload; 
   final double totalAmount;
   final double walletAmount;
   final double gatewayAmount;
   final String provider;
 
-  // App schema for PhonePe callback
+  
   final String appSchema;
 
-  // Selected UPI app package name
+  
   final String? selectedUPIPackage;
 
-  // Appointment details for success screen
+  
   final String? doctorName;
   final String? doctorSpecialization;
   final String? selectedSlot;
@@ -51,7 +51,7 @@ class PaymentProcessingScreen extends StatefulWidget {
     required this.walletAmount,
     required this.gatewayAmount,
     required this.provider,
-    this.appSchema = 'ecliniq', // Your app's URL scheme
+    this.appSchema = 'ecliniq', 
     this.selectedUPIPackage,
     this.doctorName,
     this.doctorSpecialization,
@@ -94,7 +94,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       if (widget.requestPayload != null) {
       }
       
-      // Validate requestPayload (preferred) or token/orderId (fallback)
+      
       if (widget.requestPayload == null || widget.requestPayload!.isEmpty) {
         if (widget.token == null || widget.token!.isEmpty) {
           throw PhonePeException('Payment token is missing. Please try booking again.');
@@ -109,14 +109,14 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
         _statusMessage = 'Preparing payment...';
       });
 
-      // Initialize PhonePe SDK if not already initialized
+      
       if (!_phonePeService.isInitialized) {
         final prefs = await SharedPreferences.getInstance();
         final userId = prefs.getString('user_id') ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
         
-        // TODO: Get merchantId from your config/environment
+        
         const merchantId = 'M237OHQ3YCVAO_2511191950';
-        const isProduction = false; // Set to true for production
+        const isProduction = false; 
 
         final initialized = await _phonePeService.initialize(
           isProduction: isProduction,
@@ -131,7 +131,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
         }
       }
 
-      // Start payment
+      
       await _startPhonePePayment();
     } catch (e) {
       setState(() {
@@ -145,12 +145,12 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
   Future<void> _openUPIApp(String packageName) async {
     try {
       if (Platform.isAndroid) {
-        // Try to open the app using package name
+        
         final uri = Uri.parse('package:$packageName');
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
-          // Fallback: try to open via intent
+          
           final intentUri = Uri.parse('intent://#Intent;package=$packageName;end');
           if (await canLaunchUrl(intentUri)) {
             await launchUrl(intentUri, mode: LaunchMode.externalApplication);
@@ -158,14 +158,14 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Error opening UPI app: $e');
-      // Continue with PhonePe SDK flow as fallback
+      
+      
     }
   }
 
   Future<void> _startPhonePePayment() async {
     try {
-      // Validate requestPayload (preferred) or token (fallback)
+      
       if (widget.requestPayload == null || widget.requestPayload!.isEmpty) {
         if (widget.token == null || widget.token!.isEmpty) {
           throw PhonePeException('Payment token is empty. Please try booking again.');
@@ -177,10 +177,10 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
         _statusMessage = 'Opening payment app...';
       });
 
-      // If specific UPI app is selected, try to open it directly
+      
       if (widget.selectedUPIPackage != null) {
         await _openUPIApp(widget.selectedUPIPackage!);
-        // Wait a bit for app to open
+        
         await Future.delayed(const Duration(milliseconds: 300));
       } else {
         await Future.delayed(const Duration(milliseconds: 500));
@@ -193,31 +193,31 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
       }
 
       final result = await _phonePeService.startPayment(
-        requestPayload: widget.requestPayload, // Base64-encoded payload from backend (preferred)
-        token: widget.token, // PhonePe SDK token from backend (fallback)
-        orderId: widget.orderId, // PhonePe order ID from backend (fallback)
-        appSchema: widget.appSchema, // 'ecliniq' - your app's URL scheme
+        requestPayload: widget.requestPayload, 
+        token: widget.token, 
+        orderId: widget.orderId, 
+        appSchema: widget.appSchema, 
       );
 
 
 
       if (result.success) {
-        // SDK reported success, verify with backend
+        
         await _verifyPayment();
       } else if (result.status == 'INCOMPLETE') {
-        // User cancelled or flow incomplete
+        
         setState(() {
           _currentStatus = PaymentStatus.failed;
           _statusMessage = 'Payment cancelled';
           _errorMessage = 'Payment was cancelled. You can try booking again.';
         });
       } else {
-        // SDK reported failure, still verify with backend (payment might have succeeded)
+        
         await _verifyPayment();
       }
     } catch (e) {
       
-      // On error, check if it's a cancellation or app not found
+      
       final errorString = e.toString().toLowerCase();
       if (errorString.contains('cancelled') || errorString.contains('cancel')) {
         setState(() {
@@ -234,8 +234,8 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
           _errorMessage = 'Please install PhonePe app or PhonePe Simulator to proceed with payment.';
         });
       } else {
-        // For other errors, still try to verify (PhonePe might have processed it)
-        // But also show the error to user
+        
+        
         setState(() {
           _errorMessage = 'Error opening PhonePe: ${e.toString()}';
         });
@@ -413,7 +413,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  // Show helpful message when processing payment
+                  
                   if (_currentStatus == PaymentStatus.processing ||
                       _currentStatus == PaymentStatus.verifying) ...[
                     Container(

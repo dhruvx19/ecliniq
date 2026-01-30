@@ -169,7 +169,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
   Widget build(BuildContext context) {
     final screenSize = ResponsiveHelper.getScreenSize(context);
 
-    // Responsive values for different mobile sizes
+    
     final horizontalPadding = screenSize.getResponsiveValue(
       mobile: 14.0,
       mobileSmall: 12.0,
@@ -246,7 +246,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Updated profile photo section matching UserDetails style
+                        
                         Center(
                           child: GestureDetector(
                             onTap: () => _uploadPhoto(provider),
@@ -301,7 +301,7 @@ class _AddDependentBottomSheetState extends State<AddDependentBottomSheet> {
                                       : null,
                                 ),
 
-                                // Edit icon overlay when photo is selected
+                                
                                 if (provider.selectedProfilePhoto != null)
                                   Positioned(
                                     bottom: 0,

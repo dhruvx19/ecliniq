@@ -42,7 +42,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
     final safeContext = _storedParentContext;
     if (safeContext == null) return;
 
-    // Check permissions for both iOS and Android
+    
     if (!kIsWeb) {
       Permission? requiredPermission;
       String permissionTitle = 'Permission Required';
@@ -62,19 +62,19 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
               'We need access to your photo library to select health documents and images';
           break;
         case UploadSource.files:
-          // File picker handles its own permissions
+          
           break;
       }
 
-      // Handle permission if required
-      // Only check for permanently denied - let image_picker handle the actual permission request
+      
+      
       if (requiredPermission != null) {
         try {
-          // Check if permission is permanently denied - if so, direct to Settings
+          
           final permissionResult = await MediaPermissionManager.getPermissionStatus(requiredPermission);
           
           if (permissionResult == MediaPermissionResult.permanentlyDenied) {
-            // Permission is permanently denied, user must go to Settings
+            
             _pendingUploadSource = source;
             _showPermissionDeniedDialog(
               safeContext,
@@ -85,28 +85,28 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
             return;
           }
           
-          // For all other cases (granted, denied, notDetermined), let image_picker handle it
-          // image_picker will show the permission dialog if needed
-          // We'll catch any permission errors in the upload handler
+          
+          
+          
         } catch (e) {
-          debugPrint('Permission check error: $e');
-          // Continue anyway - let image_picker handle it
+          
+          
         }
       }
     }
 
-    // Permission granted, proceed with upload
+    
     _proceedWithUpload(source);
   }
 
-  /// Proceed with the actual upload after permission is granted
+  
   Future<void> _proceedWithUpload(UploadSource source) async {
     final safeContext = _storedParentContext;
     if (safeContext == null || !mounted) return;
     BuildContext? loadingDialogContext;
 
     try {
-      // Show loading dialog
+      
       showDialog(
         context: safeContext,
         barrierDismissible: false,
@@ -125,14 +125,14 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
         setState(() => _isUploading = true);
       }
 
-      // Pick file (don't save yet - will be saved when user clicks Save in EditDocumentDetailsPage)
+      
       Map<String, String>? fileData;
       try {
         fileData = await _uploadHandler.handleUpload(
           source: source,
         );
       } catch (e) {
-        // Handle permission errors from image_picker on iOS
+        
         if (!kIsWeb && Platform.isIOS && e.toString().contains('permission')) {
           String iosPermissionTitle = '';
           String iosPermissionMessage = '';
@@ -152,11 +152,11 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
               break;
           }
 
-          // Close loading dialog
+          
           _closeLoadingDialog(loadingDialogContext, safeContext);
           loadingDialogContext = null;
 
-          // Check permission status using MediaPermissionManager
+          
           if (source == UploadSource.camera || source == UploadSource.gallery) {
             Permission permission = source == UploadSource.camera
                 ? Permission.camera
@@ -164,8 +164,8 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
 
             final permissionResult = await MediaPermissionManager.getPermissionStatus(permission);
 
-            // On iOS, if permission is denied (even if not permanently), we should direct to Settings
-            // because requesting again might make it permanently denied
+            
+            
             if (permissionResult == MediaPermissionResult.permanentlyDenied ||
                 (Platform.isIOS && permissionResult == MediaPermissionResult.denied)) {
               _pendingUploadSource = source;
@@ -176,7 +176,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
                 source: source,
               );
             } else {
-              // On Android, we can retry
+              
               ScaffoldMessenger.of(safeContext).showSnackBar(
                 SnackBar(
                   content: Text('$iosPermissionTitle is required to continue'),
@@ -206,7 +206,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
         rethrow;
       }
 
-      // Close loading dialog BEFORE navigating
+      
       _closeLoadingDialog(loadingDialogContext, safeContext);
       loadingDialogContext = null;
       await Future.delayed(const Duration(milliseconds: 200));
@@ -218,9 +218,9 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // Use EcliniqRouter for navigation - it uses global navigator key
-        // This ensures navigation works even after bottom sheet is closed
-        // Pass file path instead of saved HealthFile - file will be saved when user clicks Save
+        
+        
+        
         try {
           final savedFile = await EcliniqRouter.push<HealthFile>(
             EditDocumentDetailsPage(
@@ -229,13 +229,13 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
             ),
           );
 
-          // Refresh after file is saved (user clicked Save Details)
+          
           if (savedFile != null && widget.onFileUploaded != null) {
             await widget.onFileUploaded!();
           }
         } catch (e) {
-          debugPrint('Error navigating to EditDocumentDetailsPage: $e');
-          // Fallback: try with context if EcliniqRouter fails
+          
+          
           if (safeContext != null && mounted) {
             try {
               final savedFile = await Navigator.of(safeContext, rootNavigator: true)
@@ -248,17 +248,17 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
                     ),
                   );
 
-              // Refresh after file is saved (user clicked Save Details)
+              
               if (savedFile != null && widget.onFileUploaded != null) {
                 await widget.onFileUploaded!();
               }
             } catch (e2) {
-              debugPrint('Fallback navigation also failed: $e2');
+              
             }
           }
         }
       } else {
-        // User cancelled
+        
         if (mounted) {
           setState(() => _isUploading = false);
           ScaffoldMessenger.of(safeContext).showSnackBar(
@@ -294,7 +294,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
     }
   }
 
-  /// Helper method to safely close loading dialog
+  
   void _closeLoadingDialog(
     BuildContext? dialogContext,
     BuildContext fallbackContext,
@@ -363,13 +363,13 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
-              // Store the source to resume after returning from settings
+              
               if (source != null) {
                 _pendingUploadSource = source;
               }
               await openAppSettings();
-              // On Android, when user returns from settings, didChangeAppLifecycleState
-              // will be called and check if permission is granted
+              
+              
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2372EC),
@@ -406,13 +406,13 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    // When app comes back to foreground, check if permission was granted
+    
     if (state == AppLifecycleState.resumed && _pendingUploadSource != null) {
       _checkPermissionAndProceed(_pendingUploadSource!);
     }
   }
 
-  /// Check permission status and proceed with upload if granted
+  
   Future<void> _checkPermissionAndProceed(UploadSource source) async {
     if (!mounted || _storedParentContext == null) return;
 
@@ -424,24 +424,24 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
     } else if (source == UploadSource.gallery) {
       requiredPermission = Permission.photos;
     } else {
-      // For files, no permission check needed
+      
       _pendingUploadSource = null;
       _proceedWithUpload(source);
       return;
     }
 
     if (requiredPermission != null) {
-      // Add a small delay to ensure app is fully resumed
+      
       await Future.delayed(const Duration(milliseconds: 500));
       
-      // Use MediaPermissionManager for better iOS 17 handling
+      
       final permissionResult = await MediaPermissionManager.getPermissionStatus(requiredPermission);
       if (permissionResult == MediaPermissionResult.granted) {
-        // Permission granted, proceed with upload
+        
         _pendingUploadSource = null;
         _proceedWithUpload(source);
       } else {
-        // Permission still not granted, clear pending
+        
         _pendingUploadSource = null;
       }
     }

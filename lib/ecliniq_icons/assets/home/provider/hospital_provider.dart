@@ -63,7 +63,7 @@ class HospitalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Use provided coordinates (user's actual location)
+      
       final double requestLat = latitude;
       final double requestLong = longitude;
 

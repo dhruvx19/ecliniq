@@ -81,7 +81,7 @@ class PatientDetailsData {
   });
 
   factory PatientDetailsData.fromJson(Map<String, dynamic> json) {
-    // Helper to safely parse DateTime
+    
     DateTime? parseDateTime(dynamic value) {
       if (value == null) return null;
       try {
@@ -92,7 +92,7 @@ class PatientDetailsData {
       }
     }
 
-    // Helper to safely parse list of strings
+    
     List<String> parseStringList(dynamic value) {
       if (value == null) return [];
       if (value is List) {
@@ -142,7 +142,7 @@ class PatientDetailsData {
     );
   }
 
-  // Helper methods for display
+  
   String get fullName {
     if (user == null) return '';
     final firstName = user!.firstName ?? '';
@@ -230,7 +230,7 @@ class PatientUser {
   }
 }
 
-// Dependent Models
+
 class AddDependentRequest {
   final String firstName;
   final String lastName;
@@ -325,25 +325,25 @@ class GetDependentsResponse {
     required this.timestamp,
   });
 
-  // Legacy getter for backward compatibility
+  
   List<DependentData> get data => dependents;
 
   factory GetDependentsResponse.fromJson(Map<String, dynamic> json) {
-    // The API returns data as an object with 'self' and 'dependents' properties
+    
     DependentData? selfData;
     List<DependentData> dependentsList = [];
     
     if (json['data'] != null && json['data'] is Map<String, dynamic>) {
       final dataMap = json['data'] as Map<String, dynamic>;
       
-      // Extract self data
+      
       if (dataMap['self'] != null && dataMap['self'] is Map<String, dynamic>) {
         final selfJson = dataMap['self'] as Map<String, dynamic>;
-        // Add relation as "SELF" if not present
+        
         if (!selfJson.containsKey('relation') || selfJson['relation'] == null) {
           selfJson['relation'] = 'SELF';
         }
-        // Add createdAt and updatedAt if not present
+        
         if (!selfJson.containsKey('createdAt')) {
           selfJson['createdAt'] = DateTime.now().toIso8601String();
         }
@@ -353,7 +353,7 @@ class GetDependentsResponse {
         selfData = DependentData.fromJson(selfJson);
       }
       
-      // Extract dependents array
+      
       if (dataMap['dependents'] != null && dataMap['dependents'] is List) {
         dependentsList = (dataMap['dependents'] as List)
             .map((item) => DependentData.fromJson(item as Map<String, dynamic>))
@@ -463,16 +463,16 @@ class DependentData {
     return '${years}y ${months}m';
   }
 
-  /// Format relation string to proper case (e.g., "BROTHER" -> "Brother")
+  
   String get formattedRelation {
     if (relation.isEmpty) return relation;
     final upperRelation = relation.toUpperCase();
     if (upperRelation == 'SELF') return 'Self';
-    // Convert to title case: first letter uppercase, rest lowercase
+    
     return relation[0].toUpperCase() + relation.substring(1).toLowerCase();
   }
 
-  /// Check if this is the self/current user
+  
   bool get isSelf => relation.toUpperCase() == 'SELF';
 }
 

@@ -40,7 +40,7 @@ class DoctorInfoCard extends StatelessWidget {
 
   String _formatDoctorName(String name) {
     if (name.toLowerCase().startsWith('dr.')) {
-      // Ensure proper capitalization if needed, or just return
+      
       return name;
     }
     return 'Dr. $name';
@@ -63,14 +63,14 @@ class DoctorInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if Change option should be visible
+    
     bool shouldShowChange = false;
     if (doctor != null) {
       final totalLocations = doctor!.hospitals.length + doctor!.clinics.length;
       shouldShowChange = totalLocations >= 2;
     }
     
-    // Also check if callback is provided
+    
     if (onChangeLocation == null) {
       shouldShowChange = false;
     }

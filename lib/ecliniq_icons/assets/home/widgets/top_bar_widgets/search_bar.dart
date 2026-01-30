@@ -45,9 +45,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
-    // Initialize query from controller if it has text
+    
     query = _controller.text;
-    // Always add listener to sync state with controller changes (for voice search)
+    
     _controller.addListener(_onControllerChanged);
     if (widget.autofocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -59,7 +59,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   void didUpdateWidget(SearchBarWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If controller changed, update listener and sync state
+    
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller?.removeListener(_onControllerChanged);
       _controller = widget.controller ?? TextEditingController();
@@ -108,7 +108,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   void dispose() {
     _timer?.cancel();
-    // Remove listener before disposing
+    
     _controller.removeListener(_onControllerChanged);
     if (widget.controller == null) {
       _controller.dispose();
@@ -138,7 +138,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       ),
       child: Row(
         children: [
-          // Search Icon
+          
           Padding(
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
               context,
@@ -153,7 +153,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
             ),
           ),
-          // Text Input
+          
           Expanded(
             child: GestureDetector(
               onTap: widget.onTap,
@@ -185,7 +185,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               ),
             ),
           ),
-          // Clear or Voice Icon
+          
           if (query.isNotEmpty)
             GestureDetector(
               onTap: _clearSearch,
@@ -215,18 +215,18 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                 ),
                 child: Container(
                   padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 4),
-                  // decoration: widget.isListening
-                  //     ? BoxDecoration(
-                  //         shape: BoxShape.circle,
-                  //         boxShadow: [
-                  //           BoxShadow(
-                  //             color: const Color(0xFF2372EC).withOpacity(0.5),
-                  //             blurRadius: 12,
-                  //             spreadRadius: 2,
-                  //           ),
-                  //         ],
-                  //       )
-                  //     : null,
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
                   child: SvgPicture.asset(
                     EcliniqIcons.microphone.assetPath,
                     width: EcliniqTextStyles.getResponsiveIconSize(context, 32),

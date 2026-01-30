@@ -41,19 +41,19 @@ class FileTypeScreen extends StatefulWidget {
 }
 
 class _FileTypeScreenState extends State<FileTypeScreen> {
-  String? _selectedRecordFor; // For backward compatibility
-  final Set<String> _selectedNames = {}; // For multiple name filtering
+  String? _selectedRecordFor; 
+  final Set<String> _selectedNames = {}; 
   final List<String> _recordForOptions = ['All'];
   HealthFileType? _selectedFileType;
 
-  // Selection mode state
+  
   bool _isSelectionMode = false;
   final Set<String> _selectedFileIds = {};
 
-  // ScrollController for syncing tab indicator
+  
   final ScrollController _tabScrollController = ScrollController();
 
-  // Search functionality
+  
   final TextEditingController _searchController = TextEditingController();
   final SpeechToText _speechToText = SpeechToText();
   bool _speechEnabled = false;
@@ -93,13 +93,11 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           final errorMsg = error.errorMsg.toLowerCase();
           if (!errorMsg.contains('no_match') &&
               !errorMsg.contains('listen_failed')) {
-            debugPrint(
-              'Speech recognition initialization error: ${error.errorMsg}',
-            );
+            
           }
         },
         onStatus: (status) {
-          debugPrint('Speech recognition status: $status');
+          
           if (mounted) {
             if (status == 'notListening' ||
                 status == 'done' ||
@@ -114,9 +112,9 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       if (mounted) {
         setState(() {});
       }
-      debugPrint('Speech recognition initialized: $_speechEnabled');
+      
     } catch (e) {
-      debugPrint('Error initializing speech recognition: $e');
+      
       _speechEnabled = false;
       if (mounted) {
         setState(() {});
@@ -148,12 +146,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
     final isAvailable = await _speechToText.initialize(
       onError: (error) {
-        debugPrint('Speech recognition error: ${error.errorMsg}');
+        
         final errorMsg = error.errorMsg.toLowerCase();
         if (errorMsg.contains('no_match') ||
             errorMsg.contains('listen_failed') ||
             errorMsg.contains('error_network_error')) {
-          debugPrint('Expected speech recognition error: ${error.errorMsg}');
+          
           if (mounted) {
             setState(() => _isListening = false);
           }
@@ -183,7 +181,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         }
       },
       onStatus: (status) {
-        debugPrint('Speech recognition status: $status');
+        
         if (mounted) {
           if (status == 'notListening' ||
               status == 'done' ||
@@ -227,7 +225,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Error starting speech recognition: $e');
+      
       if (mounted) {
         setState(() => _isListening = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -248,9 +246,9 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           _isListening = false;
         });
       }
-      debugPrint('Speech recognition stopped');
+      
     } catch (e) {
-      debugPrint('Error stopping speech recognition: $e');
+      
       if (mounted) {
         setState(() {
           _isListening = false;
@@ -260,11 +258,9 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
-    debugPrint(
-      'Speech result: ${result.recognizedWords}, final: ${result.finalResult}',
-    );
+    
 
-    // Update the search controller with recognized words
+    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -357,7 +353,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   Future<void> _handleBulkDelete(List<HealthFile> files) async {
     if (_selectedFileIds.isEmpty) return;
 
-    // Check storage permissions for Android before bulk delete
+    
     if (Platform.isAndroid) {
       try {
         final appDir = await getApplicationDocumentsDirectory();
@@ -378,7 +374,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           if (!status.isGranted) {
             if (!mounted) return;
 
-            // Try to request permission
+            
             final result = await Permission.storage.request();
 
             if (!result.isGranted) {
@@ -410,8 +406,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           }
         }
       } catch (e) {
-        debugPrint('Error checking permissions: $e');
-        // Continue anyway
+        
+        
       }
     }
 
@@ -429,7 +425,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     BuildContext? dialogContext;
 
     try {
-      // Show loading indicator
+      
       if (mounted) {
         showDialog(
           context: context,
@@ -439,7 +435,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             return const Center(child: EcliniqLoader());
           },
         );
-        // Give the dialog a moment to be fully shown
+        
         await Future.delayed(const Duration(milliseconds: 100));
       }
 
@@ -452,14 +448,14 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           .where((f) => _selectedFileIds.contains(f.id))
           .toList();
 
-      // Delete files one by one
+      
       for (final file in filesToDelete) {
         try {
-          // Check if file exists
+          
           final fileToDelete = File(file.filePath);
           if (!await fileToDelete.exists()) {
             notFoundCount++;
-            // Still try to remove from database
+            
             await provider.deleteFile(file);
             continue;
           }
@@ -471,29 +467,29 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             failedCount++;
           }
         } catch (e) {
-          debugPrint('Error deleting file ${file.fileName}: $e');
+          
           failedCount++;
         }
       }
 
-      // Refresh the file list to ensure UI updates
+      
       if (mounted && (successCount > 0 || notFoundCount > 0)) {
         await provider.refresh();
       }
 
-      // Close loading indicator
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (e) {
-          debugPrint('Error closing loading dialog: $e');
+          
         }
         dialogContext = null;
       }
 
       if (!mounted) return;
 
-      // Show appropriate message
+      
       if (successCount > 0) {
         String message = '$successCount file(s) deleted successfully';
         if (notFoundCount > 0) {
@@ -522,12 +518,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
       _clearSelection();
     } catch (e) {
-      // Close loading indicator if still open
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (_) {
-          debugPrint('Error closing loading dialog in catch:');
+          
         }
         dialogContext = null;
       }
@@ -540,12 +536,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         duration: const Duration(seconds: 3),
       );
     } finally {
-      // Ensure dialog is closed even if something unexpected happens
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (_) {
-          // Dialog might already be closed, ignore error
+          
         }
         dialogContext = null;
       }
@@ -555,29 +551,29 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   Future<void> _handleBulkDownload(List<HealthFile> files) async {
     if (_selectedFileIds.isEmpty) return;
 
-    // Check storage permissions for Android before bulk download - use default Android dialog
+    
     if (Platform.isAndroid) {
-      // Check both permission statuses
+      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      // If neither permission is granted, request permission using default Android dialog
+      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        // Determine which permission to request
+        
         Permission storagePermission = Permission.storage;
 
-        // For Android 11+, try manageExternalStorage first if not permanently denied
+        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        // Request permission directly (shows default Android dialog)
+        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (mounted) {
             if (result.isPermanentlyDenied) {
-              // Show dialog to open settings
+              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -625,12 +621,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       context: context,
       child: UploadBottomSheet(
         onFileUploaded: () async {
-          // Refresh files after upload - ensure UI updates immediately
+          
           if (mounted) {
             final provider = context.read<HealthFilesProvider>();
-            // Force refresh to reload files from storage
+            
             await provider.refresh();
-            // Ensure listeners are notified
+            
             if (mounted) {
               provider.notifyListeners();
             }
@@ -653,8 +649,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           await _handleFileDownload(file, showSnackbar: false);
           successCount++;
         } catch (e) {
-          // Continue with next file if one fails
-          debugPrint('Error downloading file ${file.fileName}: $e');
+          
+          
         }
       }
 
@@ -688,10 +684,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }
 
   Future<void> _handleFileDelete(HealthFile file) async {
-    // Check storage permissions for Android before delete
+    
     if (Platform.isAndroid) {
       try {
-        // Check if file is in app-specific directory (no permission needed)
+        
         final appDir = await getApplicationDocumentsDirectory();
         final externalDir = await getExternalStorageDirectory();
 
@@ -700,19 +696,19 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             (externalDir != null && file.filePath.startsWith(externalDir.path));
 
         if (!isInAppDir) {
-          // File is in public storage (like Downloads), need permission
+          
           final status = await Permission.storage.status;
 
           if (!status.isGranted) {
             if (!mounted) return;
 
-            // Request permission
+            
             final result = await Permission.storage.request();
 
             if (!result.isGranted) {
               if (!mounted) return;
 
-              // Show dialog to explain and direct to settings if needed
+              
               await showDialog(
                 context: context,
                 builder: (context) => PermissionRequestDialog(
@@ -739,12 +735,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           }
         }
       } catch (e) {
-        debugPrint('Error checking permissions: $e');
-        // Continue anyway - let the delete operation fail if needed
+        
+        
       }
     }
 
-    // Proceed with delete confirmation
+    
     await _proceedWithDelete(file);
   }
 
@@ -759,7 +755,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     BuildContext? dialogContext;
 
     try {
-      // Show loading indicator
+      
       if (mounted) {
         showDialog(
           context: context,
@@ -773,20 +769,20 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
       final provider = context.read<HealthFilesProvider>();
 
-      // Delete the file (provider handles both physical file and metadata)
+      
       final success = await provider.deleteFile(file);
 
-      // Refresh the file list to ensure UI updates
+      
       if (success && mounted) {
         await provider.refresh();
       }
 
-      // Close loading indicator - ensure it closes even if refresh fails
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (e) {
-          debugPrint('Error closing loading dialog: $e');
+          
         }
         dialogContext = null;
       }
@@ -808,12 +804,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         );
       }
     } catch (e) {
-      // Close loading indicator if still open
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (_) {
-          debugPrint('Error closing loading dialog in catch:');
+          
         }
         dialogContext = null;
       }
@@ -826,12 +822,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         duration: const Duration(seconds: 3),
       );
     } finally {
-      // Ensure dialog is closed even if something unexpected happens
+      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
         } catch (_) {
-          // Dialog might already be closed, ignore error
+          
         }
       }
     }
@@ -843,29 +839,29 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }) async {
     if (!mounted) return;
 
-    // Check storage permissions for Android - use default Android dialog like location
+    
     if (Platform.isAndroid) {
-      // Check both permission statuses
+      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      // If neither permission is granted, request permission using default Android dialog
+      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        // Determine which permission to request
+        
         Permission storagePermission = Permission.storage;
 
-        // For Android 11+, try manageExternalStorage first if not permanently denied
+        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        // Request permission directly (shows default Android dialog)
+        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (mounted) {
             if (result.isPermanentlyDenied) {
-              // Show dialog to open settings
+              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -905,7 +901,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       }
     }
 
-    // Proceed with download
+    
     await _proceedWithDownload(file, showSnackbar: showSnackbar);
   }
 
@@ -915,7 +911,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }) async {
     if (!mounted) return;
 
-    // Show "Download started" message immediately
+    
     if (showSnackbar) {
       SnackBarHelper.showSnackBar(
         context,
@@ -947,12 +943,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         try {
           Directory targetDir;
 
-          // Try primary download directory first
+          
           final primaryDir = Directory('/storage/emulated/0/Download');
           if (await primaryDir.exists()) {
             targetDir = primaryDir;
           } else {
-            // Fallback to app's external storage directory
+            
             final externalDir = await getExternalStorageDirectory();
             if (externalDir == null) {
               throw Exception(
@@ -978,10 +974,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             counter++;
           }
 
-          // Download file in background
+          
           await sourceFile.copy(destFile.path);
 
-          // Verify file was copied successfully
+          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -990,7 +986,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
           if (!mounted) return;
 
-          // Show success snackbar
+          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -1000,7 +996,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             );
           }
 
-          // Show local notification
+          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
           return;
         } catch (e) {
@@ -1017,7 +1013,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         }
       }
 
-      // For iOS - save to app's Documents directory in a Downloads subfolder
+      
       if (Platform.isIOS) {
         try {
           final documentsDir = await getApplicationDocumentsDirectory();
@@ -1025,16 +1021,16 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             path.join(documentsDir.path, 'Downloads'),
           );
 
-          // Create Downloads directory if it doesn't exist
+          
           if (!await downloadsDir.exists()) {
             await downloadsDir.create(recursive: true);
-            debugPrint('📁 Created Downloads directory: ${downloadsDir.path}');
+            
           }
 
           String fileName = file.fileName;
           File destFile = File(path.join(downloadsDir.path, fileName));
 
-          // Handle duplicate file names
+          
           int counter = 1;
           while (await destFile.exists()) {
             final nameWithoutExt = path.basenameWithoutExtension(fileName);
@@ -1044,11 +1040,11 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             counter++;
           }
 
-          // Copy file to Downloads directory
+          
           await sourceFile.copy(destFile.path);
-          debugPrint('✅ File copied to: ${destFile.path}');
+          
 
-          // Verify file was copied successfully
+          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -1057,7 +1053,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
           if (!mounted) return;
 
-          // Show success message
+          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -1067,13 +1063,13 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             );
           }
 
-          // Show local notification
+          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
 
-          debugPrint('✅ iOS download completed: $fileName');
+          
           return;
         } catch (e) {
-          debugPrint('❌ iOS download error: $e');
+          
 
           if (!mounted) return;
 
@@ -1088,7 +1084,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         }
       }
     } catch (e) {
-      debugPrint('❌ Download error: $e');
+      
 
       if (!mounted) return;
 
@@ -1117,17 +1113,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
       if (!mounted) return;
 
-      // Note: To implement actual sharing, you need to add share_plus package
-      // Add to pubspec.yaml: share_plus: ^7.2.1
-      // Then uncomment this code:
-      /*
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: healthFile.fileName,
-      );
-      */
+      
+      
+      
+      
 
-      // For now, show a message
+      
       SnackBarHelper.showSnackBar(
         context,
         'File saved to app Downloads folder. Share functionality coming soon.',
@@ -1150,21 +1141,21 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       child: HealthFilesFilter(
         initialSelectedNames: _selectedNames,
         onApply: (result) {
-          // This callback is called before the bottom sheet closes
-          // We'll update state in .then() after the sheet closes
+          
+          
         },
       ),
     ).then((result) {
-      // Update state after bottom sheet closes
+      
       if (mounted) {
         setState(() {
           if (result != null) {
             final selectedNames = result['selectedNames'] as List<dynamic>?;
             final sortBy = result['sortBy'];
-            // Check if reset was called (empty result)
+            
             if (selectedNames == null ||
                 (selectedNames.isEmpty && sortBy == null)) {
-              // Reset filters - clear all selections
+              
               _selectedNames.clear();
               _selectedRecordFor = null;
             } else if (selectedNames.isNotEmpty) {
@@ -1172,15 +1163,15 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               _selectedNames.addAll(
                 selectedNames.map((name) => name.toString()),
               );
-              // Clear single selection for backward compatibility
+              
               _selectedRecordFor = null;
             } else {
               _selectedNames.clear();
               _selectedRecordFor = null;
             }
           } else {
-            // If result is null, user dismissed without applying
-            // Keep current selections
+            
+            
           }
         });
       }
@@ -1188,7 +1179,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }
 
   void _showFileActions(HealthFile file) {
-    // Store context before showing bottom sheet
+    
     final savedContext = context;
 
     EcliniqBottomSheet.show(
@@ -1196,7 +1187,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       child: ActionBottomSheet(
         healthFile: file,
         onEditDocument: () {
-          Navigator.pop(context); // Close action bottom sheet first
+          Navigator.pop(context); 
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
               EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
@@ -1204,22 +1195,22 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           });
         },
         onDownloadDocument: () async {
-          Navigator.pop(context); // Close action bottom sheet first
+          Navigator.pop(context); 
           await Future.delayed(const Duration(milliseconds: 200));
           if (mounted) {
             await _handleFileDownload(file);
           }
         },
         onDeleteDocument: () async {
-          // Close action bottom sheet first
+          
           Navigator.of(context, rootNavigator: false).pop();
 
-          // Wait for bottom sheet animation to complete
+          
           await Future.delayed(const Duration(milliseconds: 300));
 
           if (!mounted) return;
 
-          // Call the delete method which will check permissions, show confirmation and handle deletion
+          
           await _handleFileDelete(file);
         },
       ),
@@ -1333,7 +1324,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       child: SafeArea(
         child: Row(
           children: [
-            // Selected count badge
+            
             Expanded(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1399,7 +1390,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               ),
             ),
 
-            // Download button
+            
             IconButton(
               padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 6),
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -1419,7 +1410,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               color: const Color(0xFFB8B8B8),
             ),
             SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2)),
-            // Delete button
+            
             IconButton(
               padding: const EdgeInsets.all(6),
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -1435,7 +1426,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             const SizedBox(width: 2),
             Container(width: 0.5, height: 20, color: const Color(0xFFB8B8B8)),
             const SizedBox(width: 2),
-            // Close/Cancel button
+            
             IconButton(
               padding: const EdgeInsets.all(6),
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -1544,7 +1535,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
                     return Column(
                       children: [
                         if (!_isSearchMode) _buildFileTypeTabs(),
-                        // Show filter header only if there are files present and not in search mode
+                        
                         if (files.isNotEmpty && !_isSearchMode)
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -1702,7 +1693,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               ),
             ],
           ),
-          // Only show upload button when not in selection mode
+          
           if (!_isSelectionMode)
             Positioned(
               right: 16,
@@ -1757,7 +1748,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }
 
   Widget _buildEmptyState() {
-    // Check if filter is applied
+    
     final hasFilter = _selectedNames.isNotEmpty || _selectedRecordFor != null;
 
     return Center(

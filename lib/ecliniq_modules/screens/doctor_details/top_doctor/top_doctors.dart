@@ -41,7 +41,7 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget> {
       );
 
       if (selectedLocation != null && mounted) {
-        // Handle the booking with selected location
+        
         _handleBooking(doctor, selectedLocation);
       }
     } finally {
@@ -52,7 +52,7 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget> {
   }
 
   void _handleBooking(Doctor doctor, LocationData location) {
-    // Navigate to clinic visit slot screen
+    
     if (!mounted) return;
 
     Navigator.push(
@@ -359,7 +359,7 @@ class _AvailabilityBadgeState extends State<_AvailabilityBadge>
     }
 
     final status = availability.status.toUpperCase();
-    // Do not show the container if explicitly no slots available
+    
     if ((availability.availableTokens != null &&
             availability.availableTokens == 0) ||
         status == 'NO_SLOT' ||
@@ -370,7 +370,7 @@ class _AvailabilityBadgeState extends State<_AvailabilityBadge>
     }
 
     if (status == 'QUEUE_STARTED') {
-      // Start animation when queue is started
+      
       if (!_controller.isAnimating) {
         _controller.forward();
       }
@@ -448,7 +448,7 @@ class _AvailabilityBadgeState extends State<_AvailabilityBadge>
       );
     }
 
-    // Default: show message (e.g., Next available ...)
+    
     final message = availability.message;
     String prefix = '';
     String details = message;
@@ -469,7 +469,7 @@ class _AvailabilityBadgeState extends State<_AvailabilityBadge>
         ),
       ),
       child: Column(
-        //crossAxisAlignment: CrossAxisAlignment.end,
+        
         children: [
           if (prefix.isNotEmpty)
             Text(
@@ -584,7 +584,7 @@ class _DoctorInfo extends StatelessWidget {
             context,
           ).copyWith(color: Color(0xff424242)),
         ),
-        //if (doctor.educationText.isNotEmpty) ...[
+        
         SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
         Text(
           'MBBS',
@@ -592,7 +592,7 @@ class _DoctorInfo extends StatelessWidget {
             context,
           ).copyWith(color: Color(0xff424242)),
         ),
-        //],
+        
       ],
     );
   }

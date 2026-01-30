@@ -72,7 +72,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   List<Slot> _slots = [];
   Map<String, List<Slot>> _groupedSlots = {};
   final Map<DateTime, int> _weeklyTokenCounts =
-      {}; // Map of date to token count
+      {}; 
 
   String? _selectedHospitalId;
   String? _selectedClinicId;
@@ -96,19 +96,19 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     _selectedClinicId = widget.clinicId;
     _initializeDates();
 
-    // Use passed doctor data if available, otherwise fetch
+    
     if (widget.doctor != null) {
       _doctor = widget.doctor;
       _updateCurrentLocationDetails();
       _isLoadingDoctorDetails = false;
     }
 
-    // Load slots immediately - don't wait for doctor details
+    
     _fetchWeeklySlots();
     _fetchSlots();
 
-    // Load doctor details and user details in parallel (non-blocking)
-    // Only fetch if doctor data wasn't passed
+    
+    
     if (widget.doctor == null) {
       _fetchDoctorDetails();
     }
@@ -173,7 +173,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Failed to fetch current token number: $e');
+      
     }
   }
 
@@ -195,7 +195,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           if (response.success) {
             _weeklyTokenCounts.clear();
             for (final weeklySlot in response.data) {
-              // Normalize the date to local date (remove time component)
+              
               final dateOnly = DateTime(
                 weeklySlot.date.year,
                 weeklySlot.date.month,
@@ -207,12 +207,12 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         });
       }
     } catch (e) {
-      // Silently fail - weekly slots are not critical for functionality
+      
       if (mounted) {
         setState(() {
           _isLoadingWeeklySlots = false;
         });
-        debugPrint('Failed to fetch weekly slots: $e');
+        
       }
     }
   }
@@ -460,7 +460,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   bool _isSlotDisabled(List<Slot> slots) {
     if (slots.isEmpty) return true;
 
-    // Check if there's at least one slot with available tokens and valid status
+    
     final hasAvailableSlot = slots.any(
       (slot) =>
           slot.availableTokens > 0 &&
@@ -468,7 +468,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           slot.slotStatus != 'CANCELLED',
     );
 
-    // Disabled if no slots have available tokens or all are completed/cancelled
+    
     return !hasAvailableSlot;
   }
 
@@ -497,7 +497,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     });
 
     try {
-      // Use cached SharedPreferences and auth token
+      
       _cachedPrefs ??= await SharedPreferences.getInstance();
       _cachedAuthToken ??= _cachedPrefs!.getString('auth_token');
 
@@ -512,7 +512,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         return;
       }
 
-      // Call hold token API
+      
       final holdTokenResponse = await _slotService.holdToken(
         slotId: slot.id,
         authToken: _cachedAuthToken!,
@@ -520,8 +520,8 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
       if (mounted) {
         if (holdTokenResponse.success && holdTokenResponse.data != null) {
-          // Token held successfully, navigate to review screen
-          // Use hospitalId/clinicId from slot if available, otherwise fallback to widget values
+          
+          
           final hospitalIdFromSlot = slot.hospitalId.isNotEmpty
               ? slot.hospitalId
               : _selectedHospitalId;
@@ -547,18 +547,18 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 appointmentId: widget.appointmentId,
                 previousAppointment: widget.previousAppointment,
                 isReschedule: widget.isReschedule,
-                // Pass doctor data to avoid duplicate API call
+                
                 doctor: _doctor,
                 locationName: _currentLocationName,
                 locationAddress: _currentLocationAddress,
                 locationDistance: _currentDistance,
-                // Pass user details to avoid duplicate API call
+                
                 currentUserDetails: _currentUserDetails,
               ),
             ),
           );
         } else {
-          // Failed to hold token
+          
           final errorMsg = holdTokenResponse.message.isNotEmpty
               ? holdTokenResponse.message
               : 'Failed to reserve slot. Please try again.';
@@ -598,7 +598,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     });
 
     try {
-      // Cache SharedPreferences and auth token to avoid multiple reads
+      
       _cachedPrefs ??= await SharedPreferences.getInstance();
       _cachedAuthToken ??= _cachedPrefs!.getString('auth_token');
 
@@ -618,7 +618,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           setState(() {
             _isLoadingDoctorDetails = false;
           });
-          debugPrint('Failed to fetch doctor details: ${response.message}');
+          
         }
       }
     } catch (e) {
@@ -627,7 +627,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           _isLoadingDoctorDetails = false;
         });
       }
-      debugPrint('Failed to fetch doctor details: $e');
+      
     }
   }
 
@@ -635,7 +635,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
     setState(() {});
 
     try {
-      // Use cached SharedPreferences and auth token
+      
       _cachedPrefs ??= await SharedPreferences.getInstance();
       _cachedAuthToken ??= _cachedPrefs!.getString('auth_token');
 
@@ -659,7 +659,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       if (mounted) {
         setState(() {});
       }
-      debugPrint('Failed to fetch current user details: $e');
+      
     }
   }
 
@@ -695,10 +695,10 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   }
 
   void _onChangeLocation() async {
-    // If doctor details are still loading, wait for them
+    
     if (_doctor == null) {
       if (_isLoadingDoctorDetails) {
-        // Show a message that we're loading doctor details
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Loading doctor details...'),
@@ -707,7 +707,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         );
         return;
       }
-      // If not loading and doctor is null, try to fetch again
+      
       await _fetchDoctorDetails();
       if (_doctor == null || !mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -722,7 +722,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
     final List<DoctorLocationOption> options = [];
 
-    // Add clinics first
+    
     for (var clinic in _doctor!.clinics) {
       options.add(
         DoctorLocationOption(
@@ -735,7 +735,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       );
     }
 
-    // Add hospitals
+    
     for (var hospital in _doctor!.hospitals) {
       options.add(
         DoctorLocationOption(
@@ -778,13 +778,13 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         }
         _updateCurrentLocationDetails();
 
-        // Reset slots and fetch for new location
+        
         selectedSlot = null;
         _isLoading = true;
         _isLoadingWeeklySlots = true;
       });
 
-      // Fetch slots and weekly slots for the new location
+      
       _fetchSlots();
       _fetchWeeklySlots();
     }
@@ -824,7 +824,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             children: [
               Row(
                 children: [
-                  // Avatar shimmer
+                  
                   ShimmerLoading(
                     width: 70,
                     height: 70,
@@ -835,21 +835,21 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Name shimmer
+                        
                         ShimmerLoading(
                           width: 200,
                           height: 20,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         const SizedBox(height: 8),
-                        // Specialization shimmer
+                        
                         ShimmerLoading(
                           width: 150,
                           height: 16,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         const SizedBox(height: 6),
-                        // Education shimmer
+                        
                         ShimmerLoading(
                           width: 180,
                           height: 16,
@@ -861,7 +861,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Experience and rating shimmer
+              
               Row(
                 children: [
                   ShimmerLoading(
@@ -878,7 +878,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              // Location shimmer
+              
               Row(
                 children: [
                   ShimmerLoading(
@@ -889,7 +889,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              // Address shimmer
+              
               Row(
                 children: [
                   ShimmerLoading(
@@ -902,7 +902,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
             ],
           ),
         ),
-        // Token banner shimmer
+        
         Container(
           width: double.infinity,
           color: const Color(0xffF8FAFF),
@@ -1047,7 +1047,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       child: ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: periods.length, // Always show all 4 periods
+        itemCount: periods.length, 
         itemBuilder: (context, index) {
           final period = periods[index];
           final slots = _groupedSlots[period] ?? [];
@@ -1057,12 +1057,12 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           bool isDisabled = false;
 
           if (slots.isEmpty) {
-            // No slots for this period - show default time range and mark as disabled
+            
             timeRange = _getDefaultTimeRange(period);
             totalAvailable = 0;
             isDisabled = true;
           } else {
-            // Slots exist for this period
+            
             slots.sort((a, b) => a.startTime.compareTo(b.startTime));
 
             final earliestStartUTC = slots
@@ -1077,7 +1077,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
               0,
               (sum, slot) => sum + slot.availableTokens,
             );
-            // Disable only if total available tokens is 0
+            
             isDisabled = totalAvailable == 0;
           }
 
@@ -1108,20 +1108,20 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
   Widget _buildPreviousAppointmentBanner() {
     final appointment = widget.previousAppointment!;
 
-    // Parse date from timeInfo.date (format: "dd MMM, yyyy" or similar)
+    
     String dateLabel = 'Today';
     String dateDisplay = '';
 
     try {
-      // Try to parse the date string
+      
       final dateStr = appointment.timeInfo.date;
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
 
-      // Try different date formats
+      
       DateTime? appointmentDate;
       try {
-        // Try parsing as "dd MMM, yyyy" format
+        
         final parts = dateStr.split(',');
         if (parts.length == 2) {
           final datePart = parts[0].trim();
@@ -1152,11 +1152,11 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           }
         }
       } catch (e) {
-        // If parsing fails, try ISO format
+        
         try {
           appointmentDate = DateTime.parse(dateStr);
         } catch (e2) {
-          // If all parsing fails, use today
+          
           appointmentDate = today;
         }
       }
@@ -1178,7 +1178,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           dateLabel = weekdays[dateOnly.weekday - 1];
         }
 
-        // Format as "DD MMM"
+        
         final monthNames = [
           'Jan',
           'Feb',
@@ -1213,7 +1213,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
         dateDisplay = '${today.day} ${monthNames[today.month - 1]}';
       }
     } catch (e) {
-      // Fallback to today's date
+      
       final now = DateTime.now();
       dateLabel = 'Today';
       final monthNames = [
@@ -1233,7 +1233,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       dateDisplay = '${now.day} ${monthNames[now.month - 1]}';
     }
 
-    // Format token and time
+    
     final tokenText = appointment.tokenNumber != null
         ? 'Your Token #${appointment.tokenNumber}'
         : 'Your booking';
@@ -1305,59 +1305,59 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       ),
     );
 
-    // Container(
-    //   margin: const EdgeInsets.all(16),
-    //   padding: const EdgeInsets.all(16),
-    //   decoration: BoxDecoration(
-    //     color: const Color(0xFFF2F7FF),
-    //     borderRadius: BorderRadius.circular(12),
-    //     border: Border.all(
-    //       color: const Color(0xFF96BFFF),
-    //       width: 1,
-    //     ),
-    //   ),
-    //   child: Column(
-    //     crossAxisAlignment: CrossAxisAlignment.start,
-    //     children: [
-    //       Row(
-    //         children: [
-    //           Icon(
-    //             Icons.info_outline,
-    //             color: const Color(0xFF2372EC),
-    //             size: 20,
-    //           ),
-    //           const SizedBox(width: 8),
-    //           Text(
-    //             'Previous Appointment Details',
-    //             style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-    //               color: const Color(0xFF2372EC),
-    //               fontWeight: FontWeight.w600,
-    //             ),
-    //           ),
-    //         ],
-    //       ),
-    //       const SizedBox(height: 12),
-    //       if (appointment.tokenNumber != null)
-    //         _buildBannerRow(
-    //           'Token No',
-    //           appointment.tokenNumber!,
-    //           Icons.confirmation_number,
-    //         ),
-    //       const SizedBox(height: 8),
-    //       _buildBannerRow(
-    //         'Date',
-    //         appointment.timeInfo.date,
-    //         Icons.calendar_today,
-    //       ),
-    //       const SizedBox(height: 8),
-    //       _buildBannerRow(
-    //         'Time',
-    //         appointment.timeInfo.time,
-    //         Icons.access_time,
-    //       ),
-    //     ],
-    //   ),
-    // );
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   }
 
   Widget _buildBannerRow(String label, String value, IconData icon) {
@@ -1605,7 +1605,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Show slots independently - don't wait for doctor details
+                  
                   if (_isLoading)
                     _buildShimmerSlots()
                   else if (_errorMessage != null)
@@ -1615,7 +1615,7 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                   else if (_groupedSlots.isNotEmpty)
                     _buildSlotsList()
                   else
-                    _buildShimmerSlots(), // Show shimmer while waiting for slots
+                    _buildShimmerSlots(), 
                   const SizedBox(height: 100),
                 ],
               ),

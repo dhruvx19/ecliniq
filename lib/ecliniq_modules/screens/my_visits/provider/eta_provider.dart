@@ -3,7 +3,7 @@ import 'package:ecliniq/ecliniq_api/eta_websocket_service.dart';
 import 'package:ecliniq/ecliniq_api/models/eta_update.dart';
 import 'package:flutter/foundation.dart';
 
-/// Provider for managing ETA (Estimated Time of Arrival) WebSocket updates
+
 class ETAProvider extends ChangeNotifier {
   final ETAWebSocketService _websocketService = ETAWebSocketService();
 
@@ -14,7 +14,7 @@ class ETAProvider extends ChangeNotifier {
   String? _errorMessage;
   String? _currentAppointmentId;
 
-  // Stream subscriptions
+  
   StreamSubscription<ETAUpdate>? _etaUpdateSubscription;
   StreamSubscription<SlotDisplayUpdate>? _slotDisplaySubscription;
   StreamSubscription<bool>? _connectionStatusSubscription;
@@ -31,9 +31,9 @@ class ETAProvider extends ChangeNotifier {
     _setupSubscriptions();
   }
 
-  /// Setup stream subscriptions
+  
   void _setupSubscriptions() {
-    // ETA update subscription
+    
     _etaUpdateSubscription = _websocketService.etaUpdateStream.listen(
       (update) {
         _currentETA = update;
@@ -46,7 +46,7 @@ class ETAProvider extends ChangeNotifier {
       },
     );
 
-    // Slot display update subscription
+    
     _slotDisplaySubscription = _websocketService.slotDisplayUpdateStream.listen(
       (update) {
         _currentSlotDisplay = update;
@@ -59,7 +59,7 @@ class ETAProvider extends ChangeNotifier {
       },
     );
 
-    // Connection status subscription
+    
     _connectionStatusSubscription = _websocketService.connectionStatusStream.listen(
       (connected) {
         _isConnected = connected;
@@ -68,7 +68,7 @@ class ETAProvider extends ChangeNotifier {
       },
     );
 
-    // Error subscription
+    
     _errorSubscription = _websocketService.errorStream.listen(
       (error) {
         _errorMessage = error;
@@ -77,7 +77,7 @@ class ETAProvider extends ChangeNotifier {
     );
   }
 
-  /// Connect to WebSocket and join appointment room
+  
   Future<void> connectToAppointment({
     required String appointmentId,
     String? patientId,
@@ -88,14 +88,14 @@ class ETAProvider extends ChangeNotifier {
       _currentAppointmentId = appointmentId;
       notifyListeners();
 
-      // Connect if not already connected
+      
       if (!_websocketService.isConnected) {
         await _websocketService.connect();
-        // Wait for connection to establish
+        
         await Future.delayed(const Duration(milliseconds: 500));
       }
 
-      // Join appointment room
+      
       await _websocketService.joinAppointment(
         appointmentId: appointmentId,
         patientId: patientId,
@@ -110,7 +110,7 @@ class ETAProvider extends ChangeNotifier {
     }
   }
 
-  /// Connect to WebSocket and join doctor session room
+  
   Future<void> connectToDoctorSession({
     required String doctorId,
     required String slotId,
@@ -139,7 +139,7 @@ class ETAProvider extends ChangeNotifier {
     }
   }
 
-  /// Connect to WebSocket and join slot display room
+  
   Future<void> connectToSlotDisplay({
     required String slotId,
   }) async {
@@ -164,7 +164,7 @@ class ETAProvider extends ChangeNotifier {
     }
   }
 
-  /// Disconnect from WebSocket
+  
   Future<void> disconnect() async {
     await _websocketService.disconnect();
     _isConnected = false;
@@ -176,7 +176,7 @@ class ETAProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Clear current ETA data
+  
   void clearETA() {
     _currentETA = null;
     _currentSlotDisplay = null;

@@ -15,7 +15,7 @@ class BookingConfirmedScreen extends StatelessWidget {
   final String patientSubtitle;
   final String patientBadge;
 
-  // Payment details (optional)
+  
   final String? merchantTransactionId;
   final String? paymentMethod;
   final double? totalAmount;
@@ -46,7 +46,7 @@ class BookingConfirmedScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Scrollable content area
+          
           Expanded(
             child: SingleChildScrollView(
               padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16.0),
@@ -178,7 +178,7 @@ class BookingConfirmedScreen extends StatelessWidget {
             ),
           ),
 
-          // Fixed button at bottom
+          
           Container(
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
               context,

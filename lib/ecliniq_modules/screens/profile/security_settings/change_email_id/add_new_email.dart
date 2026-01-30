@@ -35,7 +35,7 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
 
   Future<void> _requestNewOTP() async {
     if (_emailController.text.isEmpty || !_emailController.text.contains('@')) {
-      // Show validation error as snackbar
+      
       
   CustomErrorSnackBar.show(
           title: 'Invalid email address',
@@ -53,7 +53,7 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
 
     try {
       final authToken = await SessionService.getAuthToken();
-      // Step 3: Send OTP to new contact (verificationToken is checked automatically by backend)
+      
       final result = await _authService.sendNewContactOtp(
         type: 'email',
         newContact: _emailController.text,
@@ -67,7 +67,7 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
           _isLoading = false;
         });
 
-        // Navigate to verify new email screen with new challengeId
+        
         final verifyResult = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -78,7 +78,7 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
           ),
         );
 
-        // Pass result back to previous screen
+        
         if (verifyResult != null && mounted) {
           Navigator.pop(context, verifyResult);
         }
@@ -87,7 +87,7 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
           _isLoading = false;
         });
 
-        // Show error snackbar instead of inline error
+        
         if (mounted) {
  
    CustomErrorSnackBar.show(
@@ -104,7 +104,7 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
         _isLoading = false;
       });
 
-      // Show error snackbar for exceptions
+      
       if (mounted) {
 CustomErrorSnackBar.show(
             title: 'Error',
@@ -144,10 +144,10 @@ CustomErrorSnackBar.show(
             color: _isLoading
                 ? const Color(0xFF2372EC)
                 : _isButtonPressed
-                ? const Color(0xFF0E4395) // Pressed color
+                ? const Color(0xFF0E4395) 
                 : _isEmailValid
-                ? const Color(0xFF2372EC) // Enabled color
-                : const Color(0xffF9F9F9), // Disabled color
+                ? const Color(0xFF2372EC) 
+                : const Color(0xffF9F9F9), 
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(
@@ -269,7 +269,7 @@ CustomErrorSnackBar.show(
                           onChanged: (value) {
                             if (mounted) {
                               setState(() {
-                                // Clear error message when user starts typing
+                                
                                 if (_errorMessage != null) {
                                   _errorMessage = null;
                                 }

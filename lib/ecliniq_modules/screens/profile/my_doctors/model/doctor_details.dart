@@ -14,7 +14,7 @@ class FavouriteDoctor {
   final String nextAvailable;
   final bool isFavorite;
   final bool isVerified;
-  final String profileInitial; // e.g. 'M', 'A'
+  final String profileInitial; 
 
   FavouriteDoctor({
     required this.id,
@@ -56,40 +56,40 @@ class FavouriteDoctor {
     );
   }
 
-  /// Factory method to create FavouriteDoctor from API response
+  
   factory FavouriteDoctor.fromApiResponse(Map<String, dynamic> json) {
-    // Extract name
+    
     final name = json['name'] ?? '';
     
-    // Extract profile initial (first letter of first name or name)
+    
     final firstName = json['firstName'] ?? '';
     final profileInitial = firstName.isNotEmpty 
         ? firstName[0].toUpperCase() 
         : (name.isNotEmpty ? name[0].toUpperCase() : 'D');
     
-    // Extract specialization (join array or use first one)
+    
     final specializations = json['specializations'] as List<dynamic>? ?? [];
     final specialization = specializations.isNotEmpty 
         ? specializations.join(', ') 
         : 'General Physician';
     
-    // Extract qualification (join array or use default)
+    
     final qualifications = json['qualifications'] as List<dynamic>? ?? [];
     final qualification = qualifications.isNotEmpty 
         ? qualifications.join(', ') 
         : 'MBBS';
     
-    // Extract experience
+    
     final experience = json['experience'] ?? 0;
     
-    // Extract rating
+    
     final rating = (json['rating'] as num? ?? 0.0).toDouble();
     
-    // Extract fee (convert string to int)
+    
     final feeStr = json['fee'] ?? '0';
     final fee = int.tryParse(feeStr.toString()) ?? 0;
     
-    // Extract distance: supports number or object { meters, km }
+    
     double distance = 0.0;
     final d = json['distance'];
     if (d is Map<String, dynamic>) {
@@ -105,14 +105,14 @@ class FavouriteDoctor {
       distance = double.tryParse(d.toString()) ?? 0.0;
     }
     
-    // Extract availability information
+    
     final availability = json['availability'] as Map<String, dynamic>?;
     final availableTokens = availability?['availableTokens'] ?? 0;
     final totalTokens = availability?['totalTokens'] ?? 0;
     final availabilityMessage = availability?['message'] ?? 'Not available';
     final startTime = availability?['startTime'] ?? '';
     
-    // Extract location from clinics or hospitals
+    
     final clinics = json['clinics'] as List<dynamic>? ?? [];
     final hospitals = json['hospitals'] as List<dynamic>? ?? [];
     String location = 'Location not available';
@@ -132,21 +132,21 @@ class FavouriteDoctor {
           : (hospital['name'] ?? location);
     }
     
-    // Extract available time and days (from availability message or default)
+    
     String availableTime = 'Not available';
     String availableDays = '';
     
-    // Use startTime if available, otherwise parse from message
+    
     if (startTime.isNotEmpty) {
       availableTime = startTime;
     }
     
-    // Parse availability status and message
+    
     final availabilityStatus = availability?['status'] as String? ?? '';
     if (availabilityStatus.contains('TODAY') || availabilityMessage.toLowerCase().contains('today')) {
       availableDays = 'Today';
       if (availableTime.isEmpty) {
-        // Try to extract time from message
+        
         final timeMatch = RegExp(r'(\d{1,2}:\d{2}\s*(?:AM|PM))', caseSensitive: false).firstMatch(availabilityMessage);
         if (timeMatch != null) {
           availableTime = timeMatch.group(1) ?? 'Check availability';
@@ -171,11 +171,11 @@ class FavouriteDoctor {
       }
     }
     
-    // Extract isFavorite
+    
     final isFavorite = json['isFavourite'] ?? false;
     
-    // isVerified - not in API response, defaulting to false
-    // You might want to add this field to the API response later
+    
+    
     final isVerified = false;
     
     return FavouriteDoctor(
@@ -218,7 +218,7 @@ class FavouriteDoctor {
   };
 }
 
-/// Response model for favourite doctors API
+
 class FavouriteDoctorsResponse {
   final bool success;
   final String message;

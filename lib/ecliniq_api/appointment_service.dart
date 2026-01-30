@@ -206,7 +206,7 @@ class AppointmentService {
         'Authorization': 'Bearer $authToken',
       };
 
-      // Send appointmentId in request body as well (API requirement)
+      
       final body = jsonEncode({
         'appointmentId': appointmentId,
       });
@@ -445,7 +445,7 @@ extension AppointmentEtaExtension on AppointmentService {
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // API shape per sample: message contains the payload
+        
         final msg = body['message'] as Map<String, dynamic>?;
         if (msg == null) return null;
         return {
@@ -453,7 +453,7 @@ extension AppointmentEtaExtension on AppointmentService {
           'appointmentStatus': msg['appointmentStatus'],
           'tokenNo': msg['tokenNo'],
           'slotStatus': msg['slotStatus'],
-          'timestamp': body['timestamp'], // Include timestamp from API response
+          'timestamp': body['timestamp'], 
         };
       }
 

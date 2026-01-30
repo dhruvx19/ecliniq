@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AddDependentProvider extends ChangeNotifier {
-  // blood group provider
+  
   String _selectedBloodGroup = '';
   String? get selectedBloodGroup => _selectedBloodGroup;
   void selectBloodGroup(String value){
@@ -20,12 +20,12 @@ class AddDependentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // gender selection provider
+  
   String? _selectedGender;
   String? get selectedGender => _selectedGender ?? _gender;
   void selectGender(String value){
     _selectedGender = value;
-    _gender = value; // Also set the main gender field
+    _gender = value; 
     notifyListeners();
   }
   void clearGender(){
@@ -34,12 +34,12 @@ class AddDependentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // relation selection provider
+  
   String? _selectedRelation;
   String? get selectedRelation => _selectedRelation ?? _relation;
   void selectRelation(String value){
     _selectedRelation = value;
-    _relation = value; // Also set the main relation field
+    _relation = value; 
     notifyListeners();
   }
   void clearRelation(){
@@ -85,7 +85,7 @@ class AddDependentProvider extends ChangeNotifier {
   bool get isUploadingPhoto => _isUploadingPhoto;
   String? get errorMessage => _errorMessage;
 
-  // Add getter to check if all mandatory fields are filled
+  
   bool get isFormValid {
     final isValid = _firstName.trim().isNotEmpty &&
         _lastName.trim().isNotEmpty &&
@@ -94,21 +94,21 @@ class AddDependentProvider extends ChangeNotifier {
         _relation != null &&
         _contactNumber.trim().isNotEmpty;
     
-    // Debug logging
+    
     if (!isValid) {
-      print('🔍 Form Validation Details:');
-      print('   First Name: "${_firstName.trim()}" (empty: ${_firstName.trim().isEmpty})');
-      print('   Last Name: "${_lastName.trim()}" (empty: ${_lastName.trim().isEmpty})');
-      print('   Gender: $_gender (selectedGender: $_selectedGender)');
-      print('   Date of Birth: $_dateOfBirth');
-      print('   Relation: $_relation (selectedRelation: $_selectedRelation)');
-      print('   Contact Number: "${_contactNumber.trim()}" (empty: ${_contactNumber.trim().isEmpty})');
+      
+      
+      
+      
+      
+      
+      
     }
     
     return isValid;
   }
   
-  // Get detailed validation error message
+  
   String getValidationErrorMessage() {
     final errors = <String>[];
     
@@ -230,12 +230,12 @@ class AddDependentProvider extends ChangeNotifier {
   }
 
   Future<bool> saveDependent(BuildContext context) async {
-    print('🔍 Validating dependent data...');
+    
     if (!validate()) {
-      print('❌ Validation failed: $_errorMessage');
+      
       return false;
     }
-    print('✅ Validation passed');
+    
 
     _isLoading = true;
     _errorMessage = null;
@@ -246,32 +246,32 @@ class AddDependentProvider extends ChangeNotifier {
       final authToken = authProvider.authToken;
 
       if (authToken == null) {
-        print('❌ No auth token found');
+        
         _errorMessage = 'Authentication required';
         _isLoading = false;
         notifyListeners();
         return false;
       }
-      print('✅ Auth token found');
+      
 
-      // Upload profile photo if selected
-      // Step 1: Get upload URL from /api/storage/upload-url
-      // Step 2: Upload image to S3 using the upload URL
-      // Step 3: Get the key and use it in add dependent API
+      
+      
+      
+      
       if (_selectedProfilePhoto != null) {
         _isUploadingPhoto = true;
         notifyListeners();
 
         try {
-          print('📤 Uploading profile photo for dependent...');
-          // Use UploadService to upload image and get the key
+          
+          
           _profilePhotoKey = await _uploadService.uploadImageComplete(
             authToken: authToken,
             imageFile: _selectedProfilePhoto!,
           );
 
           if (_profilePhotoKey == null) {
-            print('❌ Failed to upload profile photo - key is null');
+            
             _errorMessage = 'Failed to upload profile photo';
             _isLoading = false;
             _isUploadingPhoto = false;
@@ -279,11 +279,11 @@ class AddDependentProvider extends ChangeNotifier {
             return false;
           }
 
-          print('✅ Profile photo uploaded successfully: $_profilePhotoKey');
+          
           _isUploadingPhoto = false;
           notifyListeners();
         } catch (e) {
-          print('❌ Error uploading profile photo: $e');
+          
           _errorMessage = 'Failed to upload profile photo: $e';
           _isLoading = false;
           _isUploadingPhoto = false;
@@ -292,22 +292,22 @@ class AddDependentProvider extends ChangeNotifier {
         }
       }
 
-      // Format DOB as YYYY-MM-DD
+      
       final formattedDob = '${_dateOfBirth!.year}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}';
 
-      // Create request
-      print('📝 Creating add dependent request...');
-      print('   First Name: ${_firstName.trim()}');
-      print('   Last Name: ${_lastName.trim()}');
-      print('   DOB: $formattedDob');
-      print('   Gender: ${_gender!.toLowerCase()}');
-      print('   Relation: ${_relation!.toLowerCase()}');
-      print('   Phone: ${_contactNumber.trim()}');
-      print('   Email: ${_email.trim()}');
-      print('   Blood Group: $_bloodGroup');
-      print('   Height: $_height');
-      print('   Weight: $_weight');
-      print('   Profile Photo Key: $_profilePhotoKey');
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       final request = AddDependentRequest(
         firstName: _firstName.trim(),
@@ -323,13 +323,13 @@ class AddDependentProvider extends ChangeNotifier {
         profilePhoto: _profilePhotoKey,
       );
 
-      // Call API
-      print('📤 Calling add-dependent API...');
+      
+      
       final response = await _patientService.addDependent(
         authToken: authToken,
         request: request,
       );
-      print('📥 API response received: success=${response.success}, message=${response.message}');
+      
 
       if (response.success) {
       _isLoading = false;
@@ -375,7 +375,7 @@ class AddDependentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Maps UI blood group format (e.g., "AB-") to API format (e.g., "AB_NEGATIVE")
+  
   String? _mapBloodGroupToApi(String? uiValue) {
     if (uiValue == null || uiValue.isEmpty) return null;
     final v = uiValue.toUpperCase();

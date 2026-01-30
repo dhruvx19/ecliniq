@@ -4,14 +4,14 @@ import 'package:ecliniq/ecliniq_api/models/wallet.dart';
 import 'package:ecliniq/ecliniq_api/src/endpoints.dart';
 import 'package:http/http.dart' as http;
 
-/// Service for wallet-related API operations
-/// @description Handles wallet balance retrieval and transaction history
+
+
 class WalletService {
-  /// Get wallet balance for the authenticated patient
-  /// @description Retrieves the current wallet balance, total deposited amount, and currency
-  /// @param authToken - Authentication token from AuthProvider
-  /// @returns WalletBalanceResponse with balance data or error
-  /// @throws Exception on network errors or invalid responses
+  
+  
+  
+  
+  
   Future<WalletBalanceResponse> getBalance({
     required String authToken,
   }) async {
@@ -54,18 +54,18 @@ class WalletService {
     }
   }
 
-  /// Get wallet transaction history for a specific year
-  /// @description Retrieves wallet transactions grouped by month for the specified year
-  /// @param authToken - Authentication token from AuthProvider
-  /// @param year - Year to fetch transactions for (defaults to current year)
-  /// @returns WalletTransactionsResponse with transaction data grouped by month or error
-  /// @throws Exception on network errors or invalid responses
+  
+  
+  
+  
+  
+  
   Future<WalletTransactionsResponse> getTransactions({
     required String authToken,
     int? year,
   }) async {
     try {
-      // Use current year if not specified
+      
       final targetYear = year ?? DateTime.now().year;
       final url = Uri.parse(Endpoints.walletTransactions(targetYear));
 

@@ -47,22 +47,22 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     _onPhoneNumberChanged();
   }
 
-  /// Load saved phone number from secure storage and pre-fill the input
+  
   Future<void> _loadSavedPhoneNumber() async {
     try {
       final savedPhone = await SecureStorageService.getPhoneNumber();
       if (savedPhone != null && savedPhone.isNotEmpty && mounted) {
-        // Remove country code if present (e.g., +91 or 91)
+        
         String phoneNumber = savedPhone
             .replaceAll(RegExp(r'^\+?91'), '')
             .trim();
         if (phoneNumber.length == 10) {
           widget.phoneController.text = phoneNumber;
-          print('✅ Pre-filled phone number from storage: $phoneNumber');
+          
         }
       }
     } catch (e) {
-      print('⚠️ Error loading saved phone number: $e');
+      
     }
   }
 
@@ -120,12 +120,12 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     });
 
     try {
-      // Save phone number to secure storage for future use
+      
       await SecureStorageService.storePhoneNumber(phone);
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Use forget MPIN API if it's forget PIN flow, otherwise use normal login/register
+      
       final success = widget.isForgotPinFlow
           ? await authProvider.forgetMpinSendOtp(phone)
           : await authProvider.loginOrRegisterUser(phone);
@@ -233,10 +233,10 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                                 ),
               ),
               onChanged: (value) {
-                // Check for special characters
+                
                 final hasSpecialChars = RegExp(r'[^0-9]').hasMatch(value);
                 if (hasSpecialChars) {
-                  // Remove special characters
+                  
                   final cleanedValue = value.replaceAll(RegExp(r'[^0-9]'), '');
                   if (cleanedValue != value) {
                     widget.phoneController.value = TextEditingValue(
@@ -245,7 +245,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                         offset: cleanedValue.length,
                       ),
                     );
-                    // Show validation error snackbar
+                    
                     if (mounted) {
                 
                         CustomErrorSnackBar.show(
@@ -421,56 +421,56 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         
       
         ],),
-      //  automaticallyImplyLeading: false,
-      //   backgroundColor: EcliniqScaffold.primaryBlue,
-      //   toolbarHeight: 50,
-      // backgroundColor: EcliniqScaffold.primaryBlue,
-      // resizeToAvoidBottomInset: true,
-      // body: SizedBox.expand(
-      //   child: Column(
-      //     children: [
-      //       SizedBox(
-      //         height: EcliniqTextStyles.getResponsiveSpacing(context, 20),
-      //       ),
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
 
-      //       Row(
-      //         children: [
-      //           IconButton(
-      //             onPressed: widget.onClose,
-      //             icon: SvgPicture.asset(
-      //               EcliniqIcons.reply.assetPath,
-      //               width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
-      //               height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
-      //             ),
-      //           ),
-      //           const Spacer(),
-      //           GestureDetector(
-      //             onTap: () => EcliniqRouter.push(LoginTroublePage()),
-      //             child: FadeTransition(
-      //               opacity: widget.fadeAnimation,
-      //               child: Row(
-      //                 children: [
-      //                   SvgPicture.asset(
-      //                     EcliniqIcons.questionCircleWhite.assetPath,
-      //                      width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
-      //               height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
-      //                   ),
-      //                   const SizedBox(width: 4),
-      //                    Text(
-      //                     'Help',
-      //                     style: EcliniqTextStyles.responsiveHeadlineXLMedium(context).copyWith(
-      //                       color: Colors.white,
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
                            
-      //                       fontWeight: FontWeight.w400,
-      //                     ),
-      //                   ),
-      //                   const SizedBox(width: 10),
-      //                 ],
-      //               ),
-      //             ),
-      //           ),
-      //         ],
-      //       ),
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
 
          body:   Expanded(
               child: Container(

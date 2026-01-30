@@ -48,7 +48,7 @@ class _BranchesPageState extends State<BranchesPage> {
   }
 
   Future<void> _fetchBranches() async {
-    // TODO: Replace with actual API call
+    
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
@@ -112,16 +112,16 @@ class _BranchesPageState extends State<BranchesPage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Header Section with Image
+          
           _buildHeaderSection(),
 
-          // Stats Cards
+          
           _buildStatsCards(),
 
-          // Divider
+          
           HorizontalDivider(),
 
-          // Branches List
+          
           _buildBranchesList(),
 
           SizedBox(
@@ -136,7 +136,7 @@ class _BranchesPageState extends State<BranchesPage> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Background Image
+        
         Container(
           height: 200,
           width: double.infinity,
@@ -149,7 +149,7 @@ class _BranchesPageState extends State<BranchesPage> {
           ),
           child: Stack(
             children: [
-              // Back Button
+              
               Positioned(
                 top: 50,
                 left: 16,
@@ -158,7 +158,7 @@ class _BranchesPageState extends State<BranchesPage> {
                   () => EcliniqRouter.pop(),
                 ),
               ),
-              // Share Button
+              
               Positioned(
                 top: 50,
                 right: 16,
@@ -168,7 +168,7 @@ class _BranchesPageState extends State<BranchesPage> {
           ),
         ),
 
-        // Hospital Logo
+        
         Positioned(
           top: 150,
           left: 0,
@@ -224,7 +224,7 @@ class _BranchesPageState extends State<BranchesPage> {
           ),
         ),
 
-        // Hospital Info
+        
         Container(
           margin: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
             context,
@@ -426,7 +426,7 @@ class _BranchesPageState extends State<BranchesPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Hospital Name with Verified Badge
+              
               Row(
                 children: [
                   Text(
@@ -447,7 +447,7 @@ class _BranchesPageState extends State<BranchesPage> {
               ),
               SizedBox(height: 4),
 
-              // Type | Doctors | Beds
+              
               Text(
                 '${branch.type} | ${branch.doctorCount}+ Doctors | ${branch.bedCount} Beds',
                 style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
@@ -459,7 +459,7 @@ class _BranchesPageState extends State<BranchesPage> {
             height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
           ),
 
-              // Location and Rating Row
+              
               Row(
                 children: [
                   SvgPicture.asset(
@@ -545,7 +545,7 @@ class _BranchesPageState extends State<BranchesPage> {
             height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
           ),
 
-              // OPD Timing
+              
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -568,7 +568,7 @@ class _BranchesPageState extends State<BranchesPage> {
               ),
               const SizedBox(height: 16),
 
-              // Action Buttons Row
+              
               Row(
                 children: [
                   Expanded(
@@ -644,14 +644,14 @@ class _BranchesPageState extends State<BranchesPage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Header Shimmer
+          
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(height: 200, color: Colors.white),
           ),
           const SizedBox(height: 60),
-          // Title Shimmer
+          
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
@@ -680,10 +680,10 @@ class _BranchesPageState extends State<BranchesPage> {
             ),
           ),
           const SizedBox(height: 24),
-          // Stats Shimmer
+          
           _buildShimmerStats(),
           const SizedBox(height: 16),
-          // Branch Cards Shimmer
+          
           _buildShimmerCard(),
           const SizedBox(height: 16),
           _buildShimmerCard(),
@@ -836,7 +836,7 @@ class _BranchesPageState extends State<BranchesPage> {
   }
 }
 
-// Branch Model
+
 class BranchModel {
   final String id;
   final String name;

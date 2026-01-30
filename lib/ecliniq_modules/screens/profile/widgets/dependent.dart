@@ -38,7 +38,7 @@ class DependentsSection extends StatelessWidget {
         Center(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            // padding: const EdgeInsets.symmetric(horizontal: 5),
+            
             child: Row(
               children: [
                 ...dependents.map(

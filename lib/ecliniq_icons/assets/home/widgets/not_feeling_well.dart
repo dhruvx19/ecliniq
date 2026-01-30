@@ -282,7 +282,7 @@ class NotFeelingWell extends StatelessWidget {
   Widget _buildSymptomButton(
     BuildContext context,
     String title,
-    EcliniqIcons icon, // Add this parameter
+    EcliniqIcons icon, 
     VoidCallback onTap,
   ) {
     return Material(
@@ -316,7 +316,7 @@ class NotFeelingWell extends StatelessWidget {
                   ),
                   child: Center(
                     child: SvgPicture.asset(
-                      // Changed from Image.asset to SvgPicture.asset
+                      
                       icon.assetPath,
                       width: EcliniqTextStyles.getResponsiveIconSize(
                         context,

@@ -59,7 +59,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
       ),
       child: Column(
         children: [
-          // Title
+          
           Padding(
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
               context,
@@ -99,7 +99,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
             ),
           ),
 
-          // List of sort options
+          
           Expanded(
             child: ListView.builder(
               padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
@@ -118,7 +118,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
             ),
           ),
 
-          // Apply button
+          
         ],
       ),
     );
@@ -128,7 +128,7 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
     setState(() {
       selectedSortOption = null;
     });
-    // Emit empty string to clear sort in parent
+    
     widget.onChanged('');
   }
 

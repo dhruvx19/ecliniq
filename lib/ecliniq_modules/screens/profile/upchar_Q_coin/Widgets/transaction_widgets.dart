@@ -44,7 +44,7 @@ class _TransactionDetailsWidgetState extends State<TransactionDetailsWidget> {
   @override
   void didUpdateWidget(TransactionDetailsWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update provider when data changes
+    
     if (_provider != null) {
       _provider!.updateData(
         newTransactionsData: widget.transactionsData,

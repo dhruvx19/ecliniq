@@ -104,7 +104,7 @@ class _SelectSpecialitiesBottomSheetState
       ),
       child: Column(
         children: [
-          // Title
+          
            Padding(
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
               context,
@@ -130,10 +130,10 @@ class _SelectSpecialitiesBottomSheetState
             height: EcliniqTextStyles.getResponsiveSpacing(context, 6),
           ),
 
-          // Search bar
+          
           SearchBarWidget(onSearch: _filterSpecialities, hintText: 'Search'),
 
-          // List of specialities
+          
           Expanded(
             child: ListView.builder(
               padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(

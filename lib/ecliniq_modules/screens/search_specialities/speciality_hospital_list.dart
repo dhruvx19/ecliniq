@@ -72,14 +72,14 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
   @override
   void initState() {
     super.initState();
-    // Initialize keys for all categories
+    
     for (var category in _categories) {
       _categoryKeys[category] = GlobalKey();
     }
 
     if (widget.initialSpeciality != null) {
       _selectedCategory = widget.initialSpeciality!;
-      // Add initial speciality if not in list
+      
       if (!_categories.contains(widget.initialSpeciality)) {
         _categories.insert(1, widget.initialSpeciality!);
         _categoryKeys[widget.initialSpeciality!] = GlobalKey();
@@ -90,7 +90,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
     _searchController.addListener(_onSearchChanged);
     _initSpeech();
 
-    // Auto scroll to initial category after build
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCategory(_selectedCategory);
     });
@@ -277,7 +277,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
       'Speech result: ${result.recognizedWords}, final: ${result.finalResult}',
     );
 
-    // Update the search controller with recognized words
+    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -301,7 +301,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
   }
 
   Future<void> _loadLocationAndFetch() async {
-    // Hardcoded location values
+    
     setState(() {
       _latitude = 12.9173;
       _longitude = 77.6377;
@@ -323,7 +323,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
     setState(() {
       _searchQuery = _searchController.text;
     });
-    // Debounce search and fetch if filters are active
+    
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted && _hasActiveFilters()) {
         _fetchFilteredHospitals();
@@ -340,7 +340,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
       final screenWidth = MediaQuery.of(context).size.width;
       final boxWidth = renderBox.size.width;
 
-      // Calculate scroll offset to center the selected category
+      
       final scrollOffset =
           _categoryScrollController.offset +
           position.dx -
@@ -372,7 +372,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
         initialSortOption: _selectedSortOption,
         onChanged: (option) {
           setState(() {
-            // Handle reset (empty string) - clear sort
+            
             if (option.isEmpty) {
               _selectedSortOption = null;
             } else {
@@ -394,7 +394,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
         initialFilters: _activeFilters,
         onFilterChanged: (params) {
           setState(() {
-            // Check if filters are empty (reset was called)
+            
             if (!_hasActiveFiltersInParams(params)) {
               _activeFilters = null;
             } else {
@@ -402,7 +402,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
             }
           });
           if (_activeFilters == null) {
-            // Reset filters - fetch without filters
+            
             _fetchHospitals();
           } else {
             _applyFilters();
@@ -449,7 +449,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
           break;
         case 'Relevance':
         default:
-          // Default order
+          
           break;
       }
     });
@@ -462,7 +462,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
     });
 
     try {
-      // Check if we have active filters
+      
       if (_activeFilters != null && _hasActiveFilters()) {
         await _fetchFilteredHospitals();
       } else {
@@ -498,7 +498,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
 
   Future<void> _fetchFilteredHospitals() async {
     try {
-      // Map filter parameters to API format
+      
       List<String>? specialities;
       if (_activeFilters?['specialities'] != null) {
         final specialitiesList = _activeFilters!['specialities'] as List;
@@ -507,7 +507,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
         }
       }
 
-      // Map experience to workExperience format
+      
       String? workExperience;
       if (_activeFilters?['experience'] != null) {
         final exp = _activeFilters!['experience'] as String;
@@ -520,7 +520,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
         }
       }
 
-      // Map availability
+      
       String? availability;
       if (_activeFilters?['availability'] != null) {
         final avail = _activeFilters!['availability'] as String;
@@ -533,12 +533,12 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
         } else if (avail == 'Anytime') {
           availability = null;
         } else {
-          // For specific dates, you might need to parse and format
-          availability = 'TODAY'; // Default fallback
+          
+          availability = 'TODAY'; 
         }
       }
 
-      // Map gender
+      
       String? gender;
       if (_activeFilters?['gender'] != null) {
         final genderValue = _activeFilters!['gender'] as String;
@@ -609,7 +609,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
   List<Hospital> get _filteredHospitals {
     List<Hospital> filtered = _hospitals;
 
-    // Filter by category (client-side filtering for category tabs)
+    
     if (_selectedCategory != 'All' && !_hasActiveFilters()) {
       filtered = filtered.where((hospital) {
         final type = hospital.type.toLowerCase();
@@ -618,7 +618,7 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
       }).toList();
     }
 
-    // Client-side search filtering only if no API filters are active
+    
     if (_searchQuery.isNotEmpty && !_hasActiveFilters()) {
       filtered = filtered.where((hospital) {
         final name = hospital.name.toLowerCase();
@@ -883,18 +883,18 @@ class _SpecialityHospitalListState extends State<SpecialityHospitalList> {
               ),
               child: Container(
                 padding: const EdgeInsets.all(4),
-                // decoration: _isListening
-                //     ? BoxDecoration(
-                //         shape: BoxShape.circle,
-                //         boxShadow: [
-                //           BoxShadow(
-                //             color: const Color(0xFF2372EC).withOpacity(0.5),
-                //             blurRadius: 12,
-                //             spreadRadius: 2,
-                //           ),
-                //         ],
-                //       )
-                //     : null,
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 child: SvgPicture.asset(
                   EcliniqIcons.microphone.assetPath,
                   width: EcliniqTextStyles.getResponsiveIconSize(context, 32),

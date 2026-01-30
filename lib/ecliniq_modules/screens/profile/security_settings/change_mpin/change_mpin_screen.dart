@@ -45,19 +45,19 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
   @override
   void initState() {
     super.initState();
-    // Defer OTP sending until after the first frame is built
-    // This prevents setState() being called during build phase
+    
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // If phone number is preloaded, use it and skip loading step
+      
       if (widget.preloadedPhoneNumber != null &&
           widget.preloadedMaskedPhone != null) {
         _phoneNumber = widget.preloadedPhoneNumber;
         _maskedPhone = widget.preloadedMaskedPhone;
-        // Send OTP immediately without loading phone number
+        
         _sendOTP();
       } else {
-        // Load phone number first, then send OTP
+        
         _loadPhoneNumberAndSendOTP();
       }
     });
@@ -129,7 +129,7 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
         _phoneNumber = phoneNumber;
       }
 
-      // Phone number loaded, now send OTP
+      
       if (!mounted) return;
       setState(() {
         _isLoading = false;
@@ -183,7 +183,7 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
           _isSendingOTP = false;
         });
 
-        // Show error snackbar instead of inline error
+        
         if (mounted && context.mounted) {
     CustomErrorSnackBar.show(
               title: 'Failed to send OTP',
@@ -199,7 +199,7 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
         _isSendingOTP = false;
       });
 
-      // Show error snackbar for exceptions
+      
       if (mounted && context.mounted) {
 
   CustomErrorSnackBar.show(
@@ -220,7 +220,7 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
   Future<void> _verifyAndProceed() async {
     if (!mounted) return;
 
-    // Check if OTP is valid
+    
     try {
       if (_otpController.text.length != 6) {
         if (!mounted) return;
@@ -230,11 +230,11 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
         return;
       }
     } catch (e) {
-      // Controller might be disposed
+      
       return;
     }
 
-    // Check if already verifying
+    
     if (_isVerifying) return;
 
     if (!mounted) return;
@@ -248,7 +248,7 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
       try {
         otpText = _otpController.text;
       } catch (e) {
-        // Controller might be disposed
+        
         return;
       }
 
@@ -259,13 +259,13 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
       if (!mounted) return;
 
       if (success) {
-        // Reset verifying state
+        
         setState(() {
           _isVerifying = false;
         });
 
-        // Navigate to MPIN set screen
-        // Use push to maintain navigation stack (SecuritySettings -> ChangeMPIN -> MPINSet)
+        
+        
         if (!mounted) return;
         final result = await Navigator.push(
           context,
@@ -274,17 +274,17 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
           ),
         );
 
-        // If MPIN was successfully reset, return success result to security settings
-        // Security settings will show the success snackbar
+        
+        
         if (!mounted) return;
         if (result == true) {
-          // Small delay to ensure MPINSet screen is fully closed
+          
           await Future.delayed(const Duration(milliseconds: 100));
           if (!mounted || !context.mounted) return;
-          // Pop back to SecuritySettings with success result
+          
           Navigator.pop(context, true);
         } else {
-          // If result is not true, just pop back without result
+          
           if (mounted && context.mounted) {
             Navigator.pop(context);
           }
@@ -296,13 +296,13 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
         });
         if (mounted) {
           try {
-            _otpController.clear(); // Clear OTP on error
+            _otpController.clear(); 
           } catch (e) {
-            // Controller might be disposed, ignore
+            
           }
         }
 
-        // Show error snackbar instead of inline error
+        
         if (mounted && context.mounted) {
          CustomErrorSnackBar.show(
         
@@ -320,13 +320,13 @@ class _ChangeMPINScreenState extends State<ChangeMPINScreen> {
       });
       if (mounted) {
         try {
-          _otpController.clear(); // Clear OTP on error
+          _otpController.clear(); 
         } catch (e) {
-          // Controller might be disposed, ignore
+          
         }
       }
 
-      // Show error snackbar for exceptions
+      
       if (mounted && context.mounted) {
  
 CustomErrorSnackBar.show(
@@ -378,10 +378,10 @@ CustomErrorSnackBar.show(
             color: _isVerifying
                 ? const Color(0xFF2372EC)
                 : _isButtonPressed
-                ? const Color(0xFF0E4395) // Pressed color
+                ? const Color(0xFF0E4395) 
                 : _isOtpValid
-                ? const Color(0xFF2372EC) // Enabled color
-                : const Color(0xffF9F9F9), // Disabled color
+                ? const Color(0xFF2372EC) 
+                : const Color(0xffF9F9F9), 
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(
@@ -461,7 +461,7 @@ CustomErrorSnackBar.show(
                 color: const Color(0xff424242),
               ),
             ),
-            // Show shimmer only while loading phone number, not while sending OTP
+            
             if (_isLoading)
               Padding(
                 padding: const EdgeInsets.only(top: 24.0),
@@ -548,19 +548,19 @@ CustomErrorSnackBar.show(
                   try {
                     if (_otpController.text.isNotEmpty) {
                       setState(() {
-                        // Clear error message when user starts typing
+                        
                         if (_errorMessage != null) {
                           _errorMessage = null;
                         }
                       });
                     }
                   } catch (e) {
-                    // Controller might be disposed, ignore
+                    
                   }
                 },
                 onCompleted: (value) {
-                  // Auto-verify when 6 digits are entered
-                  // _verifyAndProceed(); // Uncomment if you want auto-submit
+                  
+                  
                 },
               ),
               const SizedBox(height: 12),

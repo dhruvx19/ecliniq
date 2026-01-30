@@ -1,4 +1,4 @@
-// ignore_for_file: empty_catches
+
 
 import 'dart:convert';
 import 'dart:io';
@@ -12,25 +12,25 @@ class SecureStorageService {
     aOptions: const AndroidOptions(
       encryptedSharedPreferences: true,
       sharedPreferencesName: 'ecliniq_secure_prefs',
-      resetOnError: true, // Clear data if keystore is compromised
+      resetOnError: true, 
     ),
     iOptions: const IOSOptions(accountName: 'ecliniq_keychain'),
   );
 
-  // Keys for secure storage
+  
   static const String _keyUserID = 'user_id';
   static const String _keyPhoneNumber = 'phone_number';
   static const String _keyUserName = 'user_name';
 
-  // Storage version for migration support
+  
   static const String _keyStorageVersion = 'storage_version';
   static const int _currentStorageVersion = 1;
 
-  // MPIN storage key
+  
   static const String _keyMPIN = 'mpin';
   static const String _keyIsBiometricEnabled = 'is_biometric_enabled';
 
-  // Simple encryption/decryption using base64
+  
   static String _encryptData(String data) {
     return base64.encode(utf8.encode(data));
   }
@@ -39,7 +39,7 @@ class SecureStorageService {
     return utf8.decode(base64.decode(encryptedData));
   }
 
-  // Private method to store value with biometric
+  
   static Future<bool> _storeBiometricValue({
     required String key,
     required String value,
@@ -65,7 +65,7 @@ class SecureStorageService {
     }
   }
 
-  // Private method to get value with biometric
+  
   static Future<String?> _getBiometricValue({
     required String key,
     required String title,
@@ -94,21 +94,21 @@ class SecureStorageService {
     }
   }
 
-  /// Delete MPIN and biometric data
+  
   static Future<bool> deleteMPIN() async {
     try {
-      // Delete from regular storage
+      
       await _secureStorage.delete(key: _keyMPIN);
 
-      // Delete from biometric storage
+      
       try {
         final encryptedKey = _encryptData(_keyMPIN);
         await FlutterLocker.delete(encryptedKey);
       } catch (e) {
-        // Ignore if key doesn't exist in biometric storage
+        
       }
 
-      // Clear biometric enabled flag
+      
       await _secureStorage.delete(key: _keyIsBiometricEnabled);
 
       return true;
@@ -117,17 +117,17 @@ class SecureStorageService {
     }
   }
 
-  /// Delete biometric value with production-grade error handling
+  
   static Future<bool> deleteBiometricValue(String key) async {
     try {
       final encryptedKey = _encryptData(key);
       await FlutterLocker.delete(encryptedKey);
       return true;
     } on PlatformException catch (e) {
-      // Key might not exist, which is fine
+      
       if (e.code == 'secret_not_found' ||
           e.message?.contains('not found') == true) {
-        return true; // Consider it successful if key doesn't exist
+        return true; 
       }
       return false;
     } catch (e) {
@@ -135,15 +135,15 @@ class SecureStorageService {
     }
   }
 
-  /// Clean up all biometric keys
+  
   static Future<bool> cleanupBiometricKeys() async {
     try {
-      // Clean up MPIN key
+      
       try {
         final encryptedKey = _encryptData(_keyMPIN);
         await FlutterLocker.delete(encryptedKey);
       } catch (e) {
-        // Ignore errors - keys may not exist
+        
       }
       return true;
     } catch (e) {
@@ -151,7 +151,7 @@ class SecureStorageService {
     }
   }
 
-  /// Store MPIN in secure storage
+  
   static Future<bool> storeMPIN(String mpin) async {
     try {
       await _secureStorage.write(key: _keyMPIN, value: mpin);
@@ -161,7 +161,7 @@ class SecureStorageService {
     }
   }
 
-  /// Get MPIN from secure storage
+  
   static Future<String?> getMPIN() async {
     try {
       return await _secureStorage.read(key: _keyMPIN);
@@ -170,7 +170,7 @@ class SecureStorageService {
     }
   }
 
-  /// Verify MPIN
+  
   static Future<bool> verifyMPIN(String mpin) async {
     try {
       final storedMPIN = await getMPIN();
@@ -180,7 +180,7 @@ class SecureStorageService {
     }
   }
 
-  /// Check if MPIN exists
+  
   static Future<bool> hasMPIN() async {
     try {
       final mpin = await getMPIN();
@@ -190,7 +190,7 @@ class SecureStorageService {
     }
   }
 
-  /// Store MPIN with biometric protection
+  
   static Future<bool> storeMPINWithBiometric(String mpin) async {
     try {
       if (!await BiometricService.isAvailable()) {
@@ -200,19 +200,19 @@ class SecureStorageService {
       final success = await _storeBiometricValue(key: _keyMPIN, value: mpin);
 
       if (success) {
-        // Also store in regular secure storage as backup
+        
         await storeMPIN(mpin);
         await setBiometricEnabled(true);
       }
 
       return success;
     } catch (e) {
-      // Fallback to regular storage
+      
       return await storeMPIN(mpin);
     }
   }
 
-  /// Get MPIN using biometric authentication
+  
   static Future<String?> getMPINWithBiometric({
     BiometricAuthConfig? config,
   }) async {
@@ -241,7 +241,7 @@ class SecureStorageService {
     }
   }
 
-  /// Set biometric enabled flag
+  
   static Future<void> setBiometricEnabled(bool enabled) async {
     try {
       await _secureStorage.write(
@@ -251,7 +251,7 @@ class SecureStorageService {
     } catch (e) {}
   }
 
-  /// Check if biometric is enabled
+  
   static Future<bool> isBiometricEnabled() async {
     try {
       final value = await _secureStorage.read(key: _keyIsBiometricEnabled);
@@ -261,27 +261,27 @@ class SecureStorageService {
     }
   }
 
-  /// Store user info with production-grade validation and verification
+  
   static Future<bool> storeUserInfo(String userId, String phoneNumber) async {
     try {
-      // Validate inputs
+      
       if (userId.isEmpty || phoneNumber.isEmpty) {
         return false;
       }
 
-      // Validate phone number format (basic check)
+      
       if (!RegExp(
         r'^\+?[1-9]\d{1,14}$',
       ).hasMatch(phoneNumber.replaceAll(RegExp(r'[\s-]'), ''))) {}
 
-      // Store with retry logic
+      
       const maxRetries = 2;
       for (int attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           await _secureStorage.write(key: _keyUserID, value: userId);
           await _secureStorage.write(key: _keyPhoneNumber, value: phoneNumber);
 
-          // Verify storage
+          
           final storedUserId = await _secureStorage.read(key: _keyUserID);
           final storedPhone = await _secureStorage.read(key: _keyPhoneNumber);
 
@@ -305,7 +305,7 @@ class SecureStorageService {
     }
   }
 
-  // Get user info
+  
   static Future<Map<String, String?>> getUserInfo() async {
     try {
       return {
@@ -317,7 +317,7 @@ class SecureStorageService {
     }
   }
 
-  /// Get phone number from secure storage
+  
   static Future<String?> getPhoneNumber() async {
     try {
       return await _secureStorage.read(key: _keyPhoneNumber);
@@ -326,7 +326,7 @@ class SecureStorageService {
     }
   }
 
-  /// Store phone number in secure storage
+  
   static Future<bool> storePhoneNumber(String phoneNumber) async {
     try {
       await _secureStorage.write(key: _keyPhoneNumber, value: phoneNumber);
@@ -336,7 +336,7 @@ class SecureStorageService {
     }
   }
 
-  /// Store user name in secure storage
+  
   static Future<bool> storeUserName(String userName) async {
     try {
       await _secureStorage.write(key: _keyUserName, value: userName);
@@ -346,7 +346,7 @@ class SecureStorageService {
     }
   }
 
-  /// Get user name from secure storage
+  
   static Future<String?> getUserName() async {
     try {
       return await _secureStorage.read(key: _keyUserName);
@@ -355,21 +355,21 @@ class SecureStorageService {
     }
   }
 
-  /// Clear all secure data
+  
   static Future<bool> clearAll() async {
     try {
-      // Clear biometric keys
+      
       await cleanupBiometricKeys();
 
-      // Clear all secure storage
+      
       await _secureStorage.deleteAll();
 
-      // Verify all data is cleared
+      
       final userId = await _secureStorage.read(key: _keyUserID);
       final phoneNumber = await _secureStorage.read(key: _keyPhoneNumber);
 
       if (userId != null || phoneNumber != null) {
-        // Retry deletion
+        
         await _secureStorage.deleteAll();
       }
 
@@ -379,19 +379,19 @@ class SecureStorageService {
     }
   }
 
-  /// Clear only session-related data (keeps MPIN and biometric)
+  
   static Future<bool> clearSessionData() async {
     try {
-      // Delete user info keys
+      
       await _secureStorage.delete(key: _keyUserID);
       await _secureStorage.delete(key: _keyPhoneNumber);
 
-      // Verify deletion
+      
       final userId = await _secureStorage.read(key: _keyUserID);
       final phoneNumber = await _secureStorage.read(key: _keyPhoneNumber);
 
       if (userId != null || phoneNumber != null) {
-        // Retry deletion
+        
         await _secureStorage.delete(key: _keyUserID);
         await _secureStorage.delete(key: _keyPhoneNumber);
       }
@@ -402,18 +402,18 @@ class SecureStorageService {
     }
   }
 
-  /// Complete account deletion - removes ALL user data
+  
   static Future<bool> deleteAccount() async {
     try {
-      // Clear all secure storage
+      
       await _secureStorage.deleteAll();
 
-      // Verify all data is cleared
+      
       final userId = await _secureStorage.read(key: _keyUserID);
       final phoneNumber = await _secureStorage.read(key: _keyPhoneNumber);
 
       if (userId != null || phoneNumber != null) {
-        // Retry complete deletion
+        
         await _secureStorage.deleteAll();
       }
 
@@ -423,8 +423,8 @@ class SecureStorageService {
     }
   }
 
-  /// Production-grade storage health check
-  /// Verifies storage functionality and data integrity
+  
+  
   static Future<Map<String, dynamic>> checkStorageHealth() async {
     final health = <String, dynamic>{
       'healthy': true,
@@ -433,7 +433,7 @@ class SecureStorageService {
     };
 
     try {
-      // Test 1: Basic read/write functionality
+      
       const testKey = 'health_check_key';
       const testValue = 'health_check_value';
 
@@ -463,19 +463,19 @@ class SecureStorageService {
     }
   }
 
-  /// Debug method to test storage functionality
+  
   static Future<bool> testStorage() async {
     try {
       const testKey = 'test_key';
       const testValue = 'test_value';
 
-      // Write test data
+      
       await _secureStorage.write(key: testKey, value: testValue);
 
-      // Read test data
+      
       final readValue = await _secureStorage.read(key: testKey);
 
-      // Clean up
+      
       await _secureStorage.delete(key: testKey);
 
       final success = readValue == testValue;
@@ -485,7 +485,7 @@ class SecureStorageService {
     }
   }
 
-  /// Verify MPIN data integrity
+  
   static Future<bool> verifyMPINIntegrity() async {
     try {
       final mpin = await getMPIN();
@@ -493,7 +493,7 @@ class SecureStorageService {
         return false;
       }
 
-      // Check if MPIN is 4 digits
+      
       if (mpin.length != 4 || !RegExp(r'^\d{4}$').hasMatch(mpin)) {
         return false;
       }
@@ -504,7 +504,7 @@ class SecureStorageService {
     }
   }
 
-  /// Initialize storage and perform migration if needed
+  
   static Future<void> initializeStorage() async {
     try {
       final storedVersion = await _secureStorage.read(key: _keyStorageVersion);
@@ -520,32 +520,32 @@ class SecureStorageService {
         );
       }
     } catch (e) {
-      // Continue anyway - migration is not critical
+      
     }
   }
 
-  /// Migrate storage from old version to new version
+  
   static Future<void> _migrateStorage(int fromVersion) async {
     try {
       if (fromVersion < 1) {
-        // Migration logic can be added here if needed
+        
       }
     } catch (e) {
-      // Don't throw - migration failures shouldn't break the app
+      
     }
   }
 
-  /// Recover from storage errors
+  
   static Future<bool> recoverFromStorageError() async {
     try {
-      // Check storage health
+      
       final health = await checkStorageHealth();
 
       if (health['healthy'] == true) {
         return true;
       }
 
-      // Retry storage operations
+      
       final testResult = await testStorage();
       return testResult;
     } catch (e) {
@@ -554,7 +554,7 @@ class SecureStorageService {
   }
 }
 
-// Biometric Auth Config (following your pattern)
+
 class BiometricAuthConfig {
   final String localizedReason;
   final String signInTitle;
@@ -569,7 +569,7 @@ class BiometricAuthConfig {
   });
 }
 
-// Biometric Service (following your implementation pattern)
+
 class BiometricService {
   static Future<bool> isAvailable() async {
     try {
@@ -578,7 +578,7 @@ class BiometricService {
     } on PlatformException {
       return await _fallbackBiometricCheck();
     } catch (e) {
-      // Try fallback check
+      
       return await _fallbackBiometricCheck();
     }
   }
@@ -610,7 +610,7 @@ class BiometricService {
         ),
       );
 
-      // Clean up the test key
+      
       await FlutterLocker.delete('test_biometric_key');
       return true;
     } catch (e) {
@@ -637,17 +637,17 @@ class BiometricService {
     if (Platform.isIOS) {
       return 'Face ID';
     } else {
-      // Android: Can be fingerprint or face unlock
+      
       return 'Biometric';
     }
   }
 
   static IconData getBiometricIcon() {
     if (Platform.isIOS) {
-      // Use face icon for iOS (most modern devices use Face ID)
+      
       return Icons.face;
     } else {
-      // Use fingerprint icon for Android
+      
       return Icons.fingerprint;
     }
   }

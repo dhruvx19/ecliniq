@@ -36,7 +36,7 @@ class _HospitalFilterBottomSheetState extends State<HospitalFilterBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Initialize with existing filter values if provided
+    
     if (widget.initialFilters != null) {
       final filters = widget.initialFilters!;
 
@@ -73,7 +73,7 @@ class _HospitalFilterBottomSheetState extends State<HospitalFilterBottomSheet> {
       distanceRange = 50;
       selectedTab = 'Specialities';
     });
-    // Emit empty filter state to clear active filters in parent
+    
     widget.onFilterChanged({
       'specialities': <String>[],
       'availability': null,
@@ -98,7 +98,7 @@ class _HospitalFilterBottomSheetState extends State<HospitalFilterBottomSheet> {
     'Availability',
     'Gender',
     'Distance',
-    // 'Fees',
+    
     'Experience',
     'Languages',
     'Meet at',
@@ -154,7 +154,7 @@ class _HospitalFilterBottomSheetState extends State<HospitalFilterBottomSheet> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Title
+          
           Padding(
             padding: EdgeInsets.only(left: 16, right: 16, top: 22),
             child: Align(
@@ -195,7 +195,7 @@ class _HospitalFilterBottomSheetState extends State<HospitalFilterBottomSheet> {
           SizedBox(height: 6),
           Container(height: 0.5, color: Color(0xffD6D6D6)),
           SizedBox(height: 8),
-          // Content
+          
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +298,7 @@ class _HospitalFilterBottomSheetState extends State<HospitalFilterBottomSheet> {
   }
 
   Widget _buildSpecialitiesList() {
-    // Filter specialities based on search query
+    
     final filteredSpecialities = _searchQuery.isEmpty
         ? specialities
         : specialities.where((speciality) {
@@ -906,19 +906,19 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                           child: IconButton(
                             icon: Container(
                               padding: const EdgeInsets.all(4),
-                              // decoration: _isListening
-                              //     ? BoxDecoration(
-                              //         shape: BoxShape.circle,
-                              //         boxShadow: [
-                              //           BoxShadow(
-                              //             color: const Color(0xFF2372EC)
-                              //                 .withOpacity(0.5),
-                              //             blurRadius: 12,
-                              //             spreadRadius: 2,
-                              //           ),
-                              //         ],
-                              //       )
-                              //     : null,
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
                               child: SvgPicture.asset(
                                 EcliniqIcons.microphone.assetPath,
                                 width: 24,

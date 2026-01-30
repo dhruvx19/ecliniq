@@ -1630,44 +1630,43 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_isOTPMode)
-                    
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Didn’t receive the OTP",
-                          style: EcliniqTextStyles.responsiveBodySmall(context)
-                              .copyWith(
-                                color: Color(0xff424242),
-                                fontWeight: FontWeight.w400,
-                                fontFamily: 'Inter',
-                              ),
-                        ),
-             
-
-                        if (!_canResend)
-                          Row(
-                            children: [
-                              SvgPicture.asset(
-                                EcliniqIcons.clockCircle.assetPath,
-                                width: 16,
-                                height: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _formatResendTimer(_resendTimer),
-                                style: EcliniqTextStyles.responsiveBodySmall(
-                                  context,
-                                ).copyWith(color: const Color(0xff424242)),
-                              ),
-                            ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_isOTPMode)
+                      Row(
+                        children: [
+                          Text(
+                            "Didn’t receive the OTP",
+                            style:
+                                EcliniqTextStyles.responsiveBodySmall(context)
+                                    .copyWith(
+                                      color: Color(0xff8E8E8E),
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: 'Inter',
+                                    ),
                           ),
-                      ],
-                    )
+                          const Spacer(),
+                          if (!_canResend)
+                            Row(
+                              children: [
+                                SvgPicture.asset(
+                                  EcliniqIcons.clockCircle.assetPath,
+                                  width: 16,
+                                  height: 16,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _formatResendTimer(_resendTimer),
+                                  style: EcliniqTextStyles.responsiveBodySmall(
+                                    context,
+                                  ).copyWith(color: const Color(0xff424242)),
+                                ),
+                              ],
+                            ),
+                        ],
+                      )
                   else
                     
                     TextButton(
@@ -1712,6 +1711,10 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               ),
               
 
+              
+                ],
+              ),
+            ),
               
               if (!_isOTPMode)
                 GestureDetector(

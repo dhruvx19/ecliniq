@@ -1349,28 +1349,6 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   ),
 
                   const Spacer(),
-
-                  
-                  Padding(
-                    padding: EdgeInsets.only(bottom: keyboardVisible ? 16 : 16),
-                    child: GestureDetector(
-                      onTap: () {
-                        EcliniqRouter.push(const LoginTroublePage());
-                      },
-                      child: Text(
-                        'Trouble signing in?',
-                        style:
-                            EcliniqTextStyles.responsiveHeadlineBMedium(
-                              context,
-                            ).copyWith(
-                              color: Color(0xff424242),
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Inter',
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -1926,189 +1904,211 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height,
               ),
-              child: IntrinsicHeight(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: _showMPINScreen ? 0 : 50),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: headerHeight,
-                        width: double.infinity,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Color(0xFF2372EC),
-                                    Color(0xFFF8DFFF),
-                                  ],
-                                  stops: [0.0, 0.95],
-                                ),
-                              ),
-                            ),
-                            Positioned.fill(
-                              child: Opacity(
-                                opacity: 0.45,
-                                child: Image.asset(
-                                  EcliniqIcons.lottie.assetPath,
-                                  fit: BoxFit.cover,
-                                  cacheWidth: 800,
-                                  cacheHeight: 600,
-                                  filterQuality: FilterQuality.low,
-                                ),
-                              ),
-                            ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SvgPicture.asset(
-                                  EcliniqIcons.loginLogo.assetPath,
-                                  height: 44,
-                                  width: 198,
-                                ),
-
-                                Text(
-                                  _userName != null && _userName!.isNotEmpty
-                                      ? 'Welcome back, ${_userName!}!'
-                                      : 'Welcome back!',
-                                  style:
-                                      EcliniqTextStyles.responsiveHeadlineXLarge(
-                                        context,
-                                      ).copyWith(
-                                        color: Colors.white,
-                                        fontFamily: 'Rubik',
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Your Healthcare Platform',
-                                  style:
-                                      EcliniqTextStyles.responsiveTitleXLarge(
-                                        context,
-                                      ).copyWith(
-                                        color: Colors.white,
-                                        fontFamily: 'Rubik',
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Transform.translate(
-                          offset: const Offset(0, -65),
-                          child: Padding(
-                            padding: EdgeInsets.zero,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Positioned.fill(
-                                  child: Stack(
-                                    children: [
-                                      PhysicalShape(
-                                        clipper: CardHoleClipper(
-                                          radius: 52.0,
-                                          centerYOffset: 14.0,
-                                        ),
-                                        color: Colors.white,
-                                        elevation: 0,
-                                        child: const SizedBox.expand(),
-                                      ),
-                                      Positioned.fill(
-                                        child: CustomPaint(
-                                          painter: TopEdgePainter(
-                                            leftColor: const Color(
-                                              0xFFBF50FF,
-                                            ).withOpacity(0.3),
-                                            rightColor: const Color(
-                                              0xFF0064FF,
-                                            ).withOpacity(0.4),
-                                            holeRadius: 52.0,
-                                            holeCenterYOffset: 14.0,
-                                            cornerRadius: 18.0,
-                                            bandHeight: 36.0,
-                                          ),
-                                        ),
-                                      ),
-
-                                      Positioned.fill(
-                                        child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                            16.0,
-                                            56.0,
-                                            16.0,
-                                            0.0,
-                                          ),
-                                          child: _showMPINScreen
-                                              ? _buildMPINScreen()
-                                              : _buildPhoneInputScreen(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                
-                                Positioned(
-                                  top: -35,
-                                  left: 16,
-                                  right: 16,
-                                  child: Center(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.1,
-                                            ),
-                                            blurRadius: 15,
-                                            offset: const Offset(0, 5),
-                                          ),
-                                        ],
-                                      ),
-                                      width: 94,
-                                      height: 94,
-                                      child: Center(
-                                        child: ClipOval(
-                                          child: SvgPicture.asset(
-                                            'lib/ecliniq_icons/assets/Group.svg',
-
-                                            width: 80,
-                                            fit: BoxFit.contain,
-
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    Image.asset(
-                                                      EcliniqIcons
-                                                          .userCircle
-                                                          .assetPath,
-                                                      width: 72,
-                                                      height: 72,
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                       ),
                     ],
                   ),
                 ),
               ),
+            ),
+            child: IntrinsicHeight(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: _showMPINScreen ? 0 : 20),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: headerHeight,
+                      width: double.infinity,
+                      child: Stack(
+                        alignment: const Alignment(0, -0.3),
+                        children: [
+                          Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0xFF2372EC),
+                                  Color(0xFFF8DFFF),
+                                ],
+                                stops: [0.0, 0.95],
+                              ),
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: Opacity(
+                              opacity: 0.45,
+                              child: Image.asset(
+                                EcliniqIcons.lottie.assetPath,
+                                fit: BoxFit.cover,
+                                cacheWidth: 800,
+                                cacheHeight: 600,
+                                filterQuality: FilterQuality.low,
+                              ),
+                            ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset(
+                                EcliniqIcons.loginLogo.assetPath,
+                                height: 44,
+                                width: 198,
+                              ),
+
+                              Text(
+                                _userName != null && _userName!.isNotEmpty
+                                    ? 'Welcome back, ${_userName!}!'
+                                    : 'Welcome back!',
+                                style: EcliniqTextStyles.responsiveHeadlineXLarge(
+                                  context,
+                                ).copyWith(
+                                  color: Colors.white,
+                                  fontFamily: 'Rubik',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Your Healthcare Platform',
+                                style: EcliniqTextStyles.responsiveTitleXLarge(
+                                  context,
+                                ).copyWith(
+                                  color: Colors.white,
+                                  fontFamily: 'Rubik',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Transform.translate(
+                        offset: const Offset(0, -65),
+                        child: Padding(
+                          padding: EdgeInsets.zero,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Positioned.fill(
+                                child: Stack(
+                                  children: [
+                                    PhysicalShape(
+                                      clipper: CardHoleClipper(
+                                        radius: 52.0,
+                                        centerYOffset: 14.0,
+                                      ),
+                                      color: Colors.white,
+                                      elevation: 0,
+                                      child: const SizedBox.expand(),
+                                    ),
+                                    Positioned.fill(
+                                      child: CustomPaint(
+                                        painter: TopEdgePainter(
+                                          leftColor: const Color(
+                                            0xFFBF50FF,
+                                          ).withOpacity(0.3),
+                                          rightColor: const Color(
+                                            0xFF0064FF,
+                                          ).withOpacity(0.4),
+                                          holeRadius: 52.0,
+                                          holeCenterYOffset: 14.0,
+                                          cornerRadius: 18.0,
+                                          bandHeight: 36.0,
+                                        ),
+                                      ),
+                                    ),
+
+                                    Positioned.fill(
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16.0,
+                                          56.0,
+                                          16.0,
+                                          0.0,
+                                        ),
+                                        child: _showMPINScreen
+                                            ? _buildMPINScreen()
+                                            : _buildPhoneInputScreen(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              Positioned(
+                                top: -35,
+                                left: 16,
+                                right: 16,
+                                child: Center(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(
+                                            0.1,
+                                          ),
+                                          blurRadius: 15,
+                                          offset: const Offset(0, 5),
+                                        ),
+                                      ],
+                                    ),
+                                    width: 94,
+                                    height: 94,
+                                    child: Center(
+                                      child: ClipOval(
+                                        child: SvgPicture.asset(
+                                          'lib/ecliniq_icons/assets/Group.svg',
+                                          width: 80,
+                                          fit: BoxFit.contain,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Image.asset(
+                                                    EcliniqIcons
+                                                        .userCircle
+                                                        .assetPath,
+                                                    width: 72,
+                                                    height: 72,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (!_showMPINScreen)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 24.0, top: 4),
+                        child: GestureDetector(
+                          onTap: () {
+                            EcliniqRouter.push(const LoginTroublePage());
+                          },
+                          child: Text(
+                            'Trouble signing in?',
+                            style: EcliniqTextStyles.responsiveHeadlineBMedium(
+                              context,
+                            ).copyWith(
+                              color: Color(0xff424242),
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Inter',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
             ),
           ),
         ),

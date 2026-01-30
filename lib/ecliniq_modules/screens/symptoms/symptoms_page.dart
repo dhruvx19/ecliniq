@@ -256,8 +256,11 @@ class _SymptomsPageState extends State<SymptomsPage> {
               10.0,
             ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                SizedBox(
+                  height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0),
+                ),
                 Container(
                   width: EcliniqTextStyles.getResponsiveSize(context, 48.0),
                   height: EcliniqTextStyles.getResponsiveSize(context, 48.0),

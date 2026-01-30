@@ -1640,42 +1640,35 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               onTap: _isLoading
                   ? null
                   : (_isBiometricEnabled
-                      ? _handleBiometricLogin
-                      : () async {
-                          final mpin = await SecureStorageService.getMPIN();
-                          if (mpin != null && mpin.isNotEmpty) {
-                            await _requestBiometricPermission(mpin);
-                            await _checkBiometricAvailability();
-                            if (_isBiometricEnabled && mounted) {
-                              await _handleBiometricLogin();
+                        ? _handleBiometricLogin
+                        : () async {
+                            final mpin = await SecureStorageService.getMPIN();
+                            if (mpin != null && mpin.isNotEmpty) {
+                              await _requestBiometricPermission(mpin);
+                              await _checkBiometricAvailability();
+                              if (_isBiometricEnabled && mounted) {
+                                await _handleBiometricLogin();
+                              }
+                            } else {
+                              CustomErrorSnackBar.show(
+                                context: context,
+                                title: 'MPIN Required',
+                                subtitle:
+                                    'Please enter MPIN first to enable biometric',
+                                duration: const Duration(seconds: 3),
+                              );
                             }
-                          } else {
-                            CustomErrorSnackBar.show(
-                              context: context,
-                              title: 'MPIN Required',
-                              subtitle:
-                                  'Please enter MPIN first to enable biometric',
-                              duration: const Duration(seconds: 3),
-                            );
-                          }
-                        }),
+                          }),
               child: Container(
-                constraints: const BoxConstraints(minWidth: 150, minHeight: 48),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
+                  horizontal: 14,
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: _isBiometricEnabled
-                      ? Color(0xffF2F7FF)
-                      : Colors.blue.shade50,
+                  color: Color(0xffF2F7FF),
+
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: _isBiometricEnabled
-                        ? Color(0xff96BFFF)
-                        : Color(0x382372EC),
-                    width: 0.5,
-                  ),
+                  border: Border.all(color: Color(0xff96BFFF), width: 0.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1690,16 +1683,16 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                     Text(
                       _isBiometricEnabled
                           ? (_isLoading
-                              ? 'Authenticating...'
-                              : 'Use ${BiometricService.getBiometricTypeName()}')
+                                ? 'Authenticating...'
+                                : 'Use ${BiometricService.getBiometricTypeName()}')
                           : 'Use ${BiometricService.getBiometricTypeName()}',
-                      style: EcliniqTextStyles.responsiveHeadlineBMedium(
-                        context,
-                      ).copyWith(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF2372EC),
-                      ),
+                      style:
+                          EcliniqTextStyles.responsiveHeadlineBMedium(
+                            context,
+                          ).copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF2372EC),
+                          ),
                     ),
                   ],
                 ),

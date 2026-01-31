@@ -157,6 +157,10 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
       await _checkBiometricAvailability();
     });
+
+    _focusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -1400,16 +1404,23 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                                           Text(
                                             i < _entered.length
                                                 ? (_showPin ? _entered[i] : '*')
-                                                : '-',
-                                            style:
-                                                EcliniqTextStyles.responsiveHeadlineBMedium(
-                                                  context,
-                                                ).copyWith(
-                                                  fontWeight: FontWeight.w400,
-                                                  color: i < _entered.length
-                                                      ? Colors.black
-                                                      : Color(0xffD6D6D6),
-                                                ),
+                                                : (i == _entered.length &&
+                                                        _focusNode.hasFocus
+                                                    ? '|'
+                                                    : '-'),
+                                            style: EcliniqTextStyles
+                                                .responsiveHeadlineBMedium(
+                                              context,
+                                            ).copyWith(
+                                              fontWeight: FontWeight.w400,
+                                              color: i < _entered.length
+                                                  ? Colors.black
+                                                  : (i == _entered.length &&
+                                                          _focusNode.hasFocus
+                                                      ? const Color(0xFF2372EC)
+                                                      : const Color(
+                                                          0xffD6D6D6)),
+                                            ),
                                           ),
                                           const SizedBox(height: 8),
                                           Container(

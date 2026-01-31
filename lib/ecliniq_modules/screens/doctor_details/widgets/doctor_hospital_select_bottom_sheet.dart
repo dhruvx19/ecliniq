@@ -1,5 +1,5 @@
-import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_api/top_doctor_model.dart';
+import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -21,7 +21,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
   void initState() {
     super.initState();
     _locations = widget.doctor.locations;
-    
+
     // Auto-select the nearest location (first in list, assuming sorted by distance)
     if (_locations.isNotEmpty) {
       _selectedLocationId = _locations.first.id;
@@ -30,7 +30,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
 
   void _onLocationTap(String locationId) {
     final selected = _locations.firstWhere((loc) => loc.id == locationId);
-    
+
     Navigator.pop(context, selected);
   }
 
@@ -44,29 +44,28 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
-               Text(
+              Text(
                 'Select Location',
-                style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF424242),
-                ),
+                style: EcliniqTextStyles.responsiveHeadlineBMedium(context)
+                    .copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF424242),
+                    ),
               ),
               const SizedBox(height: 2),
 
-              
               Text(
                 _buildDescription(),
-                style:  EcliniqTextStyles.responsiveButtonXLargeProminent(context).copyWith(
-               
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF626060),
-                ),
+                style:
+                    EcliniqTextStyles.responsiveButtonXLargeProminent(
+                      context,
+                    ).copyWith(
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF626060),
+                    ),
               ),
               const SizedBox(height: 10),
 
-              
               if (_locations.isEmpty)
                 const _EmptyLocationState()
               else
@@ -114,14 +113,14 @@ class _LocationCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFF8FAFF) : Colors.white,
           border: Border.all(
             color: isSelected ? const Color(0xFF96BFFF) : Colors.white,
-            width: 1,
+            width: 0.5,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           children: [
@@ -206,18 +205,16 @@ class _LocationDetails extends StatelessWidget {
       children: [
         Text(
           location.name,
-          style:  EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-        
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF424242),
-          ),
+          style: EcliniqTextStyles.responsiveTitleXLarge(
+            context,
+          ).copyWith(fontWeight: FontWeight.w500, color: Color(0xFF424242)),
         ),
         const SizedBox(height: 6),
         _IconTextRow(
           icon: EcliniqIcons.appointmentRemindar.assetPath,
           text: location.hours,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Row(
           children: [
             Expanded(
@@ -232,15 +229,11 @@ class _LocationDetails extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFF9F9F9),
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: const Color(0xFFB8B8B8),
-                  width: 0.5,
-                ),
+                border: Border.all(color: const Color(0xFFB8B8B8), width: 0.5),
               ),
               child: Text(
                 location.distance,
-                style:  EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-             
+                style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF424242),
                 ),
@@ -269,17 +262,12 @@ class _IconTextRow extends StatelessWidget {
           height: EcliniqTextStyles.getResponsiveIconSize(context, 20),
         ),
         const SizedBox(width: 2),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 1,
-            style:  EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-           
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF626060),
-           
-            ),
-          ),
+        Text(
+          text,
+          maxLines: 1,
+          style: EcliniqTextStyles.responsiveBodySmall(
+            context,
+          ).copyWith(fontWeight: FontWeight.w400, color: Color(0xFF626060)),
         ),
       ],
     );
@@ -291,12 +279,14 @@ class _EmptyLocationState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return  Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 20),
         child: Text(
           'No locations available',
-          style: EcliniqTextStyles.responsiveBodySmall(context).copyWith( color: Color(0xFF9E9E9E)),
+          style: EcliniqTextStyles.responsiveBodySmall(
+            context,
+          ).copyWith(color: Color(0xFF9E9E9E)),
         ),
       ),
     );

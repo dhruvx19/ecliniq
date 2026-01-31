@@ -29,7 +29,6 @@ import 'package:ecliniq/ecliniq_modules/screens/search/search_results_screen.dar
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_navigation/bottom_navigation.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/action_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/scaffold/scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -417,7 +416,8 @@ CustomErrorSnackBar.show(
   void _showLocationBottomSheet(BuildContext context) {
     EcliniqBottomSheet.show(
       context: context,
-      child: const LocationBottomSheet(currentLocation: ''),
+      child:
+      const LocationBottomSheet(currentLocation: ''),
     );
   }
 

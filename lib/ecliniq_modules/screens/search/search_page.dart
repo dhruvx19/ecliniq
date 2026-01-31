@@ -1020,7 +1020,6 @@ Widget _buildShimmerLoading() {
       'Pulmonologist': EcliniqIcons.pulmonologist.assetPath,
       'Urologist': EcliniqIcons.urologist.assetPath,
       'Gastroenterologist': EcliniqIcons.gastroenterologist.assetPath,
-      'Dietitian': EcliniqIcons.dietitian.assetPath,
       'Physiotherapist': EcliniqIcons.physiotherapist.assetPath,
     };
 
@@ -1655,9 +1654,9 @@ class MostSearchedSpecialities extends StatelessWidget {
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
         final isSmallScreen = screenWidth < 360;
-        final cardSpacing = isSmallScreen ? 8.0 : 18.0;
+        final cardSpacing = isSmallScreen ? 6.0 : 14.0;
         final cardHeight = isSmallScreen ? 85.0 : 100.0;
-        final cardWidth = (screenWidth - (isSmallScreen ? 40 : 48)) / 3;
+        final cardWidth = (screenWidth - (isSmallScreen ? 34 : 48)) / 3;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -17,6 +17,7 @@ class SearchBarWidget extends StatefulWidget {
     this.autofocus = false,
     this.onVoiceSearch,
     this.rotatingHints,
+    this.controller,
   });
 
   final VoidCallback? onBack;

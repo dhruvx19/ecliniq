@@ -315,6 +315,27 @@ class DoctorInfoCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
+                  Container(
+                    width: EcliniqTextStyles.getResponsiveSize(context, 6.0),
+                    height: EcliniqTextStyles.getResponsiveSize(context, 6.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8E8E8E),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
+                  Expanded(
+                    child: Text(
+                      doctor?.consultationFee != null
+                          ? '₹${doctor!.consultationFee!.toStringAsFixed(0)}'
+                          : '₹500',
+                      style: EcliniqTextStyles.responsiveTitleXLarge(
+                        context,
+                      ).copyWith(color: Color(0xff424242)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
               SizedBox(

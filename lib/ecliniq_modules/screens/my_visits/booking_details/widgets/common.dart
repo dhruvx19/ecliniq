@@ -1178,8 +1178,8 @@ class AppointmentDetailsSection extends StatelessWidget {
           showDivider: true,
           icon: SvgPicture.asset(
             EcliniqIcons.userBlue.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveSize(context, 32.0),
+            height: EcliniqTextStyles.getResponsiveSize(context, 32.0),
           ),
           text: patient.displayName,
           textWidget: patient.displayNameWidget(context),
@@ -1190,8 +1190,8 @@ class AppointmentDetailsSection extends StatelessWidget {
                   onTap: onEditPatient,
                   child: SvgPicture.asset(
                     EcliniqIcons.penBlack.assetPath,
-                    width: 32,
-                    height: 32,
+                    width: EcliniqTextStyles.getResponsiveSize(context, 32.0),
+                    height: EcliniqTextStyles.getResponsiveSize(context, 32.0),
                   ),
                 )
               : null,
@@ -1202,8 +1202,8 @@ class AppointmentDetailsSection extends StatelessWidget {
           showDivider: true,
           icon: SvgPicture.asset(
             EcliniqIcons.calendar.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveSize(context, 32.0),
+            height: EcliniqTextStyles.getResponsiveSize(context, 32.0),
           ),
           text: timeInfo.time,
           subtitle: timeInfo.displayDate,
@@ -1214,8 +1214,8 @@ class AppointmentDetailsSection extends StatelessWidget {
           showDivider: false,
           icon: SvgPicture.asset(
             EcliniqIcons.hospitalBuilding1.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveSize(context, 32.0),
+            height: EcliniqTextStyles.getResponsiveSize(context, 32.0),
           ),
           text: timeInfo.consultationType,
           subtitle: 'Amore Clinic, 15, Indrayani River Road, Pune - 411047',
@@ -1297,14 +1297,14 @@ class ClinicLocationCard extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: Color(0xffF9F9F9),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(EcliniqTextStyles.getResponsiveSize(context, 12.0)),
           ),
           child: Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(EcliniqTextStyles.getResponsiveSize(context, 8.0)),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],

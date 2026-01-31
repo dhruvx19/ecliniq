@@ -1781,7 +1781,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
                                   Text(
                                     _userName != null && _userName!.isNotEmpty
-                                        ? 'Welcome back, ${_userName!}!'
+                                        ? 'Welcome back, ${_userName!.split(' ').first}!'
                                         : 'Welcome back!',
                                     style:
                                         EcliniqTextStyles.responsiveHeadlineXLarge(

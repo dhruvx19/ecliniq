@@ -117,7 +117,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      height: 52,
+      height: EcliniqTextStyles.getResponsiveSize(context, 52.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.0),
@@ -162,8 +162,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                       ),
                 // Hide default hint if using rotating hints
                 hintText: showRotatingHint ? null : widget.hintText,
-                hintStyle:
-                    EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+                hintStyle: EcliniqTextStyles.responsiveTitleXLarge(context)
+                    .copyWith(
                       color: Colors.grey[500],
                       fontWeight: FontWeight.w400,
                     ),
@@ -174,10 +174,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               ),
               onChanged: search,
               textInputAction: TextInputAction.search,
-              style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                color: Colors.black87,
-                fontWeight: FontWeight.w400,
-              ),
+              style: EcliniqTextStyles.responsiveTitleXLarge(
+                context,
+              ).copyWith(color: Colors.black87, fontWeight: FontWeight.w400),
               textAlignVertical: TextAlignVertical.center,
               cursorColor: Colors.blue,
               cursorWidth: 1.5,
@@ -192,15 +191,19 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                 child: IgnorePointer(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 500),
-                    transitionBuilder: (Widget child, Animation<double> animation) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.0, 0.5),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: FadeTransition(opacity: animation, child: child),
-                      );
-                    },
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0.0, 0.5),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                          );
+                        },
                     child: Align(
                       key: ValueKey<String>(
                         widget.rotatingHints![_currentHintIndex],
@@ -208,12 +211,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         widget.rotatingHints![_currentHintIndex],
-                        style: EcliniqTextStyles.responsiveTitleXLarge(
-                          context,
-                        ).copyWith(
-                          color: Colors.grey[500],
-                          fontWeight: FontWeight.w400,
-                        ),
+                        style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                            .copyWith(
+                              color: Colors.grey[500],
+                              fontWeight: FontWeight.w400,
+                            ),
                       ),
                     ),
                   ),

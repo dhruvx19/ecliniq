@@ -486,10 +486,47 @@ class AppointmentTimeInfo {
   });
 
   factory AppointmentTimeInfo.fromJson(Map<String, dynamic> json) {
+    final dateStr = json['date'] ?? '';
+    String displayDate = json['display_date'] ?? '';
+
+    // Always compute displayDate from date to ensure proper format with year
+    if (dateStr.isNotEmpty) {
+      try {
+        final dateFormat = DateFormat('dd MMM, yyyy');
+        final parsedDate = dateFormat.parse(dateStr);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final appointmentDay = DateTime(
+          parsedDate.year,
+          parsedDate.month,
+          parsedDate.day,
+        );
+        final difference = appointmentDay.difference(today).inDays;
+
+        String dayPrefix;
+        if (difference == 0) {
+          dayPrefix = 'Today';
+        } else if (difference == 1) {
+          dayPrefix = 'Tomorrow';
+        } else if (difference == -1) {
+          dayPrefix = 'Yesterday';
+        } else {
+          dayPrefix = DateFormat('EEEE').format(parsedDate);
+        }
+
+        final displayDateFormat = DateFormat('d MMMM yyyy');
+        displayDate = '$dayPrefix, ${displayDateFormat.format(parsedDate)}';
+      } catch (e) {
+        if (displayDate.isEmpty) {
+          displayDate = dateStr;
+        }
+      }
+    }
+
     return AppointmentTimeInfo(
-      date: json['date'] ?? '',
+      date: dateStr,
       time: json['time'] ?? '',
-      displayDate: json['display_date'] ?? '',
+      displayDate: displayDate,
       consultationType: json['consultation_type'] ?? 'In-Clinic Consultation',
     );
   }
@@ -1206,7 +1243,9 @@ class AppointmentDetailsSection extends StatelessWidget {
             height: EcliniqTextStyles.getResponsiveSize(context, 32.0),
           ),
           text: timeInfo.time,
-          subtitle: timeInfo.displayDate,
+          subtitle: timeInfo.displayDate.isNotEmpty
+              ? timeInfo.displayDate
+              : timeInfo.date,
         ),
         const SizedBox(height: 10),
         _buildDetailRow(

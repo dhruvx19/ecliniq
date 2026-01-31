@@ -260,7 +260,7 @@ class EcliniqTextStyles {
     
     final uiScaleFactor = useProportionalScaling
         ? scaleFactor
-        : (scaleFactor * 0.92).clamp(
+        : (scaleFactor * 0.95).clamp(
             0.88,
             1.0,
           ); 

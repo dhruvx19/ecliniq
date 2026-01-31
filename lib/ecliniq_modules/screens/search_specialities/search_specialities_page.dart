@@ -222,18 +222,17 @@ class _SearchSpecialitiesState extends State<SearchSpecialities> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        leadingWidth: EcliniqTextStyles.getResponsiveSize(context, 58.0),
+      appBar:  AppBar(
+        surfaceTintColor: Colors.transparent,
+        leadingWidth: 58,
         titleSpacing: 0,
         backgroundColor: Colors.white,
         elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.backArrow.assetPath,
-            width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
-            height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+            width: EcliniqTextStyles.getResponsiveSize(context, 32.0),
+            height: EcliniqTextStyles.getResponsiveSize(context, 32.0),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -246,13 +245,20 @@ class _SearchSpecialitiesState extends State<SearchSpecialities> {
             ).copyWith(color: Color(0xff424242)),
           ),
         ),
+        
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(
             EcliniqTextStyles.getResponsiveSize(context, 1.0),
           ),
-          child: Container(
-            color: Color(0xFFB8B8B8),
-            height: EcliniqTextStyles.getResponsiveSize(context, 0.5),
+          child: Transform.translate(
+            offset: Offset(
+              0,
+              -EcliniqTextStyles.getResponsiveSize(context, 8.0),
+            ),
+            child: Container(
+              color: Color(0xFFB8B8B8),
+              height: EcliniqTextStyles.getResponsiveSize(context, 1.0),
+            ),
           ),
         ),
       ),
@@ -287,6 +293,7 @@ class _SearchSpecialitiesState extends State<SearchSpecialities> {
     );
 
     return Container(
+      height: EcliniqTextStyles.getResponsiveSize(context, 52.0),
       margin: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16.0),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -295,7 +302,7 @@ class _SearchSpecialitiesState extends State<SearchSpecialities> {
         ),
         border: Border.all(
           color: Color(0xFF626060),
-          width: EcliniqTextStyles.getResponsiveSize(context, 0.5),
+          width:  0.5,
         ),
       ),
       child: TextField(
@@ -325,7 +332,7 @@ class _SearchSpecialitiesState extends State<SearchSpecialities> {
           ).copyWith(color: Color(0xFFD6D6D6), fontWeight: FontWeight.w400),
           contentPadding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
             context,
-            horizontal: 16.0,
+            horizontal: 12.0,
             vertical: 14.0,
           ),
         ),

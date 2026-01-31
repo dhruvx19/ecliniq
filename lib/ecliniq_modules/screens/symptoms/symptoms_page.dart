@@ -20,7 +20,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
   final Map<String, bool> _expandedCategories = {};
 
   final List<Map<String, dynamic>> _commonSymptoms = [
-     {'title': 'Fever/Chills', 'icon': EcliniqIcons.fever},
+    {'title': 'Fever/Chills', 'icon': EcliniqIcons.fever},
     {'title': 'Headache', 'icon': EcliniqIcons.headache},
     {'title': 'Stomach Pain', 'icon': EcliniqIcons.stomachPain},
     {'title': 'Cold & Cough', 'icon': EcliniqIcons.coughCold},
@@ -35,7 +35,6 @@ class _SymptomsPageState extends State<SymptomsPage> {
     {'title': 'Dental Care', 'icon': EcliniqIcons.dentalCare},
     {'title': 'Joint Pain', 'icon': EcliniqIcons.jointCare},
     {'title': 'Blood Pressure', 'icon': EcliniqIcons.bloodPressure},
-
   ];
 
   final Map<String, String> _symptomSpecialtyMap = {
@@ -50,7 +49,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
     'Viral Infection Symptoms': 'General Physician',
     'High or Low Blood Pressure': 'General Physician, Cardiologist',
     'General Health Check-up': 'General Physician',
-    
+
     // Child Health
     'Vomiting or Diarrhea (Child)': 'Pediatrician',
     'Poor Feeding': 'Pediatrician',
@@ -80,14 +79,17 @@ class _SymptomsPageState extends State<SymptomsPage> {
     'Wisdom Tooth Pain': 'Dentist',
 
     // Skin & Hair
-    'Skin Rash / Itching': 'Dermatologist',
-    'Acne / Pimples': 'Dermatologist',
-    'Hair Fall / Dandruff': 'Dermatologist',
-    'Skin Allergy': 'Dermatologist',
-    'Fungal Infection': 'Dermatologist',
-    'Pigmentation / Dark Spots': 'Dermatologist',
-    'Psoriasis / Eczema': 'Dermatologist',
-    'Nail Infection': 'Dermatologist',
+    'Skin & Hair': 'Dermatologist',
+
+    // Category mappings (for categories with no symptoms)
+    'ENT Health': 'ENT',
+    'Eyes Health': 'Ophthalmologist',
+    'Heart & Chest': 'Cardiologist',
+    'Bones & Movement': 'Orthopedic',
+    'Lungs & Breathing': 'Pulmonologist',
+    'Kidney & Urinary': 'Urologist',
+    'Stomach & Liver': 'Gastroenterologist',
+    'Brain & Mental Health': 'Neurologist',
 
     // ENT
     'Ear Pain or Discharge': 'ENT',
@@ -225,7 +227,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
       'Breast Lump or Pain',
       'Fertility Concerns',
     ],
-    'Dental': [
+    'Dental Care': [
       'Toothache',
       'Cavities',
       'Bleeding or Swollen Gums',
@@ -234,52 +236,6 @@ class _SymptomsPageState extends State<SymptomsPage> {
       'Jaw Pain',
       'Tooth Sensitivity',
       'Wisdom Tooth Pain',
-    ],
-    'Skin & Hair': [
-      'Skin Rash / Itching',
-      'Acne / Pimples',
-      'Hair Fall / Dandruff',
-      'Skin Allergy',
-      'Fungal Infection',
-      'Pigmentation / Dark Spots',
-      'Psoriasis / Eczema',
-      'Nail Infection',
-    ],
-    'ENT': [
-      'Ear Pain or Discharge',
-      'Hearing Loss',
-      'Blocked Nose / Sinus Pain',
-      'Tonsil or Throat Pain',
-      'Voice Change / Hoarseness',
-      'Vertigo / Balance Issues',
-      'Nosebleeds',
-    ],
-    'Eyes': [
-      'Red or Itchy Eyes',
-      'Blurred Vision',
-      'Eye Pain or Swelling',
-      'Watering or Discharge',
-      'Night Vision Problems',
-      'Eye Infection',
-      'Light Sensitivity',
-      'Sudden Vision Loss',
-    ],
-    'Heart & Chest': [
-      'Chest Pain or Pressure',
-      'Palpitations (Fast Heartbeat)',
-      'Shortness of Breath',
-      'Leg or Foot Swelling',
-      'Fatigue on Exertion',
-    ],
-    'Bones & Movement': [
-      'Back or Neck Pain',
-      'Joint Pain or Swelling',
-      'Knee Pain',
-      'Muscle Pain or Stiffness',
-      'Difficulty Walking',
-      'Sports Injury',
-      'Fracture or Trauma',
-      'Shoulder Pain',
     ],
     'Diabetes & Hormones': [
       'High or Low Blood Sugar',
@@ -291,59 +247,6 @@ class _SymptomsPageState extends State<SymptomsPage> {
       'Hormonal Imbalance',
       'PCOS Symptoms',
     ],
-    'Lungs & Breathing': [
-      'Persistent Cough',
-      'Breathing Difficulty',
-      'Wheezing / Asthma',
-      'Chest Congestion',
-      'Cough with Blood',
-      'Snoring / Sleep Apnea',
-    ],
-    'Kidney & Urinary': [
-      'Burning Urination',
-      'Frequent Urination',
-      'Blood in Urine',
-      'Kidney Stones',
-      'Reduced Urine Output',
-      'Foamy Urine',
-      'Kidney Pain',
-      'Prostate Issues',
-    ],
-    'Stomach & Liver': [
-      'Abdominal Pain',
-      'Gas / Acidity / Heartburn',
-      'Nausea or Vomiting',
-      'Constipation or Diarrhea',
-      'Blood in Stool',
-      'Jaundice',
-      'Fatty Liver / Liver Pain',
-    ],
-    'Brain & Mental Health': [
-      'Severe Headache / Migraine',
-      'Seizures / Fits',
-      'Numbness or Tingling',
-      'Weakness or Paralysis',
-      'Tremors',
-      'Memory Loss',
-      'Anxiety / Stress',
-      'Depression / Low Mood',
-      'Sleep Problems',
-      'Addiction Issues',
-    ],
-    'Sexual Health': [
-      'Erectile Dysfunction',
-      'Premature Ejaculation',
-      'Low Libido',
-      'Sexual Anxiety',
-      'Relationship Intimacy Issues',
-    ],
-    'Blood Disorders': [
-      'Anemia / Low Hemoglobin',
-      'Excessive Bleeding',
-      'Easy Bruising',
-      'Blood Clotting Issues',
-      'Recurrent Infections',
-    ],
     'Cancer Care': [
       'Lump or Swelling',
       'Unexplained Weight Loss',
@@ -352,15 +255,15 @@ class _SymptomsPageState extends State<SymptomsPage> {
       'Cancer Follow-up',
       'Chemotherapy Consultation',
     ],
-    'Imaging & Alternative Care': [
-      'Imaging (X-ray, CT, MRI, Ultrasound)',
-      'Scan Report Review',
-      'Chronic Conditions',
-      'Allergies',
-      'Digestive Imbalance',
-      'Stress or Sleep Issues',
-      'Lifestyle Disorders',
-    ],
+    'Skin & Hair': [],
+    'ENT Health': [],
+    'Eyes Health': [],
+    'Heart & Chest': [],
+    'Bones & Movement': [],
+    'Lungs & Breathing': [],
+    'Kidney & Urinary': [],
+    'Stomach & Liver': [],
+    'Brain & Mental Health': [],
   };
 
   void _handleSymptomTap(String symptom) {
@@ -370,10 +273,12 @@ class _SymptomsPageState extends State<SymptomsPage> {
       // 2. Pick first one
       final firstSpecialty = specialtiesStr.split(',').first.trim();
       // 3. Navigate
-      EcliniqRouter.push(SpecialityDoctorsList(initialSpeciality: firstSpecialty));
+      EcliniqRouter.push(
+        SpecialityDoctorsList(initialSpeciality: firstSpecialty),
+      );
     } else {
-        // Fallback: Try to use the symptom name itself or handle appropriately
-        // For now, we'll log or do nothing.
+      // Fallback: Try to use the symptom name itself or handle appropriately
+      // For now, we'll log or do nothing.
     }
   }
 
@@ -413,6 +318,7 @@ class _SymptomsPageState extends State<SymptomsPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         leadingWidth: 58,
         titleSpacing: 0,
         backgroundColor: Colors.white,
@@ -434,8 +340,19 @@ class _SymptomsPageState extends State<SymptomsPage> {
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.2),
-          child: Container(color: Color(0xFFB8B8B8), height: 1.0),
+          preferredSize: Size.fromHeight(
+            EcliniqTextStyles.getResponsiveSize(context, 1.0),
+          ),
+          child: Transform.translate(
+            offset: Offset(
+              0,
+              -EcliniqTextStyles.getResponsiveSize(context, 8.0),
+            ),
+            child: Container(
+              color: Color(0xFFB8B8B8),
+              height: EcliniqTextStyles.getResponsiveSize(context, 1.0),
+            ),
+          ),
         ),
       ),
       body: Column(
@@ -493,8 +410,9 @@ class _SymptomsPageState extends State<SymptomsPage> {
                                 context,
                                 symptom['title'] as String,
                                 symptom['icon'] as EcliniqIcons,
-                                () =>
-                                    _handleSymptomTap(symptom['title'] as String),
+                                () => _handleSymptomTap(
+                                  symptom['title'] as String,
+                                ),
                               );
                             },
                           ),
@@ -602,35 +520,23 @@ class _SymptomsPageState extends State<SymptomsPage> {
   ) {
     // If searching, default to expanded. Otherwise use mapped state or default to true if symptoms present
     final isExpanded = _searchQuery.isNotEmpty
-        ? true 
+        ? true
         : (_expandedCategories[category] ?? symptoms.isNotEmpty);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          // Allow toggling only if not searching. Or allow toggling but default is open.
-          // Better logic: user can still toggle off. But initial state during search matches "isExpanded".
-          onTap: symptoms.isNotEmpty ? () {
-            setState(() {
-              if (_searchQuery.isNotEmpty) {
-                 // If searching, we don't really use _expandedCategories for initial state anymore,
-                 // but let's allow improved toggling? 
-                 // Simple approach: just toggle the map value. 
-                 // But wait, the line above `_searchQuery.isNotEmpty ? true` overrides it.
-                 // So if searching, we force expand. Let's make it user-controllable during search too?
-                 // If user collapses during search, we can respect that if we initialize map properly.
-                 // However, "force expand on search" is standard UX. Collapsing search results is rare.
-                 // So let's disable collapse onTap if searching, or just let it be.
-                 // To allow collapse during search:
-                 // isExpanded = _expandedCategories[category] ?? (_searchQuery.isNotEmpty || symptoms.isNotEmpty);
-                 // But _expandedCategories is empty initially.
-                 // Let's stick to "Force expand if searching".
-              } else {
-                 _expandedCategories[category] = !isExpanded;
-              }
-            });
-          } : null,
+          // If no symptoms, navigate to speciality; otherwise toggle expand/collapse
+          onTap: symptoms.isEmpty
+              ? () => _handleSymptomTap(category)
+              : () {
+                  setState(() {
+                    if (_searchQuery.isEmpty) {
+                      _expandedCategories[category] = !isExpanded;
+                    }
+                  });
+                },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -647,20 +553,33 @@ class _SymptomsPageState extends State<SymptomsPage> {
                       ),
                 ),
               ),
-              if (_searchQuery.isEmpty) // Hide arrow if we force expanded? Or show it?
-              AnimatedRotation(
-                duration: const Duration(milliseconds: 200),
-                turns: isExpanded ? 0 : -0.25,
-                child: SvgPicture.asset(
-                  EcliniqIcons.arrowDown.assetPath,
-                  width: 24,
-                  height: 24,
-                  colorFilter: ColorFilter.mode(
-                    const Color(0xff424242),
-                    BlendMode.srcIn,
+              if (symptoms.isEmpty)
+                Transform.rotate(
+                  angle: -90 * 3.14159 / 180,
+                  child: SvgPicture.asset(
+                    EcliniqIcons.arrowDown.assetPath,
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      const Color(0xff424242),
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                )
+              else if (_searchQuery.isEmpty)
+                AnimatedRotation(
+                  duration: const Duration(milliseconds: 200),
+                  turns: isExpanded ? 0 : -0.25,
+                  child: SvgPicture.asset(
+                    EcliniqIcons.arrowDown.assetPath,
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      const Color(0xff424242),
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

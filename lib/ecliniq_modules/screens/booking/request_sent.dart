@@ -178,7 +178,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
+                        padding: const EdgeInsets.only(top: 6.0),
                         child: Column(
                           children: [
                             AppointmentDetailItem(
@@ -215,6 +215,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                                   'Address not available',
                               showEdit: false,
                             ),
+                             const SizedBox(height: 4),
                           ],
                         ),
                       ),

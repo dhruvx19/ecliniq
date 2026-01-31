@@ -883,7 +883,11 @@ class _ReviewDetailsScreenState extends State<ReviewDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                      context,
+                      horizontal: 16,
+                      vertical: 0,
+                    ),
                     child: Text(
                       'Reason for Visit',
                       style: EcliniqTextStyles.responsiveHeadlineXMedium(

@@ -27,7 +27,11 @@ class AppointmentDetailItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16,),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                    context,
+                    horizontal: 16.0,
+                    vertical: 0.0,
+                  ),
       child: Row(
         children: [
           SvgPicture.asset(
@@ -76,7 +80,7 @@ class AppointmentDetailItem extends StatelessWidget {
                     color: Color(0xff8E8E8E),
                   ),
                 ),
-                    const SizedBox(height: 8),
+                   
               ],
             ),
           ),

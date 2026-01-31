@@ -100,65 +100,85 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
             decoration: BoxDecoration(
               color: backgroundColor,
               border: Border.all(color: borderColor, width: 0.5),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(
+                EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+              ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.only(
-                    left: 12,
-                    top: 20,
-                    bottom: 20,
-                    right: 10,
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                    context,
+                    left: 12.0,
+                    top: 20.0,
+                    bottom: 20.0,
+                    right: 10.0,
                   ),
                   child: SvgPicture.asset(
                     widget.iconPath,
-                    width: 32,
-                    height: 32,
+                    width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+                    height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
                     colorFilter: widget.isDisabled
                         ? const ColorFilter.mode(Colors.grey, BlendMode.srcIn)
                         : _isPressed
-                        ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
-                        : null,
+                            ? const ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
+                              )
+                            : null,
                   ),
                 ),
-                const SizedBox(width: 2),
+                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 6, bottom: 8),
+                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                      context,
+                      top: 6.0,
+                      bottom: 8.0,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                 
                         Row(
                           children: [
                             Text(
                               widget.title,
-                              style: TextStyle(
-                                fontSize: 18,
+                              style: EcliniqTextStyles.responsiveHeadlineMedium(
+                                context,
+                              ).copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: titleColor,
                               ),
                             ),
-                        SizedBox(width: 4,),
-                        Text(
-                          '(${widget.time})',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w400,
-                            color: timeColor,
-                          ),
-                        ),
+                            SizedBox(
+                              width: EcliniqTextStyles.getResponsiveSpacing(
+                                context,
+                                4.0,
+                              ),
+                            ),
+                            Text(
+                              '(${widget.time})',
+                              style: EcliniqTextStyles.responsiveHeadlineMedium(
+                                context,
+                              ).copyWith(
+                                fontWeight: FontWeight.w400,
+                                color: timeColor,
+                              ),
+                            ),
                           ],
                         ),
-                        
-                        const SizedBox(height: 4),
-                        
+                        SizedBox(
+                          height: EcliniqTextStyles.getResponsiveSpacing(
+                            context,
+                            4.0,
+                          ),
+                        ),
                         if (widget.available > 0)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
+                            padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                              context,
+                              horizontal: 10.0,
+                              vertical: 4.0,
                             ),
                             decoration: BoxDecoration(
                               color: _isPressed
@@ -170,20 +190,28 @@ class _TimeSlotCardState extends State<TimeSlotCard> {
                                     : Colors.transparent,
                                 width: 0.5,
                               ),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(
+                                EcliniqTextStyles.getResponsiveBorderRadius(
+                                  context,
+                                  6.0,
+                                ),
+                              ),
                             ),
                             child: Text(
                               '${widget.available} Tokens Available',
-                              style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+                              style: EcliniqTextStyles.responsiveTitleXLarge(
+                                context,
+                              ).copyWith(
                                 color: _getAvailabilityColor(),
                               ),
                             ),
                           )
                         else
-                          
                           Text(
                             'No tokens available',
-                            style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+                            style: EcliniqTextStyles.responsiveTitleXLarge(
+                              context,
+                            ).copyWith(
                               color: _getAvailabilityColor(),
                             ),
                           ),

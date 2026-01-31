@@ -22,7 +22,10 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
     super.initState();
     _locations = widget.doctor.locations;
     
-    _selectedLocationId = null;
+    // Auto-select the nearest location (first in list, assuming sorted by distance)
+    if (_locations.isNotEmpty) {
+      _selectedLocationId = _locations.first.id;
+    }
   }
 
   void _onLocationTap(String locationId) {

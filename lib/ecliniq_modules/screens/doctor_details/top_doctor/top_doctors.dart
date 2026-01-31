@@ -35,14 +35,21 @@ class _TopDoctorsWidgetState extends State<TopDoctorsWidget> {
     setState(() => _pressedButtons.add(doctor.id));
 
     try {
-      final selectedLocation = await EcliniqBottomSheet.show<LocationData>(
-        context: context,
-        child: LocationBottomSheet(doctor: doctor),
-      );
+      // If there's only one location, skip the bottom sheet and directly book
+      if (doctor.locations.length == 1) {
+        final singleLocation = doctor.locations.first;
+        _handleBooking(doctor, singleLocation);
+      } else {
+        // Multiple locations - show bottom sheet
+        final selectedLocation = await EcliniqBottomSheet.show<LocationData>(
+          context: context,
+          child: LocationBottomSheet(doctor: doctor),
+        );
 
-      if (selectedLocation != null && mounted) {
-        
-        _handleBooking(doctor, selectedLocation);
+        if (selectedLocation != null && mounted) {
+          
+          _handleBooking(doctor, selectedLocation);
+        }
       }
     } finally {
       if (mounted) {

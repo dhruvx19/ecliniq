@@ -850,12 +850,41 @@ Widget _buildShimmerLoading() {
         if (_filteredSpecialities.isNotEmpty) ...[
           _buildSectionHeader('Specialities', _filteredSpecialities.length),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 12,
-            children: _filteredSpecialities.map((speciality) {
-              return _buildSpecialityChip(speciality);
-            }).toList(),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              final isSmallScreen = screenWidth < 360;
+              final cardSpacing = isSmallScreen ? 8.0 : 18.0;
+              
+              // Create rows of 3 cards each
+              final rows = <Widget>[];
+              for (int i = 0; i < _filteredSpecialities.length; i += 3) {
+                final rowItems = <Widget>[];
+                for (int j = 0; j < 3; j++) {
+                  if (i + j < _filteredSpecialities.length) {
+                    rowItems.add(
+                      Expanded(
+                        child: _buildSpecialityCard(_filteredSpecialities[i + j]),
+                      ),
+                    );
+                  } else {
+                    // Empty placeholder to maintain grid
+                    rowItems.add(Expanded(child: SizedBox.shrink()));
+                  }
+                  
+                  if (j < 2) {
+                    rowItems.add(SizedBox(width: cardSpacing));
+                  }
+                }
+                
+                rows.add(Row(children: rowItems));
+                if (i + 3 < _filteredSpecialities.length) {
+                  rows.add(SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)));
+                }
+              }
+              
+              return Column(children: rows);
+            },
           ),
           const SizedBox(height: 24),
         ],
@@ -974,26 +1003,86 @@ Widget _buildShimmerLoading() {
     );
   }
 
-  Widget _buildSpecialityChip(String speciality) {
-    return InkWell(
-      onTap: () {
-        EcliniqRouter.push(SpecialityDoctorsList(initialSpeciality: speciality));
-      },
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
+  Widget _buildSpecialityCard(String speciality) {
+    // Map speciality names to icons
+    final iconMap = <String, String>{
+      'General Physician': EcliniqIcons.generalPhysician.assetPath,
+      'Pediatrician': EcliniqIcons.pediatrician.assetPath,
+      'Gynaecologist': EcliniqIcons.gynaecologist.assetPath,
+      'Dermatologist': EcliniqIcons.dermatologist.assetPath,
+      'Cardiologist': EcliniqIcons.cardiologist.assetPath,
+      'Orthopedic': EcliniqIcons.orthopedic.assetPath,
+      'ENT': EcliniqIcons.ent.assetPath,
+      'Ophthalmologist': EcliniqIcons.ophthalmologist.assetPath,
+      'Neurologist': EcliniqIcons.neurologist.assetPath,
+      'Psychiatrist': EcliniqIcons.psychiatrist.assetPath,
+      'Dentist': EcliniqIcons.dentist.assetPath,
+      'Pulmonologist': EcliniqIcons.pulmonologist.assetPath,
+      'Urologist': EcliniqIcons.urologist.assetPath,
+      'Gastroenterologist': EcliniqIcons.gastroenterologist.assetPath,
+      'Dietitian': EcliniqIcons.dietitian.assetPath,
+      'Physiotherapist': EcliniqIcons.physiotherapist.assetPath,
+    };
+
+    final iconPath = iconMap[speciality] ?? EcliniqIcons.generalPhysician.assetPath;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          EcliniqRouter.push(SpecialityDoctorsList(initialSpeciality: speciality));
+        },
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 12.0),
         ),
-        decoration: BoxDecoration(
-          color: Color(0xffF9F9F9),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          speciality,
-          style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-            fontWeight: FontWeight.w400,
-            color: Color(0xff424242),
+        child: Container(
+          width: EcliniqTextStyles.getResponsiveWidth(context, 150.0),
+          height: EcliniqTextStyles.getResponsiveHeight(context, 130.0),
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 12.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(
+              EcliniqTextStyles.getResponsiveBorderRadius(context, 12.0),
+            ),
+            border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: EcliniqTextStyles.getResponsiveSize(context, 52.0),
+                height: EcliniqTextStyles.getResponsiveSize(context, 52.0),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF8FAFF),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveBorderRadius(context, 99.0),
+                  ),
+                ),
+                child: Center(
+                  child: Image.asset(
+                    iconPath,
+                    width: EcliniqTextStyles.getResponsiveIconSize(context, 52.0),
+                    height: EcliniqTextStyles.getResponsiveIconSize(context, 52.0),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+              ),
+              Flexible(
+                child: EcliniqText(
+                  speciality,
+                  textAlign: TextAlign.center,
+                  style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+                    color: Color(0xff424242),
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -826,18 +826,36 @@ Widget _buildShimmerLoading() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (_filteredSpecialities.isNotEmpty) ...[
-          _buildSectionHeader('Specialities', _filteredSpecialities.length),
-          const SizedBox(height: 12),
-          ..._filteredSpecialities.map(
-            (s) => _buildSimpleResultCard(s, 'Speciality'),
-          ),
-          const SizedBox(height: 24),
-        ],
         if (_filteredSymptoms.isNotEmpty) ...[
           _buildSectionHeader('Symptoms', _filteredSymptoms.length),
           const SizedBox(height: 12),
-          ..._filteredSymptoms.map((s) => _buildSimpleResultCard(s, 'Symptom')),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _filteredSymptoms.asMap().entries.map((entry) {
+                final index = entry.key;
+                final symptom = entry.value;
+                return Padding(
+                  padding: EdgeInsets.only(
+                    right: index < _filteredSymptoms.length - 1 ? 16.0 : 0,
+                  ),
+                  child: _buildSymptomCard(symptom),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_filteredSpecialities.isNotEmpty) ...[
+          _buildSectionHeader('Specialities', _filteredSpecialities.length),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 12,
+            children: _filteredSpecialities.map((speciality) {
+              return _buildSpecialityChip(speciality);
+            }).toList(),
+          ),
           const SizedBox(height: 24),
         ],
         if (doctors.isNotEmpty) ...[
@@ -855,54 +873,126 @@ Widget _buildShimmerLoading() {
     );
   }
 
-  Widget _buildSimpleResultCard(dynamic item, String type) {
-    // Expect item to be a String or Map. If simple string list from API:
-    final name = item is Map ? (item['name'] ?? item['title'] ?? '') : item.toString();
-    
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
-      ),
+  Widget _buildSymptomCard(String symptom) {
+    // Map symptom to icon
+    final iconMap = <String, EcliniqIcons>{
+      'Fever': EcliniqIcons.fever,
+      'Chills': EcliniqIcons.fever,
+      'Cold': EcliniqIcons.coughCold,
+      'Cough': EcliniqIcons.coughCold,
+      'Headache': EcliniqIcons.headache,
+      'Stomach Pain': EcliniqIcons.stomachPain,
+      'Body Pain': EcliniqIcons.bodyPain,
+      'Back Pain': EcliniqIcons.backPain,
+      'Breathing Difficulty': EcliniqIcons.breathingProblem,
+      'Skin Rash': EcliniqIcons.itchingOrSkinProblem,
+      'Itching': EcliniqIcons.itchingOrSkinProblem,
+      'Acne': EcliniqIcons.itchingOrSkinProblem,
+      'Period Problems': EcliniqIcons.periodsProblem,
+      'Sleep Issues': EcliniqIcons.sleepProblem,
+      'Hair Fall': EcliniqIcons.hairCare,
+      'Toothache': EcliniqIcons.dentalCare,
+      'Joint Pain': EcliniqIcons.jointCare,
+      'Anxiety': EcliniqIcons.sleepProblem,
+      'Depression': EcliniqIcons.sleepProblem,
+      'Weakness': EcliniqIcons.bodyPain,
+      'Fatigue': EcliniqIcons.bodyPain,
+    };
+
+    final icon = iconMap[symptom] ?? EcliniqIcons.fever;
+
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: () {
-           // Navigate to speciality/symptom doctor list
-           // If it's a symptom, we might need a mapping or just pass it as speciality filter
-           // Assuming SpecialityDoctorsList can handle a filter string
-           EcliniqRouter.push(SpecialityDoctorsList(initialSpeciality: name));
+          EcliniqRouter.push(SpecialityDoctorsList(initialSpeciality: symptom));
         },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-               Container(
-                 padding: const EdgeInsets.all(8),
-                 decoration: BoxDecoration(
-                   color: type == 'Speciality' ? Colors.blue.shade50 : Colors.orange.shade50,
-                   shape: BoxShape.circle,
-                 ),
-                 child: Icon(
-                   type == 'Speciality' ? Icons.local_hospital : Icons.sick,
-                   color: type == 'Speciality' ? const Color(0xff1C63D5) : Colors.orange,
-                   size: 20,
-                 ),
-               ),
-               const SizedBox(width: 16),
-               Expanded(
-                 child: Text(
-                   name,
-                   style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                     fontWeight: FontWeight.w500,
-                     color: const Color(0xff424242),
-                   ),
-                 ),
-               ),
-               Icon(Icons.chevron_right, color: Colors.grey.shade400),
-            ],
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+        ),
+        child: Container(
+          width: EcliniqTextStyles.getResponsiveWidth(context, 120.0),
+          height: EcliniqTextStyles.getResponsiveHeight(context, 124.0),
+          decoration: BoxDecoration(
+            color: Color(0xFfF8FAFF),
+            borderRadius: BorderRadius.circular(
+              EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+            ),
+          ),
+          child: Padding(
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(
+              context,
+              10.0,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: EcliniqTextStyles.getResponsiveSize(context, 48.0),
+                  height: EcliniqTextStyles.getResponsiveSize(context, 48.0),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF2372EC),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      icon.assetPath,
+                      width: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        48.0,
+                      ),
+                      height: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        48.0,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+                ),
+                Flexible(
+                  child: EcliniqText(
+                    symptom,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                        .copyWith(
+                          color: Color(0xff424242),
+                          fontWeight: FontWeight.w400,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpecialityChip(String speciality) {
+    return InkWell(
+      onTap: () {
+        EcliniqRouter.push(SpecialityDoctorsList(initialSpeciality: speciality));
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color: Color(0xffF9F9F9),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          speciality,
+          style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+            fontWeight: FontWeight.w400,
+            color: Color(0xff424242),
           ),
         ),
       ),

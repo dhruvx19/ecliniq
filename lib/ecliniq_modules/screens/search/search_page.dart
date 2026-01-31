@@ -1405,7 +1405,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> with SingleTickerProv
                         context,
                       ).copyWith(color: Color(0xFF424242)),
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                         hintText: null, 
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,

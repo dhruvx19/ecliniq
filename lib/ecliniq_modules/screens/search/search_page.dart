@@ -49,6 +49,51 @@ class _SearchPageState extends State<SearchPage> {
   bool _speechEnabled = false;
   bool _isListening = false;
 
+  final List<String> _allSpecialities = [
+    'General Physician',
+    'Pediatrician',
+    'Gynaecologist',
+    'Dermatologist',
+    'Cardiologist',
+    'Orthopedic',
+    'ENT',
+    'Ophthalmologist',
+    'Neurologist',
+    'Psychiatrist',
+    'Dentist',
+    'Pulmonologist',
+    'Urologist',
+    'Gastroenterologist',
+    'Dietitian',
+    'Physiotherapist'
+  ];
+
+  final List<String> _allSymptoms = [
+    'Fever',
+    'Chills',
+    'Cold',
+    'Cough',
+    'Headache',
+    'Stomach Pain',
+    'Body Pain',
+    'Back Pain',
+    'Breathing Difficulty',
+    'Skin Rash',
+    'Itching',
+    'Acne',
+    'Period Problems',
+    'Sleep Issues',
+    'Hair Fall',
+    'Toothache',
+    'Joint Pain',
+    'Anxiety',
+    'Depression',
+    'Weakness',
+    'Fatigue'
+  ];
+
+  List<String> _filteredSpecialities = [];
+  List<String> _filteredSymptoms = [];
   
   final List<String> _randomSuggestions = [
     'Cardiologist',
@@ -299,6 +344,17 @@ CustomErrorSnackBar.show(
     }
   }
 
+  Future<void> _clearHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_recentSearchesKey);
+      setState(() {
+        _recentSearches = [];
+      });
+    } catch (e) {
+      developer.log('Error clearing history: $e');
+    }
+  }
   
   Future<void> _saveRecentSearch(String query) async {
     if (query.trim().isEmpty) return;
@@ -312,8 +368,8 @@ CustomErrorSnackBar.show(
       
       searches.insert(0, query.trim());
       
-      if (searches.length > 10) {
-        searches = searches.sublist(0, 10);
+      if (searches.length > 4) {
+        searches = searches.sublist(0, 4);
       }
 
       await prefs.setStringList(_recentSearchesKey, searches);
@@ -327,10 +383,12 @@ CustomErrorSnackBar.show(
 
   
   Future<void> _performSearch(String query) async {
-    if (query.length < 3) {
+    if (query.isEmpty) {
       setState(() {
         _isSearching = false;
         _searchResults = null;
+        _filteredSpecialities = [];
+        _filteredSymptoms = [];
       });
       return;
     }
@@ -339,6 +397,13 @@ CustomErrorSnackBar.show(
       _isSearching = true;
       _isLoading = true;
       _errorMessage = null;
+      // Filter local
+      _filteredSpecialities = _allSpecialities
+          .where((s) => s.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+      _filteredSymptoms = _allSymptoms
+          .where((s) => s.toLowerCase().contains(query.toLowerCase()))
+          .toList();
     });
 
     
@@ -382,6 +447,8 @@ CustomErrorSnackBar.show(
       _isSearching = false;
       _searchResults = null;
       _errorMessage = null;
+      _filteredSpecialities = [];
+      _filteredSymptoms = [];
     });
     _searchFocusNode.requestFocus();
   }
@@ -454,8 +521,14 @@ CustomErrorSnackBar.show(
         autofocus: true,
         controller: _searchController,
         isListening: _isListening,
+        rotatingHints: const [
+          'Search Doctor',
+          'Search Hospital',
+          'Search Speciality',
+          'Search Symptoms',
+        ],
         onSearch: (query) {
-          if (query.length >= 3) {
+          if (query.isNotEmpty) {
             _performSearch(query);
           } else {
             setState(() {
@@ -485,11 +558,32 @@ CustomErrorSnackBar.show(
                 top: 16,
                 bottom: 0,
               ),
-              child: Text(
-                'Your Recent Searches',
-                style: EcliniqTextStyles.responsiveHeadlineXMedium(
-                  context,
-                ).copyWith(color: Color(0xFF8E8E8E)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Your Recent Searches',
+                    style: EcliniqTextStyles.responsiveHeadlineXMedium(
+                      context,
+                    ).copyWith(color: Color(0xFF8E8E8E)),
+                  ),
+                  if (_recentSearches.isNotEmpty)
+                    InkWell(
+                      onTap: _clearHistory,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Text(
+                          'Clear',
+                          style: EcliniqTextStyles.responsiveBodySmall(
+                            context,
+                          ).copyWith(
+                            color: Color(0xff1C63D5),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             SizedBox(
@@ -728,14 +822,11 @@ Widget _buildShimmerLoading() {
     final data = _searchResults!['data'];
     final doctors = data['doctors'] as List<dynamic>? ?? [];
     final hospitals = data['hospitals'] as List<dynamic>? ?? [];
-    // Add parsing for specialities and symptoms
-    final specialities = data['specialities'] as List<dynamic>? ?? [];
-    final symptoms = data['symptoms'] as List<dynamic>? ?? [];
 
     if (doctors.isEmpty &&
         hospitals.isEmpty &&
-        specialities.isEmpty &&
-        symptoms.isEmpty) {
+        _filteredSpecialities.isEmpty &&
+        _filteredSymptoms.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -764,17 +855,18 @@ Widget _buildShimmerLoading() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (specialities.isNotEmpty) ...[
-          _buildSectionHeader('Specialities', specialities.length),
+        if (_filteredSpecialities.isNotEmpty) ...[
+          _buildSectionHeader('Specialities', _filteredSpecialities.length),
           const SizedBox(height: 12),
-          ...specialities.map((s) => _buildSimpleResultCard(s, 'Speciality')),
+          ..._filteredSpecialities.map(
+            (s) => _buildSimpleResultCard(s, 'Speciality'),
+          ),
           const SizedBox(height: 24),
         ],
-        if (symptoms.isNotEmpty) ...[
-          _buildSectionHeader('Symptoms', symptoms.length),
+        if (_filteredSymptoms.isNotEmpty) ...[
+          _buildSectionHeader('Symptoms', _filteredSymptoms.length),
           const SizedBox(height: 12),
-          // map symptom to formatted card
-          ...symptoms.map((s) => _buildSimpleResultCard(s, 'Symptom')),
+          ..._filteredSymptoms.map((s) => _buildSimpleResultCard(s, 'Symptom')),
           const SizedBox(height: 24),
         ],
         if (doctors.isNotEmpty) ...[

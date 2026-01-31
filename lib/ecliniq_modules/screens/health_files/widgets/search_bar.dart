@@ -16,7 +16,7 @@ class SearchBarWidget extends StatefulWidget {
     this.showBackButton = false,
     this.autofocus = false,
     this.onVoiceSearch,
-    this.controller,
+    this.rotatingHints,
   });
 
   final VoidCallback? onBack;
@@ -24,6 +24,7 @@ class SearchBarWidget extends StatefulWidget {
   final VoidCallback? onClear;
   final VoidCallback? onVoiceSearch;
   final String hintText;
+  final List<String>? rotatingHints;
   final bool showBackButton;
   final bool autofocus;
   final TextEditingController? controller;
@@ -36,6 +37,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   String query = '';
   late final TextEditingController _controller;
   Timer? _timer;
+  Timer? _rotationTimer;
+  int _currentHintIndex = 0;
 
   @override
   void initState() {
@@ -51,6 +54,21 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         }
       });
     }
+
+    if (widget.rotatingHints != null && widget.rotatingHints!.isNotEmpty) {
+      _startRotationTimer();
+    }
+  }
+
+  void _startRotationTimer() {
+    _rotationTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentHintIndex =
+              (_currentHintIndex + 1) % widget.rotatingHints!.length;
+        });
+      }
+    });
   }
 
   Future<void> search(String text) async {
@@ -77,6 +95,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   void dispose() {
     _timer?.cancel();
+    _rotationTimer?.cancel();
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -89,6 +108,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       borderRadius: BorderRadius.circular(30),
       borderSide: BorderSide.none,
     );
+
+    final showRotatingHint =
+        widget.rotatingHints != null &&
+        widget.rotatingHints!.isNotEmpty &&
+        query.isEmpty;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -105,58 +129,96 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             curve: Curves.easeInOut,
           ),
         ],
-        child: TextField(
-          autofocus: widget.autofocus,
-          controller: _controller,
-          decoration: InputDecoration(
-            enabledBorder: outlinedBorder,
-            focusedBorder: outlinedBorder,
-            border: outlinedBorder,
-            filled: true,
-            fillColor: Colors.white,
-            isDense: true,
-            
-            prefixIcon: widget.showBackButton
-                ? IconButton(
-                    onPressed: widget.onBack,
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.grey[600],
-                      size: 22,
+        child: Stack(
+          alignment: Alignment.centerLeft,
+          children: [
+            TextField(
+              autofocus: widget.autofocus,
+              controller: _controller,
+              decoration: InputDecoration(
+                enabledBorder: outlinedBorder,
+                focusedBorder: outlinedBorder,
+                border: outlinedBorder,
+                filled: true,
+                fillColor: Colors.white,
+                isDense: true,
+                prefixIcon: widget.showBackButton
+                    ? IconButton(
+                        onPressed: widget.onBack,
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Colors.grey[600],
+                          size: 22,
+                        ),
+                      )
+                    : Container(
+                        padding: const EdgeInsets.all(12.0),
+                        child: SvgPicture.asset(
+                          EcliniqIcons.magnifierMyDoctor.assetPath,
+                          width: 20,
+                          height: 20,
+                        ),
+                      ),
+                // Hide default hint if using rotating hints
+                hintText: showRotatingHint ? null : widget.hintText,
+                hintStyle:
+                    EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w400,
                     ),
-                  )
-                : Container(
-                    padding: const EdgeInsets.all(12.0),
-                    child: SvgPicture.asset(
-                      EcliniqIcons.magnifierMyDoctor.assetPath,
-                      width: 20,
-                      height: 20,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 14.0,
+                ),
+              ),
+              onChanged: search,
+              textInputAction: TextInputAction.search,
+              style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+                color: Colors.black87,
+                fontWeight: FontWeight.w400,
+              ),
+              textAlignVertical: TextAlignVertical.center,
+              cursorColor: Colors.blue,
+              cursorWidth: 1.5,
+              cursorHeight: 20,
+              onTapOutside: (event) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
+            ),
+            if (showRotatingHint)
+              Positioned(
+                left: 48, // Adjust based on prefix icon width + padding
+                right: 16,
+                child: IgnorePointer(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.0, 0.5),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: Align(
+                      key: ValueKey<String>(
+                        widget.rotatingHints![_currentHintIndex],
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        widget.rotatingHints![_currentHintIndex],
+                        style: EcliniqTextStyles.responsiveTitleXLarge(
+                          context,
+                        ).copyWith(
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
                     ),
                   ),
-            hintText: widget.hintText,
-            hintStyle: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-              color: Colors.grey[500],
-        
-              fontWeight: FontWeight.w400,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 14.0,
-            ),
-          ),
-          onChanged: search,
-          textInputAction: TextInputAction.search,
-          style:  EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-            color: Colors.black87,
-          
-            fontWeight: FontWeight.w400,
-          ),
-          textAlignVertical: TextAlignVertical.center,
-          cursorColor: Colors.blue,
-          cursorWidth: 1.5,
-          cursorHeight: 20,
-          onTapOutside: (event) =>
-              FocusManager.instance.primaryFocus?.unfocus(),
+                ),
+              ),
+          ],
         ),
       ),
     );

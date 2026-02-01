@@ -362,7 +362,7 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
         initialSortOption: _selectedSortOption,
         onChanged: (option) {
           setState(() {
-            if (option.isEmpty) {
+            if (option.isEmpty || option == 'Relevance') {
               _selectedSortOption = null;
             } else {
               _selectedSortOption = option;
@@ -714,13 +714,33 @@ class _SpecialityDoctorsListState extends State<SpecialityDoctorsList> {
         actions: [
           Row(
             children: [
-              IconButton(
-                onPressed: _openSort,
-                icon: SvgPicture.asset(
-                  EcliniqIcons.sortAlt.assetPath,
-                  width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
-                  height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    onPressed: _openSort,
+                    icon: SvgPicture.asset(
+                      EcliniqIcons.sortAlt.assetPath,
+                      width:
+                          EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                      height:
+                          EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                    ),
+                  ),
+                  if (_selectedSortOption != null)
+                    Positioned(
+                      right: 4,
+                      top: 3,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
               ),
 
               SizedBox(

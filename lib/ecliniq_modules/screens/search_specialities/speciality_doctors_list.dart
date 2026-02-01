@@ -1740,11 +1740,14 @@ class _SortByBottomSheetState extends State<SortByBottomSheet> {
               height: EcliniqTextStyles.getResponsiveSpacing(context, 24),
               width: EcliniqTextStyles.getResponsiveSpacing(context, 24),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? Color(0xff2372EC) : Color(0xff8E8E8E),
+                  color: isSelected
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF8E8E8E),
                   width: 1,
                 ),
+                shape: BoxShape.circle,
+                color: isSelected ? const Color(0xFF2563EB) : Colors.white,
               ),
               child: isSelected
                   ? Container(

@@ -38,7 +38,7 @@ class _AppointmentTimingWidgetState extends State<AppointmentTimingWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                      Text(
-                      'Appointment & OPD timing',
+                      'Appointment & OPD Timing',
                       style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
          
                         fontWeight: FontWeight.w600,

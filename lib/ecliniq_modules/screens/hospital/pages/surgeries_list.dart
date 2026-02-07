@@ -11,7 +11,8 @@ import 'package:speech_to_text/speech_to_text.dart';
 import '../../../../ecliniq_icons/icons.dart';
 
 class SurgeryList extends StatefulWidget {
-  const SurgeryList({super.key});
+  final VoidCallback? onBackPressed;
+  const SurgeryList({super.key, this.onBackPressed});
 
   @override
   State<SurgeryList> createState() => _SurgeryListState();
@@ -24,7 +25,6 @@ class _SurgeryListState extends State<SurgeryList> {
   bool _isListening = false;
   String _searchQuery = '';
 
-  
   final List<Map<String, dynamic>> surgeries = [
     {
       'name': 'Appendectomy',
@@ -217,29 +217,40 @@ class _SurgeryListState extends State<SurgeryList> {
     return Scaffold(
       backgroundColor: Color(0xffF9F9F9),
       appBar: AppBar(
-        leadingWidth: 58,
+        leadingWidth: EcliniqTextStyles.getResponsiveWidth(context, 58.0),
         titleSpacing: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.arrowLeft.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (widget.onBackPressed != null) {
+              widget.onBackPressed!();
+            } else {
+              Navigator.pop(context);
+            }
+          },
         ),
         title: Align(
           alignment: Alignment.centerLeft,
           child: Text(
             'List of Surgeries',
-            style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-              color: Color(0xff424242),
-            ),
+            style: EcliniqTextStyles.responsiveHeadlineMedium(
+              context,
+            ).copyWith(color: Color(0xff424242)),
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.2),
-          child: Container(color: Color(0xFFB8B8B8), height: 0.5),
+          preferredSize: Size.fromHeight(
+            EcliniqTextStyles.getResponsiveHeight(context, 0.2),
+          ),
+          child: Container(
+            color: Color(0xFFB8B8B8),
+            height: EcliniqTextStyles.getResponsiveHeight(context, 0.5),
+          ),
         ),
       ),
       body: Column(
@@ -261,10 +272,13 @@ class _SurgeryListState extends State<SurgeryList> {
               borderRadius: BorderRadius.circular(
                 EcliniqTextStyles.getResponsiveBorderRadius(context, 8),
               ),
-              border: Border.all(color: Color(0xff626060), width: 0.5),
+              border: Border.all(
+                color: Color(0xff626060),
+                width: EcliniqTextStyles.getResponsiveSize(context, 0.5),
+              ),
             ),
             child: Row(
-              spacing: 10,
+              spacing: EcliniqTextStyles.getResponsiveSpacing(context, 10.0),
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 SvgPicture.asset(
@@ -278,10 +292,13 @@ class _SurgeryListState extends State<SurgeryList> {
                     cursorColor: Colors.black,
                     decoration: InputDecoration(
                       hintText: 'Search Surgeries',
-                      hintStyle: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                        color: Color(0xff8E8E8E),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      hintStyle:
+                          EcliniqTextStyles.responsiveHeadlineBMedium(
+                            context,
+                          ).copyWith(
+                            color: Color(0xff8E8E8E),
+                            fontWeight: FontWeight.w400,
+                          ),
                       border: InputBorder.none,
                     ),
                   ),
@@ -298,8 +315,14 @@ class _SurgeryListState extends State<SurgeryList> {
                     ),
                     child: SvgPicture.asset(
                       EcliniqIcons.microphone.assetPath,
-                      height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
-                      width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                      height: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        32,
+                      ),
+                      width: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        32,
+                      ),
                       colorFilter: _isListening
                           ? const ColorFilter.mode(
                               Color(0xFF2372EC),
@@ -317,9 +340,9 @@ class _SurgeryListState extends State<SurgeryList> {
                 ? Center(
                     child: Text(
                       'No surgeries found',
-                      style: EcliniqTextStyles.responsiveBodyMedium(context).copyWith(
-                        color: Colors.grey[600],
-                      ),
+                      style: EcliniqTextStyles.responsiveBodyMedium(
+                        context,
+                      ).copyWith(color: Colors.grey[600]),
                     ),
                   )
                 : ListView.builder(

@@ -76,7 +76,7 @@ class _CircularProfileCarouselState extends State<CircularProfileCarousel>
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.only(left: 12, right: 12, bottom: 0, top: 8),
+        padding: EdgeInsets.only(left: 12, right: 12, bottom: 0, top: 4),
         child: SizedBox(
           width: 360,
           height: 70,

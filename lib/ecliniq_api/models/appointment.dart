@@ -244,6 +244,9 @@ class AppointmentListItem {
   final String patientName;
   final String bookedFor;
   final int? rating;
+  final String? doctorId;
+  final String? hospitalId;
+  final String? clinicId;
 
   AppointmentListItem({
     required this.appointmentId,
@@ -258,6 +261,9 @@ class AppointmentListItem {
     required this.patientName,
     required this.bookedFor,
     this.rating,
+    this.doctorId,
+    this.hospitalId,
+    this.clinicId,
   });
 
   factory AppointmentListItem.fromJson(Map<String, dynamic> json) {
@@ -300,6 +306,9 @@ class AppointmentListItem {
       patientName: json['patientName']?.toString() ?? '',
       bookedFor: json['bookedFor']?.toString() ?? '',
       rating: toInt(json['rating']),
+      doctorId: json['doctorId']?.toString(),
+      hospitalId: json['hospitalId']?.toString(),
+      clinicId: json['clinicId']?.toString(),
     );
   }
 
@@ -317,6 +326,9 @@ class AppointmentListItem {
       'patientName': patientName,
       'bookedFor': bookedFor,
       if (rating != null) 'rating': rating,
+      if (doctorId != null) 'doctorId': doctorId,
+      if (hospitalId != null) 'hospitalId': hospitalId,
+      if (clinicId != null) 'clinicId': clinicId,
     };
   }
 }

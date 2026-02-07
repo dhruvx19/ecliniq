@@ -9,12 +9,12 @@ import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
 import 'package:ecliniq/ecliniq_modules/screens/details/widgets/add_profile_sheet.dart';
 import 'package:ecliniq/ecliniq_modules/screens/profile/personal_details/provider/personal_details_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/profile/security_settings/security_settings.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/colors.g.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/error_snackbar.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/success_snackbar.dart';
-import 'package:ecliniq/ecliniq_ui/lib/widgets/snackbar/action_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
@@ -25,7 +25,36 @@ import '../add_dependent/provider/dependent_provider.dart';
 import '../add_dependent/widgets/blood_group_selection.dart';
 
 class PersonalDetails extends StatefulWidget {
-  const PersonalDetails({super.key});
+  final bool isSelf;
+  final String? dependentId;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? phone;
+  final String? gender;
+  final DateTime? dob;
+  final String? relation;
+  final String? bloodGroup;
+  final int? height;
+  final int? weight;
+  final String? profilePhoto;
+
+  const PersonalDetails({
+    super.key,
+    this.isSelf = true,
+    this.dependentId,
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.phone,
+    this.gender,
+    this.dob,
+    this.relation,
+    this.bloodGroup,
+    this.height,
+    this.weight,
+    this.profilePhoto,
+  });
 
   @override
   State<PersonalDetails> createState() => _PersonalDetailsState();
@@ -37,23 +66,47 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   String? _errorMessage;
   patient_models.PatientDetailsData? _data;
 
-  
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
+  final TextEditingController _relationController = TextEditingController();
+  final TextEditingController _contactNumberController =
+      TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _bloodGroupController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   DateTime? _dob;
 
-  
-  String? _profilePhotoKey; 
-  String? _profilePhotoUrl; 
+  String? _profilePhotoKey;
+  String? _profilePhotoUrl;
   File? _selectedProfilePhoto;
+
+  // Section expansion states
+  bool _isPersonalDetailsExpanded = true;
+  bool _isPhysicalInfoExpanded = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchPatientDetails();
+    if (widget.isSelf) {
+      _fetchPatientDetails();
+    } else {
+      // Populate fields from passed dependent data
+      _firstNameController.text = widget.firstName ?? '';
+      _lastNameController.text = widget.lastName ?? '';
+      _emailController.text = widget.email ?? '';
+      _contactNumberController.text = widget.phone ?? '';
+      _genderController.text = widget.gender ?? '';
+      _relationController.text = widget.relation ?? '';
+      _bloodGroupController.text = _uiBloodGroup(widget.bloodGroup);
+      _heightController.text = widget.height?.toString() ?? '';
+      _weightController.text = widget.weight?.toString() ?? '';
+      _dob = widget.dob;
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   String _monthName(int m) {
@@ -83,45 +136,63 @@ class _PersonalDetailsState extends State<PersonalDetails> {
     TextInputType? keyboardType,
     required Function(String) onChanged,
   }) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 1,
-          child: Row(
-            children: [
-              Text(
-                label,
-                style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                  color: Color(0xff626060),
+    return Container(
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+        context,
+        horizontal: 8,
+        vertical: 8,
+      ),
+      decoration: BoxDecoration(
+        color: Color(0xFFF9F9F9),
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: EcliniqTextStyles.responsiveHeadlineXMedium(context)
+                      .copyWith(
+                        color: Color(0xff626060),
+                        fontWeight: FontWeight.w400,
+                      ),
                 ),
-              ),
-              if (isRequired)
-                Text('•', style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(color: Colors.red, ),),
-            ],
-          ),
-        ),
-        Expanded(
-          flex: 1,
-          child: TextField(
-            controller: controller, 
-            keyboardType: keyboardType,
-            onChanged: onChanged,
-            textAlign: TextAlign.right,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                color: Color(0xffB8B8B8),
-              ),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-              color: Color(0xff424242),
+                if (isRequired)
+                  Text(
+                    ' •',
+                    style: EcliniqTextStyles.responsiveHeadlineLarge(
+                      context,
+                    ).copyWith(color: Colors.red),
+                  ),
+              ],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            flex: 1,
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              onChanged: onChanged,
+              textAlign: TextAlign.right,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: EcliniqTextStyles.responsiveHeadlineXMedium(
+                  context,
+                ).copyWith(color: Color(0xffB8B8B8)),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              style: EcliniqTextStyles.responsiveHeadlineXMedium(
+                context,
+              ).copyWith(color: Color(0xff424242)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -134,43 +205,62 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   }) {
     return InkWell(
       onTap: onTap,
-      child: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Row(
-              children: [
-                Text(
-                  label,
-                  style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                    color: Color(0xff626060),
+      child: Container(
+        color: Color(0xFFFAFAFA),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+          context,
+          horizontal: 8,
+          vertical: 8,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Row(
+                children: [
+                  Text(
+                    label,
+                    style: EcliniqTextStyles.responsiveHeadlineXMedium(context)
+                        .copyWith(
+                          color: Color(0xff626060),
+                          fontWeight: FontWeight.w400,
+                        ),
                   ),
-                ),
-                if (isRequired)
-                  Text('•', style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(color: Colors.red)),
-              ],
+                  if (isRequired)
+                    Text(
+                      ' •',
+                      style: EcliniqTextStyles.responsiveHeadlineLarge(
+                        context,
+                      ).copyWith(color: Colors.red),
+                    ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                value ?? hint,
-                textAlign: TextAlign.right,
-                style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                  color: value != null ? Color(0xff626060) : Color(0xffB8B8B8),
-                  fontWeight: value != null ? FontWeight.w400 : FontWeight.w500,
+            Expanded(
+              flex: 1,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  value ?? hint,
+                  textAlign: TextAlign.right,
+                  style: EcliniqTextStyles.responsiveHeadlineXMedium(context)
+                      .copyWith(
+                        color: value != null
+                            ? Color(0xff424242)
+                            : Color(0xffB8B8B8),
+                        fontWeight: value != null
+                            ? FontWeight.w400
+                            : FontWeight.w500,
+                      ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  
   String _uiBloodGroup(String? backendValue) {
     if (backendValue == null) return '';
     const map = {
@@ -208,6 +298,10 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _genderController.dispose();
+    _relationController.dispose();
+    _contactNumberController.dispose();
+    _emailController.dispose();
     _bloodGroupController.dispose();
     _heightController.dispose();
     _weightController.dispose();
@@ -238,12 +332,14 @@ class _PersonalDetailsState extends State<PersonalDetails> {
         _data = d;
         _firstNameController.text = d.user?.firstName ?? '';
         _lastNameController.text = d.user?.lastName ?? '';
+        _emailController.text = d.user?.emailId ?? '';
+        _contactNumberController.text = d.user?.phone ?? '';
+        // _genderController.text = d.user? ?? '';
         _bloodGroupController.text = _uiBloodGroup(d.bloodGroup);
         _heightController.text = d.height != null ? d.height.toString() : '';
         _weightController.text = d.weight != null ? d.weight.toString() : '';
         _dob = d.dob;
 
-        
         final firstName = d.user?.firstName ?? '';
         final lastName = d.user?.lastName ?? '';
         final fullName = '$firstName $lastName'.trim();
@@ -251,7 +347,6 @@ class _PersonalDetailsState extends State<PersonalDetails> {
           await SecureStorageService.storeUserName(fullName);
         }
 
-        
         try {
           final rawResp = await http.get(
             Uri.parse(Endpoints.getPatientDetails),
@@ -292,7 +387,6 @@ class _PersonalDetailsState extends State<PersonalDetails> {
   }
 
   Future<void> _resolveImageUrl(String key, {required String token}) async {
-    
     try {
       final publicUri = Uri.parse(
         '${Endpoints.storagePublicUrl}?key=${Uri.encodeComponent(key)}',
@@ -311,7 +405,6 @@ class _PersonalDetailsState extends State<PersonalDetails> {
       }
     } catch (_) {}
 
-    
     try {
       final downloadUri = Uri.parse(
         '${Endpoints.storageDownloadUrl}?key=${Uri.encodeComponent(key)}',
@@ -363,7 +456,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
         if (pickedFile != null) {
           setState(() {
             _selectedProfilePhoto = File(pickedFile!.path);
-            _profilePhotoUrl = null; 
+            _profilePhotoUrl = null;
           });
         }
       } catch (e) {
@@ -406,7 +499,7 @@ class _PersonalDetailsState extends State<PersonalDetails> {
 
       final firstName = _firstNameController.text.trim();
       final lastName = _lastNameController.text.trim();
-      
+
       final success = await auth.updatePatientProfile(
         firstName: firstName,
         lastName: lastName,
@@ -424,12 +517,11 @@ class _PersonalDetailsState extends State<PersonalDetails> {
       );
 
       if (success) {
-        
         final fullName = '$firstName $lastName'.trim();
         if (fullName.isNotEmpty) {
           await SecureStorageService.storeUserName(fullName);
         }
-        
+
         if (!mounted) return;
         CustomSuccessSnackBar.show(
           context: context,
@@ -470,179 +562,248 @@ class _PersonalDetailsState extends State<PersonalDetails> {
           return Scaffold(
             backgroundColor: Colors.white,
             appBar: AppBar(
-              surfaceTintColor: Colors.transparent,
+              backgroundColor: Colors.white,
               leadingWidth: 58,
               titleSpacing: 0,
-              toolbarHeight: 38,
-              backgroundColor: Colors.white,
-              elevation: 0,
               leading: IconButton(
                 icon: SvgPicture.asset(
-                  EcliniqIcons.backArrow.assetPath,
-                  width: EcliniqTextStyles.getResponsiveSize(context, 32.0),
-                  height: EcliniqTextStyles.getResponsiveSize(context, 32.0),
+                  EcliniqIcons.arrowLeft.assetPath,
+                  width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                  height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
               title: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Edit Profile Details',
+                  widget.isSelf ? 'Edit Profile Details' : 'Dependent Details',
                   style: EcliniqTextStyles.responsiveHeadlineMedium(
                     context,
                   ).copyWith(color: Color(0xff424242)),
                 ),
+              ),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(0.2),
+                child: Container(color: Color(0xFFB8B8B8), height: 1.0),
               ),
               actions: [
                 Row(
                   children: [
                     SvgPicture.asset(
                       EcliniqIcons.questionCircleFilled.assetPath,
-                      width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
-                      height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
+                      width: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        24,
+                      ),
+                      height: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        24,
+                      ),
                     ),
                     Text(
                       ' Help',
                       style:
-                          EcliniqTextStyles.responsiveHeadlineBMedium(context)
-                              .copyWith(
-                                color: EcliniqColors.light.textPrimary,
-                                fontWeight: FontWeight.w400,
-                              ),
+                          EcliniqTextStyles.responsiveHeadlineBMedium(
+                            context,
+                          ).copyWith(
+                            color: EcliniqColors.light.textPrimary,
+                            fontWeight: FontWeight.w400,
+                          ),
                     ),
                     SizedBox(
-                      width: EcliniqTextStyles.getResponsiveSpacing(context, 20),
+                      width: EcliniqTextStyles.getResponsiveWidth(context, 20),
                     ),
                   ],
                 ),
               ],
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(
-                  EcliniqTextStyles.getResponsiveSize(context, 1.0),
-                ),
-                child: Container(
-                  color: Color(0xFFB8B8B8),
-                  height: EcliniqTextStyles.getResponsiveSize(context, 1.0),
-                ),
-              ),
             ),
-            body: Padding(
-              padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
-                context,
-                left: 16,
-                right: 16,
-                bottom: 24,
-                top: 0,
-              ),
-              child: SizedBox(
-                height: double.infinity,
-                width: double.infinity,
-                child: Stack(
-                  children: [
-                    SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            height: EcliniqTextStyles.getResponsiveSpacing(context, 26),
-                          ),
-
-                          Stack(
-                            children: [
-                              Container(
-                                height: EcliniqTextStyles.getResponsiveHeight(context, 150),
-                                width: EcliniqTextStyles.getResponsiveWidth(context, 150),
-                                padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
-                                child: Container(
-                                  width: EcliniqTextStyles.getResponsiveWidth(context, 50),
-                                  height: EcliniqTextStyles.getResponsiveHeight(context, 50),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xffF2F7FF),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Color(0xff96BFFF),
-                                      width: 1.5,
-                                    ),
-                                    image: () {
-                                      if (_selectedProfilePhoto != null) {
-                                        return DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: FileImage(
-                                            _selectedProfilePhoto!,
-                                          ),
-                                        );
-                                      }
-                                      if (_profilePhotoUrl != null &&
-                                          _profilePhotoUrl!.isNotEmpty) {
-                                        return DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: NetworkImage(
-                                            _profilePhotoUrl!,
-                                          ),
-                                        );
-                                      }
-                                      return null;
-                                    }(),
-                                  ),
-                                  child:
-                                      (_selectedProfilePhoto == null &&
-                                          (_profilePhotoUrl == null ||
-                                              _profilePhotoUrl!.isEmpty))
-                                      ? ClipOval(
-                                          child: SvgPicture.asset(
-                                            'lib/ecliniq_icons/assets/Group.svg',
-                                            fit: BoxFit.contain,
-                                          ),
-                                        )
-                                      : null,
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 25,
-                                right: -2,
-                                child: GestureDetector(
-                                  onTap: _selectProfilePhoto,
-                                  child: Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: Color(0xff2372EC),
-                                      borderRadius: BorderRadius.circular(25),
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(6),
-                                      child: SvgPicture.asset(
-                                        'lib/ecliniq_icons/assets/Refresh.svg',
-                                        width: 32,
-                                        height: 32,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Row(
+            body: Column(
+              children: [
+                // Scrollable content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                      context,
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            Stack(
                               children: [
-                                Text(
-                                  'Personal Details',
-                                  style: EcliniqTextStyles.responsiveHeadlineMedium(context)
-                                      .copyWith(color: Color(0xff424242)),
+                                Container(
+                                  height: EcliniqTextStyles.getResponsiveHeight(
+                                    context,
+                                    150,
+                                  ),
+                                  width: EcliniqTextStyles.getResponsiveWidth(
+                                    context,
+                                    150,
+                                  ),
+                                  padding:
+                                      EcliniqTextStyles.getResponsiveEdgeInsetsAll(
+                                        context,
+                                        16,
+                                      ),
+                                  child: Container(
+                                    width: EcliniqTextStyles.getResponsiveWidth(
+                                      context,
+                                      50,
+                                    ),
+                                    height:
+                                        EcliniqTextStyles.getResponsiveHeight(
+                                          context,
+                                          50,
+                                        ),
+                                    decoration: BoxDecoration(
+                                      color: Color(0xffF2F7FF),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Color(0xff96BFFF),
+                                        width: 1.5,
+                                      ),
+                                      image: () {
+                                        if (_selectedProfilePhoto != null) {
+                                          return DecorationImage(
+                                            fit: BoxFit.cover,
+                                            image: FileImage(
+                                              _selectedProfilePhoto!,
+                                            ),
+                                          );
+                                        }
+                                        if (_profilePhotoUrl != null &&
+                                            _profilePhotoUrl!.isNotEmpty) {
+                                          return DecorationImage(
+                                            fit: BoxFit.cover,
+                                            image: NetworkImage(
+                                              _profilePhotoUrl!,
+                                            ),
+                                          );
+                                        }
+                                        return null;
+                                      }(),
+                                    ),
+                                    child:
+                                        (_selectedProfilePhoto == null &&
+                                            (_profilePhotoUrl == null ||
+                                                _profilePhotoUrl!.isEmpty))
+                                        ? ClipOval(
+                                            child: SvgPicture.asset(
+                                              'lib/ecliniq_icons/assets/Group.svg',
+                                              fit: BoxFit.contain,
+                                            ),
+                                          )
+                                        : null,
+                                  ),
                                 ),
-                                Text('•', style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(color: Color(0xffD92D20)))
+                                Positioned(
+                                  bottom: 25,
+                                  right: -2,
+                                  child: GestureDetector(
+                                    onTap: _selectProfilePhoto,
+                                    child: Container(
+                                      width:
+                                          EcliniqTextStyles.getResponsiveIconSize(
+                                            context,
+                                            48,
+                                          ),
+                                      height:
+                                          EcliniqTextStyles.getResponsiveIconSize(
+                                            context,
+                                            48,
+                                          ),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xff2372EC),
+                                        borderRadius: BorderRadius.circular(25),
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(6),
+                                        child: SvgPicture.asset(
+                                          'lib/ecliniq_icons/assets/Refresh.svg',
+                                          width:
+                                              EcliniqTextStyles.getResponsiveIconSize(
+                                                context,
+                                                32,
+                                              ),
+                                          height:
+                                              EcliniqTextStyles.getResponsiveIconSize(
+                                                context,
+                                                32,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(
+                              height: EcliniqTextStyles.getResponsiveHeight(
+                                context,
+                                24,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Personal Details Section
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isPersonalDetailsExpanded =
+                                  !_isPersonalDetailsExpanded;
+                            });
+                          },
+                          child: Container(
+                            color: Colors.white,
+                            padding:
+                                EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                                  context,
+                                  vertical: 0,
+                                  horizontal: 6,
+                                ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Personal Details',
+                                      style:
+                                          EcliniqTextStyles.responsiveHeadlineMedium(
+                                            context,
+                                          ).copyWith(color: Color(0xff424242)),
+                                    ),
+                                    Text(
+                                      ' •',
+                                      style:
+                                          EcliniqTextStyles.responsiveHeadlineLarge(
+                                            context,
+                                          ).copyWith(color: Color(0xffD92D20)),
+                                    ),
+                                  ],
+                                ),
+                                Icon(
+                                  _isPersonalDetailsExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Color(0xff626060),
+                                ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 8),
+                        ),
+
+                        if (_isPersonalDetailsExpanded) ...[
                           _buildTextField(
                             label: 'First Name',
                             isRequired: true,
@@ -651,9 +812,9 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                             onChanged: (_) {},
                           ),
                           Divider(
-                            color: EcliniqColors.light.strokeNeutralExtraSubtle,
+                            color: Color(0xffD6D6D6),
                             thickness: 1,
-                            height: 16,
+                            height: 0.5,
                           ),
                           _buildTextField(
                             label: 'Last Name',
@@ -663,16 +824,32 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                             onChanged: (_) {},
                           ),
                           Divider(
-                            color: EcliniqColors.light.strokeNeutralExtraSubtle,
+                            color: Color(0xffD6D6D6),
                             thickness: 1,
-                            height: 16,
+                            height: 0.5,
+                          ),
+                          _buildSelectField(
+                            label: 'Gender',
+                            isRequired: true,
+                            hint: 'Select Gender',
+                            value: _genderController.text.isNotEmpty
+                                ? _genderController.text
+                                : null,
+                            onTap: () async {
+                              // Implement gender selection bottom sheet
+                            },
+                          ),
+                          Divider(
+                            color: Color(0xffD6D6D6),
+                            thickness: 1,
+                            height: 0.5,
                           ),
                           _buildSelectField(
                             label: 'Date of Birth',
                             isRequired: true,
                             hint: 'Select Date',
                             value: _dob != null
-                                ? '${_dob!.day.toString().padLeft(2, '0')} ${_monthName(_dob!.month)} ${_dob!.year}'
+                                ? '${_dob!.day.toString().padLeft(2, '0')}/${_dob!.month.toString().padLeft(2, '0')}/${_dob!.year}'
                                 : null,
                             onTap: () async {
                               final picked = await showDatePicker(
@@ -685,25 +862,102 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                                 firstDate: DateTime(1900),
                                 lastDate: DateTime.now(),
                               );
-                              if (picked != null)
+                              if (picked != null) {
                                 setState(() {
                                   _dob = picked;
                                 });
+                              }
                             },
                           ),
-
-                          const SizedBox(height: 24),
-                          
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Health Info',
-                              style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-                                color: Color(0xff424242),
-                              ),
-                            ),
+                          Divider(
+                            color: Color(0xffD6D6D6),
+                            thickness: 1,
+                            height: 0.5,
                           ),
-                          const SizedBox(height: 8),
+                          if (!widget.isSelf) ...[
+                            _buildSelectField(
+                              label: 'Relation',
+                              isRequired: true,
+                              hint: 'Select Relation',
+                              value: _relationController.text.isNotEmpty
+                                  ? _relationController.text
+                                  : null,
+                              onTap: () async {
+                                // Implement relation selection bottom sheet
+                              },
+                            ),
+                            Divider(
+                              color: Color(0xffD6D6D6),
+                              thickness: 1,
+                              height: 0.5,
+                            ),
+                          ],
+                          if (widget.isSelf)
+                            _buildSelectField(
+                              label: 'Contact Number',
+                              isRequired: true,
+                              hint: 'Enter Contact Number',
+                              value: _contactNumberController.text.isNotEmpty
+                                  ? _contactNumberController.text
+                                  : null,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SecuritySettingsOptions(
+                                      patientData: _data,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          else
+                            _buildTextField(
+                              label: 'Contact Number',
+                              isRequired: true,
+                              hint: 'Enter Contact Number',
+                              controller: _contactNumberController,
+                              keyboardType: TextInputType.phone,
+                              onChanged: (_) {},
+                            ),
+                          Divider(
+                            color: Color(0xffD6D6D6),
+                            thickness: 1,
+                            height: 0.5,
+                          ),
+                          if (widget.isSelf)
+                            _buildSelectField(
+                              label: 'Email',
+                              isRequired: false,
+                              hint: 'Enter Email',
+                              value: _emailController.text.isNotEmpty
+                                  ? _emailController.text
+                                  : null,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SecuritySettingsOptions(
+                                      patientData: _data,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          else
+                            _buildTextField(
+                              label: 'Email',
+                              isRequired: false,
+                              hint: 'Enter Email',
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              onChanged: (_) {},
+                            ),
+                          Divider(
+                            color: Color(0xffD6D6D6),
+                            thickness: 1,
+                            height: 0.5,
+                          ),
                           _buildSelectField(
                             label: 'Blood Group',
                             isRequired: false,
@@ -724,11 +978,53 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                               }
                             },
                           ),
-                          Divider(
-                            color: EcliniqColors.light.strokeNeutralExtraSubtle,
-                            thickness: 1,
-                            height: 16,
+                        ],
+
+                        SizedBox(
+                          height: EcliniqTextStyles.getResponsiveHeight(
+                            context,
+                            24,
                           ),
+                        ),
+
+                        // Physical Info Section
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isPhysicalInfoExpanded =
+                                  !_isPhysicalInfoExpanded;
+                            });
+                          },
+                          child: Container(
+                            color: Colors.white,
+                            padding:
+                                EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                                  context,
+                                  vertical: 0,
+                                  horizontal: 6,
+                                ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Physical Info',
+                                  style:
+                                      EcliniqTextStyles.responsiveHeadlineMedium(
+                                        context,
+                                      ).copyWith(color: Color(0xff424242)),
+                                ),
+                                Icon(
+                                  _isPhysicalInfoExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Color(0xff626060),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        if (_isPhysicalInfoExpanded) ...[
                           _buildTextField(
                             label: 'Height (cm)',
                             isRequired: false,
@@ -738,71 +1034,80 @@ class _PersonalDetailsState extends State<PersonalDetails> {
                             onChanged: (_) {},
                           ),
                           Divider(
-                            color: EcliniqColors.light.strokeNeutralExtraSubtle,
+                            color: Color(0xffD6D6D6),
                             thickness: 1,
-                            height: 16,
+                            height: 0.5,
                           ),
                           _buildTextField(
-                            label: 'Weight (kg)',
+                            label: 'Weight (Kg)',
                             isRequired: false,
                             hint: 'Enter weight',
                             controller: _weightController,
                             keyboardType: TextInputType.number,
                             onChanged: (_) {},
                           ),
-                          SizedBox(height: 80),
                         ],
-                      ),
+
+                        SizedBox(height: 24),
+                      ],
                     ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 52,
-                        color: Colors.white,
-                        alignment: Alignment.bottomCenter,
-                        child: Consumer<AddDependentProvider>(
-                          builder: (context, provider, child) {
-                            return Container(
-                        
-                              width: double.infinity,
-                              decoration: BoxDecoration(color: Colors.white),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: 52,
-                                child: ElevatedButton(
-                                  onPressed: _isLoading ? null : _save,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xff2372EC),
-                                    disabledBackgroundColor: EcliniqColors
-                                        .light
-                                        .strokeNeutralSubtle
-                                        .withOpacity(0.5),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Save',
-                                    style: EcliniqTextStyles.responsiveHeadlineMedium(context)
-                                        .copyWith(
-                                          color: EcliniqColors
-                                              .light
-                                              .textFixedLight,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                  ),
-                                ),
+                  ),
+                ),
+
+                // Fixed Save Button at bottom
+                Container(
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                    context,
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: EcliniqTextStyles.getResponsiveSize(context, 52),
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xff2372EC),
+                        disabledBackgroundColor: EcliniqColors
+                            .light
+                            .strokeNeutralSubtle
+                            .withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            EcliniqTextStyles.getResponsiveBorderRadius(
+                              context,
+                              4,
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Save',
+                          textAlign: TextAlign.center,
+                          style:
+                              EcliniqTextStyles.responsiveHeadlineMedium(
+                                context,
+                              ).copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
                               ),
-                            );
-                          },
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           );
         },

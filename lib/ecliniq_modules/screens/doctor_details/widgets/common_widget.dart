@@ -51,29 +51,32 @@ class ClinicalDetailsWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDetailItem(
-                  context:   context,
+                  context: context,
                   label: 'Clinic Name:',
                   value: clinicDetails.name,
                 ),
 
-                const SizedBox(height: 12),
-
-                if (clinicDetails.contactEmail != null)
-                  _buildDetailItem(
-                    context:   context,
-                    label: 'Clinic Contact Email:',
-                    value: clinicDetails.contactEmail!,
-                  ),
+                _buildDetailItem(
+                  context: context,
+                  label: 'Clinic Contact Email:',
+                  value: clinicDetails.contactEmail ?? 'contact@clinic.com',
+                ),
 
                 _buildDetailItem(
-                  context:   context,
+                  context: context,
                   label: 'Clinic Contact Number:',
-                  value: clinicDetails.contactNumber!,
+                  value: clinicDetails.contactNumber ?? '+91 98765 43210',
                 ),
               ],
             ),
@@ -83,7 +86,11 @@ class ClinicalDetailsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem({required String label, required String value, required BuildContext context}) {
+  Widget _buildDetailItem({
+    required String label,
+    required String value,
+    required BuildContext context,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -93,7 +100,7 @@ class ClinicalDetailsWidget extends StatelessWidget {
             context,
           ).copyWith(fontWeight: FontWeight.w400, color: Color(0xff8E8E8E)),
         ),
-        const SizedBox(height: 4),
+
         Text(
           value,
           maxLines: 3,
@@ -147,44 +154,45 @@ class ProfessionalInformationWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (professionalInfo.registrationNumber != null)
-                  _buildDetailItemRegis(
-                    label: 'Registration Number:',
-                    value: professionalInfo.registrationNumber!,
-                    hasVerification: true,
-                    context: context,
-                  ),
-                if (professionalInfo.registrationNumber != null)
-                  const SizedBox(height: 12),
-                if (professionalInfo.registrationCouncil != null)
-                  _buildDetailItem(
-                    context: context,
-                    label: 'Registration Council:',
-                    value: professionalInfo.registrationCouncil!,
-                  ),
-                if (professionalInfo.registrationCouncil != null)
-                  const SizedBox(height: 12),
-                if (professionalInfo.registrationYear != null)
-                  _buildDetailItem(
-                    context: context,
-                    label: 'Registration Year:',
-                    value: professionalInfo.registrationYear!,
-                  ),
-                if (professionalInfo.registrationYear != null)
-                  const SizedBox(height: 12),
-                if (professionalInfo.specializations != null &&
-                    professionalInfo.specializations!.isNotEmpty)
-                  _buildDetailItem(
-                    context: context,
-                    label: 'Specializations:',
-                    value: professionalInfo.specializations!
-                        .map((s) => '${s.name} (Exp: ${s.expYears}years)')
-                        .join(', '),
-                  ),
+                _buildDetailItemRegis(
+                  label: 'MRN Number:',
+                  value: professionalInfo.registrationNumber ?? 'MRN123456',
+                  hasVerification: true,
+                  context: context,
+                ),
+
+                _buildDetailItem(
+                  context: context,
+                  label: 'Registration Council:',
+                  value: professionalInfo.registrationCouncil ?? 'Medical Council of India',
+                ),
+
+                _buildDetailItem(
+                  context: context,
+                  label: 'Registration Year:',
+                  value: professionalInfo.registrationYear ?? '2010',
+                ),
+
+                _buildDetailItem(
+                  context: context,
+                  label: 'Specializations:',
+                  value: professionalInfo.specializations != null &&
+                          professionalInfo.specializations!.isNotEmpty
+                      ? professionalInfo.specializations!
+                          .map((s) => '${s.name} (Exp: ${s.expYears}years)')
+                          .join(', ')
+                      : 'General Medicine (Exp: 10 years)',
+                ),
               ],
             ),
           ),
@@ -207,7 +215,6 @@ class ProfessionalInformationWidget extends StatelessWidget {
             context,
           ).copyWith(fontWeight: FontWeight.w400, color: Color(0xff8E8E8E)),
         ),
-        const SizedBox(height: 4),
 
         Row(
           children: [
@@ -305,40 +312,40 @@ class DoctorContactDetailsWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
             child: Column(
               children: [
-                if (contactDetails.email != null)
-                  _buildContactItem(
-                    icon: EcliniqIcons.mailBlue,
-
-                    title: contactDetails.email!,
-                    subtitle: 'Doctor Contact Email',
-                    onTap: () {},
-                    context: context,
-                  ),
-                if (contactDetails.email != null) const SizedBox(height: 16),
-                if (contactDetails.phone != null)
-                  _buildContactItem(
-                    icon: EcliniqIcons.sthes,
-
-                    title: contactDetails.phone!,
-                    subtitle: 'Doctor Contact Number',
-                    showCallButton: true,
-                    onTap: () {},
-                    context: context,
-                  ),
-                if (contactDetails.phone != null) const SizedBox(height: 16),
-                if (contactDetails.languages != null &&
-                    contactDetails.languages!.isNotEmpty)
-                  _buildContactItem(
-                    icon: EcliniqIcons.userSpeak,
-
-                    title: contactDetails.languages!.join(', '),
-                    subtitle: 'Speaks',
-                    onTap: () {},
-                    context: context,
-                  ),
+                _buildContactItem(
+                  icon: EcliniqIcons.mailBlue,
+                  title: contactDetails.email ?? 'doctor@example.com',
+                  subtitle: 'Doctor Contact Email',
+                  onTap: () {},
+                  context: context,
+                ),
+                _buildContactItem(
+                  icon: EcliniqIcons.stethoscope2,
+                  title: contactDetails.phone ?? '+91 98765 43210',
+                  subtitle: 'Doctor Contact Number',
+                  showCallButton: true,
+                  onTap: () {},
+                  context: context,
+                ),
+                _buildContactItem(
+                  icon: EcliniqIcons.userSpeak,
+                  title: contactDetails.languages != null &&
+                          contactDetails.languages!.isNotEmpty
+                      ? contactDetails.languages!.join(', ')
+                      : 'English, Hindi',
+                  subtitle: 'Speaks',
+                  onTap: () {},
+                  context: context,
+                ),
               ],
             ),
           ),
@@ -378,7 +385,7 @@ class DoctorContactDetailsWidget extends StatelessWidget {
                           color: Colors.black87,
                         ),
                   ),
-                  const SizedBox(height: 2),
+
                   Text(
                     subtitle,
                     style: EcliniqTextStyles.responsiveTitleXLarge(context)
@@ -395,8 +402,8 @@ class DoctorContactDetailsWidget extends StatelessWidget {
                 onPressed: () => PhoneLauncher.launchPhoneCall(title),
                 icon: SvgPicture.asset(
                   EcliniqIcons.phone.assetPath,
-                  width: 32,
-                  height: 32,
+                  width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                  height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
                 ),
               ),
           ],
@@ -442,29 +449,53 @@ class EducationalInformationWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
             child: Column(
-              children: educationList.asMap().entries.map((entry) {
-                final index = entry.key;
-                final education = entry.value;
-                return Column(
-                  children: [
-                    _buildEducationItem(
-                      degree: education.degree,
-                      institution: education.instituteName,
-                      type: education.graduationType == 'UG'
-                          ? 'Graduation Degree'
-                          : 'Post Graduation Degree',
-                      year: education.completionYear > 0
-                          ? 'Completed in ${education.completionYear}'
-                          : 'Year not specified',
-                      context: context,
-                    ),
-                    if (index < educationList.length - 1)
+              children: educationList.isEmpty
+                  ? [
+                      _buildEducationItem(
+                        degree: 'MBBS',
+                        institution: 'Medical College',
+                        type: 'Graduation Degree',
+                        year: 'Completed in 2015',
+                        context: context,
+                      ),
                       const SizedBox(height: 16),
-                  ],
-                );
-              }).toList(),
+                      _buildEducationItem(
+                        degree: 'MD - General Medicine',
+                        institution: 'Medical University',
+                        type: 'Post Graduation Degree',
+                        year: 'Completed in 2018',
+                        context: context,
+                      ),
+                    ]
+                  : educationList.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final education = entry.value;
+                      return Column(
+                        children: [
+                          _buildEducationItem(
+                            degree: education.degree,
+                            institution: education.instituteName,
+                            type: education.graduationType == 'UG'
+                                ? 'Graduation Degree'
+                                : 'Post Graduation Degree',
+                            year: education.completionYear > 0
+                                ? 'Completed in ${education.completionYear}'
+                                : 'Year not specified',
+                            context: context,
+                          ),
+                          if (index < educationList.length - 1)
+                            const SizedBox(height: 16),
+                        ],
+                      );
+                    }).toList(),
             ),
           ),
         ],
@@ -565,31 +596,97 @@ class DoctorCertificatesWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
             child: Wrap(
               spacing: 16,
               runSpacing: 12,
-              children: certificates.map((cert) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.verified_outlined,
-                      size: 20,
-                      color: Colors.black54,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      cert.name,
-                      style: EcliniqTextStyles.responsiveBodySmall(context)
-                          .copyWith(
-                            fontWeight: FontWeight.w400,
-                            color: Colors.black87,
+              children: certificates.isEmpty
+                  ? [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.verified_outlined,
+                            size: 20,
+                            color: Colors.black54,
                           ),
-                    ),
-                  ],
-                );
-              }).toList(),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Board Certified',
+                            style: EcliniqTextStyles.responsiveBodySmall(context)
+                                .copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black87,
+                                ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.verified_outlined,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Medical Council Registered',
+                            style: EcliniqTextStyles.responsiveBodySmall(context)
+                                .copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black87,
+                                ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.verified_outlined,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Advanced Training Certificate',
+                            style: EcliniqTextStyles.responsiveBodySmall(context)
+                                .copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black87,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ]
+                  : certificates.map((cert) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.verified_outlined,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            cert.name,
+                            style: EcliniqTextStyles.responsiveBodySmall(context)
+                                .copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black87,
+                                ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
             ),
           ),
         ],
@@ -633,30 +730,36 @@ class ClinicPhotosWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: photos.isEmpty
-                ? const SizedBox.shrink()
-                : SizedBox(
-                    height: 120,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: photos.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        return _buildPhotoItem(
-                          imageUrl: _getImageUrl(photos[index]),
-                        );
-                      },
-                    ),
-                  ),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
+            child: SizedBox(
+              height: 120,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: photos.isEmpty ? 4 : photos.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  return _buildPhotoItem(
+                    imageUrl: photos.isEmpty
+                        ? null
+                        : _getImageUrl(photos[index]),
+                    isPlaceholder: photos.isEmpty,
+                  );
+                },
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPhotoItem({required String imageUrl}) {
+  Widget _buildPhotoItem({String? imageUrl, bool isPlaceholder = false}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -666,22 +769,33 @@ class ClinicPhotosWidget extends StatelessWidget {
           color: Colors.grey[300],
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey[300],
-              child: Center(
-                child: Icon(
-                  Icons.image_outlined,
-                  size: 40,
-                  color: Colors.grey[500],
+        child: isPlaceholder || imageUrl == null
+            ? Container(
+                color: Colors.grey[300],
+                child: Center(
+                  child: Icon(
+                    Icons.image_outlined,
+                    size: 40,
+                    color: Colors.grey[500],
+                  ),
                 ),
+              )
+            : Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(
+                        Icons.image_outlined,
+                        size: 40,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
       ),
     );
   }

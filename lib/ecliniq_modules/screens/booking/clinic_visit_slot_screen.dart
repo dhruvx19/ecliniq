@@ -1014,45 +1014,51 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
 
     if (selectedDate == null) return const SizedBox.shrink();
 
+    // Filter out periods with no slots
+    final availablePeriods = periods.where((period) {
+      final slots = _groupedSlots[period] ?? [];
+      return slots.isNotEmpty;
+    }).toList();
+
+    if (availablePeriods.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
-      padding:  EdgeInsets.symmetric(horizontal: EcliniqTextStyles.getResponsiveSize(context, 16)),
+      padding: EdgeInsets.symmetric(
+        horizontal: EcliniqTextStyles.getResponsiveSize(context, 16),
+      ),
       child: ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: periods.length,
+        itemCount: availablePeriods.length,
         itemBuilder: (context, index) {
-          final period = periods[index];
+          final period = availablePeriods[index];
           final slots = _groupedSlots[period] ?? [];
 
-          String timeRange;
-          int totalAvailable = 0;
-          bool isDisabled = false;
+          // Since we filtered, slots should never be empty here
+          slots.sort((a, b) => a.startTime.compareTo(b.startTime));
 
-          if (slots.isEmpty) {
-            timeRange = _getDefaultTimeRange(period);
-            totalAvailable = 0;
-            isDisabled = true;
-          } else {
-            slots.sort((a, b) => a.startTime.compareTo(b.startTime));
+          final earliestStartUTC = slots
+              .map((s) => s.startTime)
+              .reduce((a, b) => a.isBefore(b) ? a : b);
+          final latestEndUTC = slots
+              .map((s) => s.endTime)
+              .reduce((a, b) => a.isAfter(b) ? a : b);
 
-            final earliestStartUTC = slots
-                .map((s) => s.startTime)
-                .reduce((a, b) => a.isBefore(b) ? a : b);
-            final latestEndUTC = slots
-                .map((s) => s.endTime)
-                .reduce((a, b) => a.isAfter(b) ? a : b);
+          final timeRange = _formatTimeRange(earliestStartUTC, latestEndUTC);
+          final totalAvailable = slots.fold<int>(
+            0,
+            (sum, slot) => sum + slot.availableTokens,
+          );
 
-            timeRange = _formatTimeRange(earliestStartUTC, latestEndUTC);
-            totalAvailable = slots.fold<int>(
-              0,
-              (sum, slot) => sum + slot.availableTokens,
-            );
-
-            isDisabled = totalAvailable == 0;
-          }
+          // Grey out only if there are slots but no available tokens
+          final isDisabled = totalAvailable == 0;
 
           return Padding(
-            padding:  EdgeInsets.only(bottom: EcliniqTextStyles.getResponsiveSize(context, 12)),
+            padding: EdgeInsets.only(
+              bottom: EcliniqTextStyles.getResponsiveSize(context, 12),
+            ),
             child: TimeSlotCard(
               title: period,
               time: timeRange,
@@ -1371,9 +1377,9 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
-        leadingWidth: 58,
+        leadingWidth: EcliniqTextStyles.getResponsiveWidth(context, 54.0),
         titleSpacing: 0,
-        toolbarHeight: 38,
+        toolbarHeight: EcliniqTextStyles.getResponsiveHeight(context, 46.0),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -1457,7 +1463,12 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                   if (_currentTokenNumber != null) ...[
                     const SizedBox(height: 12),
                     Padding(
-                      padding:  EdgeInsets.symmetric(horizontal: EcliniqTextStyles.getResponsiveSize(context, 16)),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: EcliniqTextStyles.getResponsiveSize(
+                          context,
+                          16,
+                        ),
+                      ),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
@@ -1496,7 +1507,12 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                     ),
                   ],
                   Padding(
-                    padding:  EdgeInsets.symmetric(horizontal: EcliniqTextStyles.getResponsiveSize(context, 16)),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: EcliniqTextStyles.getResponsiveSize(
+                        context,
+                        16,
+                      ),
+                    ),
                     child: DateSelector(
                       selectedDate: selectedDateLabel,
                       selectedDateValue: selectedDate,
@@ -1505,15 +1521,24 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
                       isLoading: _isLoadingWeeklySlots,
                     ),
                   ),
-                   SizedBox(height: EcliniqTextStyles.getResponsiveHeight(context, 12)),
+                  SizedBox(
+                    height: EcliniqTextStyles.getResponsiveHeight(context, 12),
+                  ),
                   const Divider(
                     height: 0.5,
                     thickness: 0.5,
                     color: Color(0xffD6D6D6),
                   ),
-                   SizedBox(height: EcliniqTextStyles.getResponsiveHeight(context, 24)),
+                  SizedBox(
+                    height: EcliniqTextStyles.getResponsiveHeight(context, 24),
+                  ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: EcliniqTextStyles.getResponsiveSize(context, 16)),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: EcliniqTextStyles.getResponsiveSize(
+                        context,
+                        16,
+                      ),
+                    ),
                     child: Text(
                       'Select Below Slots',
                       style: EcliniqTextStyles.responsiveHeadlineLarge(
@@ -1540,7 +1565,9 @@ class _ClinicVisitSlotScreenState extends State<ClinicVisitSlotScreen> {
           ),
           if (selectedSlot != null)
             Container(
-              padding: EdgeInsets.all(EcliniqTextStyles.getResponsiveSize(context, 16)),
+              padding: EdgeInsets.all(
+                EcliniqTextStyles.getResponsiveSize(context, 16),
+              ),
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(

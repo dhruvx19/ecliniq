@@ -59,7 +59,7 @@ class _CancellationPolicyBottomSheetState
   crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: EdgeInsets.only(top: 12),
+          margin: EdgeInsets.only(top: 8),
           width: 6,
           height: 6,
           decoration: BoxDecoration(
@@ -75,7 +75,7 @@ class _CancellationPolicyBottomSheetState
             
               fontWeight: FontWeight.w400,
               color: Color(0xFF626060),
-              height: 1.5,
+              height: 1.3,
             ),
           ),
         ),

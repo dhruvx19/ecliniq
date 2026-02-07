@@ -36,6 +36,8 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
   bool _isInitialLoading = true;
   String? _existingPhone;
   String? _existingEmail;
+  bool _isBiometricAvailable = false;
+  bool _isBiometricEnabled = false;
   final AuthService _authService = AuthService();
   final PatientService _patientService = PatientService();
 
@@ -43,6 +45,24 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
   void initState() {
     super.initState();
     _loadUserInfo();
+    _checkBiometricStatus();
+  }
+
+  Future<void> _checkBiometricStatus() async {
+    try {
+      final isAvailable = await BiometricService.isAvailable();
+      final isEnabled = await SecureStorageService.isBiometricEnabled();
+      
+      if (mounted) {
+        setState(() {
+          _isBiometricAvailable = isAvailable;
+          _isBiometricEnabled = isEnabled;
+          isOn = isEnabled;
+        });
+      }
+    } catch (e) {
+      // Handle error silently
+    }
   }
 
   Future<void> _loadUserInfo() async {
@@ -234,13 +254,95 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
 
   @override
   Widget build(BuildContext context) {
-    void handleBiometricPermission() {
-      setState(() {
-        isOn = !isOn;
-      });
+    Future<void> handleBiometricPermission() async {
+      if (!_isBiometricAvailable) {
+        CustomErrorSnackBar.show(
+          context: context,
+          title: 'Biometric Unavailable',
+          subtitle: 'Biometric authentication is not available on this device',
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      if (!isOn) {
+        // Enable biometric
+        final mpin = await SecureStorageService.getMPIN();
+        if (mpin == null || mpin.isEmpty) {
+          CustomErrorSnackBar.show(
+            context: context,
+            title: 'M-PIN Required',
+            subtitle: 'Please set up M-PIN first to enable biometric authentication',
+            duration: const Duration(seconds: 3),
+          );
+          return;
+        }
+
+        try {
+          final success = await SecureStorageService.storeMPINWithBiometric(mpin);
+          if (success) {
+            setState(() {
+              isOn = true;
+              _isBiometricEnabled = true;
+            });
+            CustomSuccessSnackBar.show(
+              context: context,
+              title: 'Biometric Enabled',
+              subtitle: 'You can now use biometric authentication',
+              duration: const Duration(seconds: 3),
+            );
+          } else {
+            CustomErrorSnackBar.show(
+              context: context,
+              title: 'Failed',
+              subtitle: 'Failed to enable biometric authentication',
+              duration: const Duration(seconds: 3),
+            );
+          }
+        } catch (e) {
+          CustomErrorSnackBar.show(
+            context: context,
+            title: 'Error',
+            subtitle: 'An error occurred while enabling biometric',
+            duration: const Duration(seconds: 3),
+          );
+        }
+      } else {
+        // Disable biometric
+        try {
+          await SecureStorageService.setBiometricEnabled(false);
+          await SecureStorageService.deleteBiometricValue('mpin');
+          setState(() {
+            isOn = false;
+            _isBiometricEnabled = false;
+          });
+          CustomSuccessSnackBar.show(
+            context: context,
+            title: 'Biometric Disabled',
+            subtitle: 'Biometric authentication has been disabled',
+            duration: const Duration(seconds: 3),
+          );
+        } catch (e) {
+          CustomErrorSnackBar.show(
+            context: context,
+            title: 'Error',
+            subtitle: 'An error occurred while disabling biometric',
+            duration: const Duration(seconds: 3),
+          );
+        }
+      }
     }
 
     void onPressedChangeBiometricPermissions() {
+      if (!_isBiometricAvailable) {
+        CustomErrorSnackBar.show(
+          context: context,
+          title: 'Biometric Unavailable',
+          subtitle: 'Biometric authentication is not available on this device',
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
       setState(() {
         _isExpanded = !_isExpanded;
       });
@@ -354,11 +456,11 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
               child: Column(
                 children: [
                   _buildTile(
-                     context:   context,
                     EcliniqIcons.smartphone.assetPath,
                     'Change Mobile Number',
                     onPressedChangeMobileNumber,
                     _isExpanded,
+                    context: context,
                   ),
                   Container(
                     color: Color(0xffD6D6D6),
@@ -366,11 +468,11 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
                     height: 0.5,
                   ),
                   _buildTile(
-                     context:   context,
                     EcliniqIcons.mail.assetPath,
                     'Change Email ID',
                     onPressedChangeEmail,
                     _isExpanded,
+                    context: context,
                   ),
                   Container(
                     color: Color(0xffD6D6D6),
@@ -378,11 +480,11 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
                     height: 0.5,
                   ),
                   _buildTile(
-                     context:   context,
                     EcliniqIcons.password.assetPath,
                     'Change M-PIN',
                     onPressedChangeMPin,
                     _isExpanded,
+                    context: context,
                   ),
                   Container(
                     color: Color(0xffD6D6D6),
@@ -390,14 +492,21 @@ class _SecuritySettingsOptionsState extends State<SecuritySettingsOptions> {
                     height: 0.5,
                   ),
                   _buildTile(
-                     context:   context,
                     EcliniqIcons.faceScanSquare.assetPath,
-                    'Change Biometric Permissions',
+                    _isBiometricEnabled 
+                        ? 'Change Biometric Permissions' 
+                        : 'Enable Biometric Authentication',
                     onPressedChangeBiometricPermissions,
                     _isExpanded,
+                    context: context,
+                    subtitle: !_isBiometricAvailable 
+                        ? 'Not available on this device' 
+                        : (_isBiometricEnabled 
+                            ? 'Biometric is currently enabled' 
+                            : 'Enable biometric for quick access'),
                   ),
                   if (_isExpanded) ...[
-                    _buildDropDown( context:   context,isOn, handleBiometricPermission),
+                    _buildDropDown(isOn, handleBiometricPermission, context: context),
                   ],
 
                   
@@ -554,7 +663,7 @@ Widget _buildTile(
                   ],
                 ),
               ),
-              (title != 'Change Biometric Permissions')
+              (title != 'Change Biometric Permissions' && title != 'Enable Biometric Authentication')
                   ? SvgPicture.asset(
                       EcliniqIcons.angleRight.assetPath,
                       width: 24,
@@ -587,7 +696,7 @@ Widget _buildTile(
   );
 }
 
-Widget _buildDropDown(bool isOn, VoidCallback onPressed,
+Widget _buildDropDown(bool isOn, Future<void> Function() onPressed,
     {required BuildContext context}) {
   return Column(
     children: [
@@ -598,7 +707,7 @@ Widget _buildDropDown(bool isOn, VoidCallback onPressed,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Face Lock Permission',
+                  '${BiometricService.getBiometricTypeName()} Authentication',
                   style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
                     fontWeight: FontWeight.w400,
                     color: Color(0xff424242),
@@ -606,7 +715,9 @@ Widget _buildDropDown(bool isOn, VoidCallback onPressed,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Keep it turn ON to unlock app quickly without inputting m-pin.',
+                  isOn 
+                      ? 'Biometric authentication is enabled. Toggle to disable.' 
+                      : 'Enable to unlock app quickly without entering M-PIN.',
                   style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
                     fontWeight: FontWeight.w400,
                     color: Color(0xff8E8E8E),
@@ -623,7 +734,7 @@ Widget _buildDropDown(bool isOn, VoidCallback onPressed,
             width: 40,
             height: 23,
             child: GestureDetector(
-              onTap: onPressed,
+              onTap: () async => await onPressed(),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 width: 60,

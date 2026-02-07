@@ -213,7 +213,34 @@ class _ProfilePageState extends State<ProfilePage>
     });
   }
 
-  void _handleDependentTap(Dependent dependent) {}
+  void _handleDependentTap(Dependent dependent) {
+    // Find the full dependent data
+    final fullDependent = _dependents.firstWhere(
+      (dep) => dep.id == dependent.id,
+      orElse: () => throw Exception('Dependent not found'),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PersonalDetails(
+          isSelf: false,
+          dependentId: fullDependent.id,
+          firstName: fullDependent.firstName,
+          lastName: fullDependent.lastName,
+          email: fullDependent.emailId,
+          phone: fullDependent.phone,
+          gender: fullDependent.gender,
+          dob: fullDependent.dob,
+          relation: fullDependent.relation,
+          bloodGroup: fullDependent.bloodGroup,
+          height: fullDependent.height,
+          weight: fullDependent.weight,
+          profilePhoto: fullDependent.profilePhoto,
+        ),
+      ),
+    );
+  }
 
   void _onTabTapped(int index) {
     NavigationHelper.navigateToTab(context, index, 3);

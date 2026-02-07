@@ -34,12 +34,24 @@ class RecentlyUploadedWidget extends StatelessWidget {
         }
 
         return Container(
-          padding: const EdgeInsets.only(top: 2.0, bottom: 8.0, left: 16),
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+            context,
+            top: 2,
+            bottom: 8,
+            left: 16,
+            right: 0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsets.only(right: 16.0),
+                padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                  context,
+                  right: 16,
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                ),
                 child: Text(
                   'Recently Uploaded',
                   style: EcliniqTextStyles.responsiveHeadlineLarge(context)
@@ -49,16 +61,25 @@ class RecentlyUploadedWidget extends StatelessWidget {
                       ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 12),
+              ),
 
               SizedBox(
-                height: 215,
+                height: EcliniqTextStyles.getResponsiveHeight(context, 215),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(right: 16.0),
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                    context,
+                    right: 16,
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                  ),
                   itemCount: recentFiles.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 16),
+                  separatorBuilder: (context, index) => SizedBox(
+                    width: EcliniqTextStyles.getResponsiveSpacing(context, 16),
+                  ),
                   itemBuilder: (context, index) {
                     return RecentFileCard(file: recentFiles[index]);
                   },
@@ -87,7 +108,7 @@ class _RecentFileCardState extends State<RecentFileCard> {
   @override
   void initState() {
     super.initState();
-    
+
     _checkFileExists();
   }
 
@@ -101,9 +122,8 @@ class _RecentFileCardState extends State<RecentFileCard> {
   }
 
   String _formatDate(DateTime date) {
-    
     final displayDate = widget.file.fileDate ?? date;
-    
+
     return HealthFileDateFormatter.formatDateTime(displayDate);
   }
 
@@ -120,31 +140,22 @@ class _RecentFileCardState extends State<RecentFileCard> {
     BuildContext context,
     HealthFile file,
   ) async {
-    
-
-    
     if (Platform.isAndroid) {
-      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        
         Permission storagePermission = Permission.storage;
 
-        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (context.mounted) {
             if (result.isPermanentlyDenied) {
-              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -194,7 +205,6 @@ class _RecentFileCardState extends State<RecentFileCard> {
     BuildContext? dialogContext;
 
     try {
-      
       if (context.mounted) {
         showDialog(
           context: context,
@@ -206,7 +216,6 @@ class _RecentFileCardState extends State<RecentFileCard> {
         );
       }
 
-      
       SnackBarHelper.showSnackBar(
         context,
         Platform.isIOS
@@ -348,11 +357,9 @@ class _RecentFileCardState extends State<RecentFileCard> {
   }
 
   Future<void> _handleDeleteFile(BuildContext context, HealthFile file) async {
-    
     BuildContext? dialogContext;
 
     try {
-      
       if (context.mounted) {
         showDialog(
           context: context,
@@ -366,23 +373,16 @@ class _RecentFileCardState extends State<RecentFileCard> {
 
       final provider = context.read<HealthFilesProvider>();
 
-      
-      
       final success = await provider.deleteFile(file);
-      
 
-      
       if (success && context.mounted) {
         await provider.refresh();
       }
 
-      
       if (dialogContext != null && context.mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (e) {
-          
-        }
+        } catch (e) {}
         dialogContext = null;
       }
 
@@ -403,13 +403,10 @@ class _RecentFileCardState extends State<RecentFileCard> {
         );
       }
     } catch (e) {
-      
       if (dialogContext != null && context.mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (_) {
-          
-        }
+        } catch (_) {}
         dialogContext = null;
       }
 
@@ -430,38 +427,59 @@ class _RecentFileCardState extends State<RecentFileCard> {
 
     return GestureDetector(
       onTap: () {
-        
         EcliniqRouter.push(FileTypeScreen(fileType: widget.file.fileType));
       },
       child: Container(
-        width: 250,
-        height: 215,
+        width: EcliniqTextStyles.getResponsiveWidth(context, 250),
+        height: EcliniqTextStyles.getResponsiveHeight(context, 215),
 
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+          ),
           border: Border.all(color: Colors.grey.shade300, width: 1),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(2.0),
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 2),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Expanded(
                 child: Container(
-                  width: 250,
-                  height: 215,
+                  width: EcliniqTextStyles.getResponsiveWidth(context, 250),
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 215),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(
+                          context,
+                          12,
+                        ),
+                      ),
+                      topRight: Radius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(
+                          context,
+                          12,
+                        ),
+                      ),
                     ),
                   ),
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(
+                          context,
+                          12,
+                        ),
+                      ),
+                      topRight: Radius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(
+                          context,
+                          12,
+                        ),
+                      ),
                     ),
                     child: fileExists && widget.file.isImage
                         ? Image.file(
@@ -489,15 +507,34 @@ class _RecentFileCardState extends State<RecentFileCard> {
               ),
 
               Container(
-                padding: const EdgeInsets.all(14),
-                decoration: const BoxDecoration(
+                padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(
+                  context,
+                  10,
+                ),
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Image.asset(_getFileIcon(), width: 24, height: 24),
-                    const SizedBox(width: 12),
+                    Image.asset(
+                      _getFileIcon(),
+                      width: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        24,
+                      ),
+                      height: EcliniqTextStyles.getResponsiveIconSize(
+                        context,
+                        24,
+                      ),
+                    ),
+                    SizedBox(
+                      width: EcliniqTextStyles.getResponsiveSpacing(context, 8),
+                    ),
 
                     Expanded(
                       child: Column(
@@ -516,15 +553,17 @@ class _RecentFileCardState extends State<RecentFileCard> {
                             overflow: TextOverflow.ellipsis,
                           ),
 
-                          Text(
-                            _formatDate(widget.file.createdAt),
-                            style:
-                                EcliniqTextStyles.responsiveBodySmall(
-                                  context,
-                                ).copyWith(
-                                  fontWeight: FontWeight.w400,
-                                  color: Color(0xff8E8E8E),
-                                ),
+                          FittedBox(
+                            child: Text(
+                              _formatDate(widget.file.createdAt),
+                              style:
+                                  EcliniqTextStyles.responsiveBodySmall(
+                                    context,
+                                  ).copyWith(
+                                    fontWeight: FontWeight.w400,
+                                    color: Color(0xff8E8E8E),
+                                  ),
+                            ),
                           ),
                         ],
                       ),
@@ -544,8 +583,14 @@ class _RecentFileCardState extends State<RecentFileCard> {
                       ),
                       child: SvgPicture.asset(
                         EcliniqIcons.threeDots.assetPath,
-                        width: 32,
-                        height: 32,
+                        width: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          32,
+                        ),
+                        height: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          32,
+                        ),
                       ),
                     ),
                   ],

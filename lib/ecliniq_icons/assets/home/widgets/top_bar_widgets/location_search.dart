@@ -1,9 +1,11 @@
 import 'package:ecliniq/ecliniq_core/location/location_permission_manager.dart';
 import 'package:ecliniq/ecliniq_core/location/location_service.dart';
 import 'package:ecliniq/ecliniq_core/location/location_storage_service.dart';
+import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/provider/doctor_provider.dart';
 import 'package:ecliniq/ecliniq_icons/assets/home/provider/hospital_provider.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/location/select_location_page.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/bottom_sheet/bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/text/text.dart';
@@ -166,7 +168,10 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
              width: double.infinity,
             height: EcliniqTextStyles.getResponsiveButtonHeight(context, baseHeight: 52.0),
             child: GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pop();
+                EcliniqRouter.push(const SelectLocationPage());
+              },
               child: Container(
                 width: double.infinity,
                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(

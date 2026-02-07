@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:ecliniq/ecliniq_api/models/appointment.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
+import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/eta_bottom_sheet.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
+import 'package:ecliniq/ecliniq_ui/lib/widgets/widgets.dart';
 import 'package:ecliniq/ecliniq_ui/scripts/ecliniq_ui.dart';
 import 'package:ecliniq/ecliniq_utils/bottom_sheets/ratings/rate_your_exp_bottom_sheet.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +76,7 @@ class AppointmentDetailModel {
     String status = apiData.status.toLowerCase();
     if (status == 'served') {
       status = 'completed';
-    } else if (status == 'pending') {
+    } else if (status == 'pending' || status == 'engaged') {
       status = 'requested';
     } else if (status == 'checked_in') {
       status = 'confirmed';
@@ -94,8 +96,18 @@ class AppointmentDetailModel {
     final dateFormat = DateFormat('dd MMM, yyyy');
     final dateStr = dateFormat.format(appointmentDate);
 
-    final timeFormat = DateFormat('hh:mm a');
-    final timeStr = timeFormat.format(combinedDateTime);
+    final timeFormat = DateFormat('h:mma');
+    final startTimeStr = timeFormat.format(combinedDateTime).toLowerCase();
+    final endTime = apiData.schedule.endTime;
+    final combinedEndDateTime = DateTime(
+      appointmentDate.year,
+      appointmentDate.month,
+      appointmentDate.day,
+      endTime.hour,
+      endTime.minute,
+    );
+    final endTimeStr = timeFormat.format(combinedEndDateTime).toLowerCase();
+    final timeStr = '$startTimeStr - $endTimeStr';
 
     final now = DateTime.now();
 
@@ -119,7 +131,7 @@ class AppointmentDetailModel {
       dayPrefix = DateFormat('EEEE').format(appointmentDate);
     }
 
-    final displayDateFormat = DateFormat('d MMMM yyyy');
+    final displayDateFormat = DateFormat('dd MMM, yyyy');
     final formattedDisplayDate =
         '$dayPrefix, ${displayDateFormat.format(appointmentDate)}';
 
@@ -135,6 +147,7 @@ class AppointmentDetailModel {
 
     String formattedAddress = '';
     String city = '';
+    String state = '';
     String pincode = '';
     double latitude = 0.0;
     double longitude = 0.0;
@@ -165,6 +178,7 @@ class AppointmentDetailModel {
         orElse: () => apiData.doctor.associatedHospitals.first,
       );
       city = hospital.city;
+      state = hospital.state;
       pincode = hospital.pincode;
       latitude = hospital.latitude;
       longitude = hospital.longitude;
@@ -232,6 +246,7 @@ class AppointmentDetailModel {
         name: clinicName,
         address: formattedAddress,
         city: city,
+        state: state,
         pincode: pincode,
         latitude: latitude,
         longitude: longitude,
@@ -452,10 +467,9 @@ class PatientInfo {
             ),
             child: Text(
               'You',
-              style: EcliniqTextStyles.responsiveHeadlineXMedium(context).copyWith(
-                color: Color(0xff2372EC),
-                fontWeight: FontWeight.w400,
-              ),
+              style: EcliniqTextStyles.responsiveHeadlineXMedium(
+                context,
+              ).copyWith(color: Color(0xff2372EC), fontWeight: FontWeight.w400),
             ),
           ),
         ],
@@ -514,7 +528,7 @@ class AppointmentTimeInfo {
           dayPrefix = DateFormat('EEEE').format(parsedDate);
         }
 
-        final displayDateFormat = DateFormat('d MMMM yyyy');
+        final displayDateFormat = DateFormat('dd MMM, yyyy');
         displayDate = '$dayPrefix, ${displayDateFormat.format(parsedDate)}';
       } catch (e) {
         if (displayDate.isEmpty) {
@@ -547,6 +561,7 @@ class ClinicInfo {
   final String name;
   final String address;
   final String city;
+  final String state;
   final String pincode;
   final double latitude;
   final double longitude;
@@ -556,6 +571,7 @@ class ClinicInfo {
     required this.name,
     required this.address,
     required this.city,
+    this.state = '',
     required this.pincode,
     required this.latitude,
     required this.longitude,
@@ -567,6 +583,7 @@ class ClinicInfo {
       name: json['name'] ?? '',
       address: json['address'] ?? '',
       city: json['city'] ?? '',
+      state: json['state'] ?? '',
       pincode: json['pincode'] ?? '',
       latitude: (json['latitude'] as num? ?? 0).toDouble(),
       longitude: (json['longitude'] as num? ?? 0).toDouble(),
@@ -579,6 +596,7 @@ class ClinicInfo {
       'name': name,
       'address': address,
       'city': city,
+      'state': state,
       'pincode': pincode,
       'latitude': latitude,
       'longitude': longitude,
@@ -587,6 +605,13 @@ class ClinicInfo {
   }
 
   String get fullAddress => '$address, $city - $pincode';
+
+  String get cityState {
+    final parts = <String>[];
+    if (city.isNotEmpty) parts.add(city);
+    if (state.isNotEmpty) parts.add(state);
+    return parts.isNotEmpty ? parts.join(', ') : 'Location not available';
+  }
 }
 
 class PaymentInfo {
@@ -636,6 +661,7 @@ class StatusHeader extends StatelessWidget {
   final String? tokenNumber;
   final String? expectedTime;
   final String? currentTokenNumber;
+  final String? displayDate;
 
   const StatusHeader({
     super.key,
@@ -643,6 +669,7 @@ class StatusHeader extends StatelessWidget {
     this.tokenNumber,
     this.expectedTime,
     this.currentTokenNumber,
+    this.displayDate,
   });
 
   @override
@@ -676,8 +703,8 @@ class StatusHeader extends StatelessWidget {
             width: double.infinity,
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
               context,
-              horizontal: 18.0,
-              vertical: 12.0,
+              horizontal: 14.0,
+              vertical: 8.0,
             ),
             decoration: BoxDecoration(
               color: Color(0xffF8FAFF),
@@ -690,13 +717,19 @@ class StatusHeader extends StatelessWidget {
               children: [
                 Text(
                   'Token Number Currently Running',
-                  style: EcliniqTextStyles.responsiveTitleXLarge(
-                    context,
-                  ).copyWith(color: Color(0xff626060)),
+                  style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                      .copyWith(
+                        color: Color(0xff626060),
+                        fontWeight: FontWeight.w400,
+                      ),
                 ),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 14.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 14.0),
+                ),
                 _AnimatedDot(),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 2.0),
+                ),
                 Text(
                   currentTokenNumber!,
                   style: EcliniqTextStyles.responsiveHeadlineLargeBold(context)
@@ -725,14 +758,18 @@ class StatusHeader extends StatelessWidget {
             ).copyWith(color: config.textColor),
           ),
           if (tokenNumber != null) ...[
-            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+            SizedBox(
+              height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0),
+            ),
             Text(
               'Your Token Number',
               style: EcliniqTextStyles.responsiveHeadlineXLMedium(
                 context,
               ).copyWith(color: Color(0xff424242)),
             ),
-            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+            SizedBox(
+              height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0),
+            ),
             Text(
               tokenNumber!,
               style: EcliniqTextStyles.responsiveHeadlineXXLarge(
@@ -740,11 +777,19 @@ class StatusHeader extends StatelessWidget {
               ).copyWith(color: config.textColor, fontWeight: FontWeight.w700),
             ),
             if (expectedTime != null && expectedTime!.isNotEmpty) ...[
-              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0),
+              ),
               Padding(
-                padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 6.0),
+                padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(
+                  context,
+                  6.0,
+                ),
                 child: Container(
-                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 4.0),
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(
+                    context,
+                    4.0,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xffF9F9F9),
                     borderRadius: BorderRadius.circular(
@@ -764,11 +809,30 @@ class StatusHeader extends StatelessWidget {
                           context,
                         ).copyWith(color: const Color(0xff424242)),
                       ),
-                      SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 6.0)),
-                      SvgPicture.asset(
-                        EcliniqIcons.infoCircleBlack.assetPath,
-                        width: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
-                        height: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
+                      SizedBox(
+                        width: EcliniqTextStyles.getResponsiveSpacing(
+                          context,
+                          6.0,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          EcliniqBottomSheet.show(
+                            child: EtaBottomSheet(),
+                            context: context,
+                          );
+                        },
+                        child: SvgPicture.asset(
+                          EcliniqIcons.infoCircleBlack.assetPath,
+                          width: EcliniqTextStyles.getResponsiveIconSize(
+                            context,
+                            18.0,
+                          ),
+                          height: EcliniqTextStyles.getResponsiveIconSize(
+                            context,
+                            18.0,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -787,6 +851,29 @@ class StatusHeader extends StatelessWidget {
               context,
             ).copyWith(color: config.textColor),
           ),
+        ],
+      );
+    } else if (status == 'cancelled' || status == 'failed') {
+      return Column(
+        children: [
+          Text(
+            config.title,
+            style: EcliniqTextStyles.responsiveHeadlineMedium(
+              context,
+            ).copyWith(color: config.textColor),
+          ),
+          if (displayDate != null && displayDate!.isNotEmpty) ...[
+            SizedBox(
+              height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0),
+            ),
+            Text(
+              displayDate!,
+              style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
+                color: const Color(0xff8E8E8E),
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
         ],
       );
     } else {
@@ -957,7 +1044,9 @@ class DoctorInfoCard extends StatelessWidget {
                   context,
                 ).copyWith(color: Color(0xff424242)),
               ),
-              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0),
+              ),
               Text(
                 doctor.specialization.isEmpty
                     ? 'General Physician'
@@ -966,7 +1055,9 @@ class DoctorInfoCard extends StatelessWidget {
                   context,
                 ).copyWith(color: Color(0xff424242)),
               ),
-              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0),
+              ),
               Text(
                 doctor.qualification,
                 style: EcliniqTextStyles.responsiveTitleXLarge(
@@ -991,7 +1082,10 @@ class DoctorInfoCard extends StatelessWidget {
                   children: [
                     Container(
                       width: EcliniqTextStyles.getResponsiveSize(context, 80.0),
-                      height: EcliniqTextStyles.getResponsiveSize(context, 80.0),
+                      height: EcliniqTextStyles.getResponsiveSize(
+                        context,
+                        80.0,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE3F2FD),
                         shape: BoxShape.circle,
@@ -1000,11 +1094,10 @@ class DoctorInfoCard extends StatelessWidget {
                       child: Center(
                         child: Text(
                           doctor.initials,
-                          style: EcliniqTextStyles.responsiveHeadlineXXLargeBold(
-                            context,
-                          ).copyWith(
-                            color: Color(0xFF1565C0),
-                          ),
+                          style:
+                              EcliniqTextStyles.responsiveHeadlineXXLargeBold(
+                                context,
+                              ).copyWith(color: Color(0xFF1565C0)),
                         ),
                       ),
                     ),
@@ -1013,13 +1106,21 @@ class DoctorInfoCard extends StatelessWidget {
                       top: 0,
                       child: SvgPicture.asset(
                         EcliniqIcons.verified.assetPath,
-                        width: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
-                        height: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
+                        width: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          24.0,
+                        ),
+                        height: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          24.0,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
+                ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1030,14 +1131,24 @@ class DoctorInfoCard extends StatelessWidget {
                           context,
                         ).copyWith(color: Color(0xff424242)),
                       ),
-                      SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+                      SizedBox(
+                        height: EcliniqTextStyles.getResponsiveSpacing(
+                          context,
+                          4.0,
+                        ),
+                      ),
                       Text(
                         doctor.specialization,
                         style: EcliniqTextStyles.responsiveTitleXLarge(
                           context,
                         ).copyWith(color: Color(0xff424242)),
                       ),
-                      SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
+                      SizedBox(
+                        height: EcliniqTextStyles.getResponsiveSpacing(
+                          context,
+                          2.0,
+                        ),
+                      ),
                       Text(
                         doctor.qualification,
                         style: EcliniqTextStyles.responsiveTitleXLarge(
@@ -1049,22 +1160,31 @@ class DoctorInfoCard extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
+            SizedBox(
+              height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
+            ),
             Row(
               children: [
                 SvgPicture.asset(
                   EcliniqIcons.medicalKit.assetPath,
                   width: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
-                  height: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
+                  height: EcliniqTextStyles.getResponsiveIconSize(
+                    context,
+                    24.0,
+                  ),
                 ),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0),
+                ),
                 Text(
                   _getExperienceText(doctor.yearsOfExperience),
                   style: EcliniqTextStyles.responsiveTitleXLarge(
                     context,
                   ).copyWith(color: Color(0xff626060)),
                 ),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+                ),
                 Container(
                   width: EcliniqTextStyles.getResponsiveSize(context, 6.0),
                   height: EcliniqTextStyles.getResponsiveSize(context, 6.0),
@@ -1073,7 +1193,9 @@ class DoctorInfoCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+                ),
                 Container(
                   padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
                     context,
@@ -1091,10 +1213,21 @@ class DoctorInfoCard extends StatelessWidget {
                     children: [
                       SvgPicture.asset(
                         EcliniqIcons.star.assetPath,
-                        width: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
-                        height: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
+                        width: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          18.0,
+                        ),
+                        height: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          18.0,
+                        ),
                       ),
-                      SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
+                      SizedBox(
+                        width: EcliniqTextStyles.getResponsiveSpacing(
+                          context,
+                          2.0,
+                        ),
+                      ),
                       Text(
                         doctor.rating.toStringAsFixed(1),
                         style: EcliniqTextStyles.responsiveTitleXBLarge(
@@ -1104,7 +1237,9 @@ class DoctorInfoCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+                ),
                 Container(
                   width: EcliniqTextStyles.getResponsiveSize(context, 6.0),
                   height: EcliniqTextStyles.getResponsiveSize(context, 6.0),
@@ -1113,7 +1248,9 @@ class DoctorInfoCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
+                SizedBox(
+                  width: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+                ),
                 Text(
                   '₹500',
                   style: EcliniqTextStyles.responsiveTitleXLarge(
@@ -1122,7 +1259,7 @@ class DoctorInfoCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
             Row(
               children: [
                 SvgPicture.asset(
@@ -1142,7 +1279,7 @@ class DoctorInfoCard extends StatelessWidget {
                 const SizedBox(width: 8),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Row(
               children: [
                 SvgPicture.asset(
@@ -1151,32 +1288,36 @@ class DoctorInfoCard extends StatelessWidget {
                   height: 24,
                 ),
                 const SizedBox(width: 8),
-                Flexible(
+                Expanded(
                   child: Text(
-                    clinic.address,
+                    clinic.cityState,
                     style: EcliniqTextStyles.responsiveTitleXLarge(
                       context,
                     ).copyWith(color: Color(0xff626060)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 4,
+                const SizedBox(width: 8),
+                if (clinic.distanceKm > 0) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Color(0xffF9F9F9),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
+                    ),
+                    child: Text(
+                      '${clinic.distanceKm.toStringAsFixed(1)} Km',
+                      style: EcliniqTextStyles.responsiveTitleXLarge(
+                        context,
+                      ).copyWith(color: Color(0xff424242)),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Color(0xffF9F9F9),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
-                  ),
-                  child: Text(
-                    '${clinic.distanceKm.toStringAsFixed(1)} Km',
-                    style: EcliniqTextStyles.responsiveTitleXLarge(
-                      context,
-                    ).copyWith(color: Color(0xff424242)),
-                  ),
-                ),
+                ],
               ],
             ),
           ],
@@ -1299,9 +1440,16 @@ class AppointmentDetailsSection extends StatelessWidget {
                     ],
                   ),
                   if (subtitle != null) ...[
-                    // const SizedBox(height: 2),
                     Text(
-                      subtitle,
+                      subtitle
+                          .toLowerCase()
+                          .split(' ')
+                          .map(
+                            (word) => word.isNotEmpty
+                                ? '${word[0].toUpperCase()}${word.substring(1)}'
+                                : '',
+                          )
+                          .join(' '),
                       style: EcliniqTextStyles.responsiveTitleXLarge(
                         context,
                       ).copyWith(color: Color(0xFF8E8E8E)),
@@ -1336,14 +1484,23 @@ class ClinicLocationCard extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: Color(0xffF9F9F9),
-            borderRadius: BorderRadius.circular(EcliniqTextStyles.getResponsiveSize(context, 12.0)),
+            borderRadius: BorderRadius.circular(
+              EcliniqTextStyles.getResponsiveSize(context, 12.0),
+            ),
           ),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.only(
+                  left: 12.0,
+                  right: 12.0,
+                  top: 12.0,
+                  bottom: 12.0,
+                ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(EcliniqTextStyles.getResponsiveSize(context, 8.0)),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveSize(context, 8.0),
+                  ),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
@@ -1441,9 +1598,11 @@ class PaymentDetailsCard extends StatelessWidget {
                   payment.serviceFee > 0
                       ? '₹${payment.serviceFee.toStringAsFixed(0)}'
                       : '₹${payment.totalPayable.toStringAsFixed(0)}',
-                  style: EcliniqTextStyles.responsiveHeadlineLarge(
-                    context,
-                  ).copyWith(color: const Color(0xFF424242)),
+                  style: EcliniqTextStyles.responsiveHeadlineLarge(context)
+                      .copyWith(
+                        color: const Color(0xFF424242),
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ],
             ),
@@ -1866,7 +2025,10 @@ class _BookingActionButtonState extends State<BookingActionButton> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: widget.isFullWidth ? double.infinity : null,
-      height: 52,
+      height: EcliniqTextStyles.getResponsiveButtonHeight(
+        context,
+        baseHeight: 52.0,
+      ),
       child: GestureDetector(
         onTapDown: (_) {
           setState(() {

@@ -43,15 +43,19 @@ class PrescriptionCardTimeline extends StatelessWidget {
     if (fileExists && file.isImage) {
       return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 6),
+          ),
           border: Border.all(color: Color(0xffF69800), width: 1),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 6),
+          ),
           child: Image.file(
             File(file.filePath),
-            width: 50,
-            height: 60,
+            width: EcliniqTextStyles.getResponsiveWidth(context, 50),
+            height: EcliniqTextStyles.getResponsiveHeight(context, 60),
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return _buildPlaceholderThumbnail(context);
@@ -66,23 +70,31 @@ class PrescriptionCardTimeline extends StatelessWidget {
 
   Widget _buildPlaceholderThumbnail(BuildContext context) {
     return Container(
-      width: 50,
-      height: 60,
+      width: EcliniqTextStyles.getResponsiveWidth(context, 50),
+      height: EcliniqTextStyles.getResponsiveHeight(context, 60),
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 6),
+        ),
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                context,
+                horizontal: 4,
+                vertical: 2,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -91,15 +103,21 @@ class PrescriptionCardTimeline extends StatelessWidget {
                     Icons.abc,
                     size: EcliniqTextStyles.getResponsiveIconSize(context, 10),
                   ),
-                  SizedBox(width: 2),
+                  SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2)),
                 ],
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4)),
             ...List.generate(
               4,
               (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 2),
+                padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                  context,
+                  bottom: 2,
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                ),
                 child: Container(
                   height: 2,
                   width: double.infinity,
@@ -120,10 +138,12 @@ class PrescriptionCardTimeline extends StatelessWidget {
     final month = _formatMonth(displayDate);
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 8),
+        ),
         border: Border.all(color: const Color(0xffD6D6D6)),
         boxShadow: showShadow
             ? [
@@ -140,7 +160,7 @@ class PrescriptionCardTimeline extends StatelessWidget {
         children: [
           if (showTimeline) ...[
             SizedBox(
-              width: 40,
+              width: EcliniqTextStyles.getResponsiveWidth(context, 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -163,29 +183,27 @@ class PrescriptionCardTimeline extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2)),
           ],
           _buildThumbnail(context),
-          const SizedBox(width: 16),
+          SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   file.fileName,
-                  style: TextStyle(
-                    fontSize: headingFontSize,
+                  style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
                     fontWeight: FontWeight.w500,
                     color: isOlder ? Colors.grey[500] : const Color(0xff424242),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+               
                 Text(
                   _getFileTypeDisplayName(),
-                  style: TextStyle(
-                    fontSize: subheadingFontSize,
+                  style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
                     fontWeight: FontWeight.w400,
                     color: isOlder ? Colors.grey[400] : const Color(0xff8E8E8E),
                   ),
@@ -195,8 +213,8 @@ class PrescriptionCardTimeline extends StatelessWidget {
           ),
           SvgPicture.asset(
             EcliniqIcons.healthIcon.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 30),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 30),
           ),
         ],
       ),

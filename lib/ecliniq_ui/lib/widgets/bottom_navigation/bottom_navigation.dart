@@ -34,7 +34,7 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(0),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                     context:   context,
+                    context: context,
                     iconPath: EcliniqIcons.explore.assetPath,
                     selectedIconPath: EcliniqIcons.homeFilled.assetPath,
                     isSelected: currentIndex == 0,
@@ -47,7 +47,7 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(1),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                     context:   context,
+                    context: context,
                     iconPath: EcliniqIcons.myVisits.assetPath,
                     selectedIconPath: EcliniqIcons.myVisitsFilled.assetPath,
                     isSelected: currentIndex == 1,
@@ -60,7 +60,7 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(2),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                     context:   context,
+                    context: context,
                     iconPath: EcliniqIcons.healthfile.assetPath,
                     selectedIconPath: EcliniqIcons.filesFilled.assetPath,
                     isSelected: currentIndex == 2,
@@ -73,7 +73,7 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
                   onTap: () => onTap(3),
                   behavior: HitTestBehavior.opaque,
                   child: _buildNavItem(
-                     context:   context,
+                    context: context,
                     iconPath: EcliniqIcons.profile.assetPath,
                     selectedIconPath: EcliniqIcons.userSelected.assetPath,
                     isSelected: currentIndex == 3,
@@ -95,11 +95,7 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
     required String label,
     required BuildContext context,
   }) {
-    
-
     const selectedTextColor = Color(0xFFF2F7FF);
-    
-
     const unselectedTextColor = Colors.white;
 
     return Container(
@@ -107,8 +103,12 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected ? const Color(0xFF0E4395) : Colors.transparent,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0)),
-          bottomRight: Radius.circular(EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0)),
+          bottomLeft: Radius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+          ),
+          bottomRight: Radius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+          ),
         ),
       ),
       child: Column(
@@ -120,25 +120,30 @@ class EcliniqBottomNavigationBar extends StatelessWidget {
               color: isSelected ? const Color(0xFf96BFFF) : Colors.transparent,
             ),
           ),
-          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
-          
-          Container(
-            width: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
+          SizedBox(
+            height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+          ),
+
+          SizedBox(
             height: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
-            alignment: Alignment.center,
-            child: SvgPicture.asset(
-              isSelected ? selectedIconPath : iconPath,
-              width: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
-              height: EcliniqTextStyles.getResponsiveIconSize(context, 30.0),
-              fit: BoxFit.contain,
-              clipBehavior: Clip.hardEdge,
+            child: Center(
+              child: SvgPicture.asset(
+                isSelected ? selectedIconPath : iconPath,
+                width: EcliniqTextStyles.getResponsiveIconSize(
+                  context,
+                  isSelected ? 28.0 : 30.0,
+                ),
+                height: EcliniqTextStyles.getResponsiveIconSize(
+                  context,
+                  isSelected ? 28.0 : 30.0,
+                ),
+              ),
             ),
           ),
           Text(
             label,
             style: EcliniqTextStyles.responsiveBodyXSmall(context).copyWith(
               color: isSelected ? selectedTextColor : unselectedTextColor,
-
               fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
             ),
           ),

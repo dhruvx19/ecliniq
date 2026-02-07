@@ -103,7 +103,7 @@ enum EcliniqIcons {
   sort('$_base/Sort.svg'),
   chatMessage('$_base/Chat Group.svg'),
   smartphone('$_base/Smartphone.svg'),
-  
+  stethoscope2('$_base/StethoscopeFilled.svg'),
   whatsapp('$_base/whatsapp (1).svg'),
   clipboard('$_base/Clipboard.svg'),
   copy('$_base/Copy.svg'),

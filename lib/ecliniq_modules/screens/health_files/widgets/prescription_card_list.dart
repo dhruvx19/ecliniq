@@ -56,15 +56,19 @@ class PrescriptionCardList extends StatelessWidget {
     if (fileExists && file.isImage) {
       return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 4),
+          ),
           border: Border.all(color: Color(0xffF69800), width: 1),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 6),
+          ),
           child: Image.file(
             File(file.filePath),
-            width: 50,
-            height: 60,
+            width: EcliniqTextStyles.getResponsiveWidth(context, 50),
+            height: EcliniqTextStyles.getResponsiveHeight(context, 60),
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return _buildPlaceholderThumbnail(context);
@@ -79,23 +83,31 @@ class PrescriptionCardList extends StatelessWidget {
 
   Widget _buildPlaceholderThumbnail(BuildContext context) {
     return Container(
-      width: 50,
-      height: 60,
+      width: EcliniqTextStyles.getResponsiveWidth(context, 50),
+      height: EcliniqTextStyles.getResponsiveHeight(context, 60),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 6),
+        ),
         border: Border.all(color: Color(0xffD6D6D6), width: 0.5),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                context,
+                horizontal: 4,
+                vertical: 2,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -110,11 +122,17 @@ class PrescriptionCardList extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4)),
             ...List.generate(
               4,
               (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 2),
+                padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                  context,
+                  bottom: 2,
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                ),
                 child: Container(
                   height: 2,
                   width: double.infinity,
@@ -130,7 +148,7 @@ class PrescriptionCardList extends StatelessWidget {
 
   Widget _buildDateColumn(String day, String month, BuildContext context) {
     return SizedBox(
-      width: 40,
+      width: EcliniqTextStyles.getResponsiveWidth(context, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -161,10 +179,12 @@ class PrescriptionCardList extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 8),
+          ),
           border: Border.all(color: Color(0xffD6D6D6), width: 0.5),
         ),
         child: Row(
@@ -174,11 +194,13 @@ class PrescriptionCardList extends StatelessWidget {
               GestureDetector(
                 onTap: onSelectionToggle,
                 child: Container(
-                  width: 24,
-                  height: 24,
+                  width: EcliniqTextStyles.getResponsiveSize(context, 24),
+                  height: EcliniqTextStyles.getResponsiveSize(context, 24),
                   decoration: BoxDecoration(
                     color: isSelected ? const Color(0xFF2372EC) : Colors.white,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 6),
+                    ),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF2372EC)
@@ -190,8 +212,8 @@ class PrescriptionCardList extends StatelessWidget {
                     child: isSelected
                         ? SvgPicture.asset(
                             EcliniqIcons.vectorTicked.assetPath,
-                            width: 10,
-                            height: 10,
+                            width: EcliniqTextStyles.getResponsiveIconSize(context, 10),
+                            height: EcliniqTextStyles.getResponsiveIconSize(context, 10),
                           )
                         : null,
                   ),
@@ -200,9 +222,9 @@ class PrescriptionCardList extends StatelessWidget {
             else
               _buildDateColumn(day, month, context),
 
-            const SizedBox(width: 12),
+            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12)),
             _buildThumbnail(context),
-            const SizedBox(width: 12),
+            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12)),
 
             Expanded(
               child: Column(
@@ -237,8 +259,8 @@ class PrescriptionCardList extends StatelessWidget {
                   quarterTurns: 1,
                   child: SvgPicture.asset(
                     EcliniqIcons.threeDots.assetPath,
-                    width: 32,
-                    height: 32,
+                    width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                    height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
                   ),
                 ),
               ),

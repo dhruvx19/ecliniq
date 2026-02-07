@@ -1,5 +1,3 @@
-
-
 import 'dart:io';
 
 import 'package:ecliniq/ecliniq_api/health_file_model.dart';
@@ -57,9 +55,7 @@ class _HealthFilesState extends State<HealthFiles> {
   @override
   void initState() {
     super.initState();
-    
-    
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthFilesProvider>().loadFiles();
       Provider.of<NotificationProvider>(
@@ -77,15 +73,12 @@ class _HealthFilesState extends State<HealthFiles> {
           if (mounted) {
             setState(() => _isListening = false);
           }
-          
+
           final errorMsg = error.errorMsg.toLowerCase();
           if (!errorMsg.contains('no_match') &&
-              !errorMsg.contains('listen_failed')) {
-            
-          }
+              !errorMsg.contains('listen_failed')) {}
         },
         onStatus: (status) {
-          
           if (mounted) {
             if (status == 'notListening' ||
                 status == 'done' ||
@@ -100,9 +93,7 @@ class _HealthFilesState extends State<HealthFiles> {
       if (mounted) {
         setState(() {});
       }
-      
     } catch (e) {
-      
       _speechEnabled = false;
       if (mounted) {
         setState(() {});
@@ -111,12 +102,10 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   void _startListening() async {
-    
     if (_isListening) {
       return;
     }
 
-    
     if (!_speechEnabled) {
       await _initSpeech();
       if (!_speechEnabled) {
@@ -134,25 +123,18 @@ class _HealthFilesState extends State<HealthFiles> {
       }
     }
 
-    
     final isAvailable = await _speechToText.initialize(
       onError: (error) {
-        
-
-        
         final errorMsg = error.errorMsg.toLowerCase();
         if (errorMsg.contains('no_match') ||
             errorMsg.contains('listen_failed') ||
             errorMsg.contains('error_network_error')) {
-          
-          
           if (mounted) {
             setState(() => _isListening = false);
           }
           return;
         }
 
-        
         if (mounted) {
           setState(() => _isListening = false);
           if (errorMsg.contains('error_permission') ||
@@ -176,7 +158,6 @@ class _HealthFilesState extends State<HealthFiles> {
         }
       },
       onStatus: (status) {
-        
         if (mounted) {
           if (status == 'notListening' ||
               status == 'done' ||
@@ -203,26 +184,23 @@ class _HealthFilesState extends State<HealthFiles> {
       return;
     }
 
-    
     try {
       await _speechToText.listen(
         onResult: _onSpeechResult,
         listenFor: const Duration(seconds: 30),
         pauseFor: const Duration(seconds: 3),
-        partialResults: true, 
-        localeId: 'en_US', 
+        partialResults: true,
+        localeId: 'en_US',
         cancelOnError: false,
-        listenMode: ListenMode.confirmation, 
+        listenMode: ListenMode.confirmation,
       );
 
-      
       if (mounted) {
         setState(() {
           _isListening = true;
         });
       }
     } catch (e) {
-      
       if (mounted) {
         setState(() => _isListening = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -243,9 +221,7 @@ class _HealthFilesState extends State<HealthFiles> {
           _isListening = false;
         });
       }
-      
     } catch (e) {
-      
       if (mounted) {
         setState(() {
           _isListening = false;
@@ -255,9 +231,6 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
-    
-
-    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -267,10 +240,8 @@ class _HealthFilesState extends State<HealthFiles> {
       _searchQuery = result.recognizedWords;
     });
 
-    
     _onSearch(result.recognizedWords);
 
-    
     if (result.finalResult) {
       _stopListening();
     }
@@ -290,7 +261,7 @@ class _HealthFilesState extends State<HealthFiles> {
       _searchController.clear();
     });
     context.read<HealthFilesProvider>().searchFiles('');
-    
+
     if (_isListening) {
       _stopListening();
     }
@@ -310,7 +281,7 @@ class _HealthFilesState extends State<HealthFiles> {
       child: ActionBottomSheet(
         healthFile: file,
         onEditDocument: () {
-          Navigator.pop(context); 
+          Navigator.pop(context);
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
               EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
@@ -318,22 +289,19 @@ class _HealthFilesState extends State<HealthFiles> {
           });
         },
         onDownloadDocument: () async {
-          Navigator.pop(context); 
+          Navigator.pop(context);
           await Future.delayed(const Duration(milliseconds: 200));
           if (mounted) {
             await _handleFileDownload(file);
           }
         },
         onDeleteDocument: () async {
-          
           Navigator.of(context, rootNavigator: false).pop();
 
-          
           await Future.delayed(const Duration(milliseconds: 300));
 
           if (!mounted) return;
 
-          
           await _proceedWithDelete(file);
         },
       ),
@@ -341,7 +309,6 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   Future<void> _proceedWithDelete(HealthFile file) async {
-    
     final confirmed = await EcliniqBottomSheet.show<bool>(
       context: context,
       child: const DeleteFileBottomSheet(),
@@ -352,7 +319,6 @@ class _HealthFilesState extends State<HealthFiles> {
     BuildContext? dialogContext;
 
     try {
-      
       if (mounted) {
         showDialog(
           context: context,
@@ -366,21 +332,16 @@ class _HealthFilesState extends State<HealthFiles> {
 
       final provider = context.read<HealthFilesProvider>();
 
-      
       final success = await provider.deleteFile(file);
 
-      
       if (success && mounted) {
         await provider.refresh();
       }
 
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (e) {
-          
-        }
+        } catch (e) {}
         dialogContext = null;
       }
 
@@ -401,13 +362,10 @@ class _HealthFilesState extends State<HealthFiles> {
         );
       }
     } catch (e) {
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (_) {
-          
-        }
+        } catch (_) {}
         dialogContext = null;
       }
 
@@ -419,13 +377,10 @@ class _HealthFilesState extends State<HealthFiles> {
         duration: const Duration(seconds: 3),
       );
     } finally {
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (_) {
-          
-        }
+        } catch (_) {}
       }
     }
   }
@@ -436,29 +391,22 @@ class _HealthFilesState extends State<HealthFiles> {
   }) async {
     if (!mounted) return;
 
-    
     if (Platform.isAndroid) {
-      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        
         Permission storagePermission = Permission.storage;
 
-        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (mounted) {
             if (result.isPermanentlyDenied) {
-              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -498,7 +446,6 @@ class _HealthFilesState extends State<HealthFiles> {
       }
     }
 
-    
     await _proceedWithDownload(file, showSnackbar: showSnackbar);
   }
 
@@ -508,7 +455,6 @@ class _HealthFilesState extends State<HealthFiles> {
   }) async {
     if (!mounted) return;
 
-    
     if (showSnackbar) {
       SnackBarHelper.showSnackBar(
         context,
@@ -539,12 +485,10 @@ class _HealthFilesState extends State<HealthFiles> {
         try {
           Directory targetDir;
 
-          
           final primaryDir = Directory('/storage/emulated/0/Download');
           if (await primaryDir.exists()) {
             targetDir = primaryDir;
           } else {
-            
             final externalDir = await getExternalStorageDirectory();
             if (externalDir == null) {
               throw Exception(
@@ -570,10 +514,8 @@ class _HealthFilesState extends State<HealthFiles> {
             counter++;
           }
 
-          
           await sourceFile.copy(destFile.path);
 
-          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -582,7 +524,6 @@ class _HealthFilesState extends State<HealthFiles> {
 
           if (!mounted) return;
 
-          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -592,7 +533,6 @@ class _HealthFilesState extends State<HealthFiles> {
             );
           }
 
-          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
           return;
         } catch (e) {
@@ -609,7 +549,6 @@ class _HealthFilesState extends State<HealthFiles> {
         }
       }
 
-      
       if (Platform.isIOS) {
         try {
           final documentsDir = await getApplicationDocumentsDirectory();
@@ -617,16 +556,13 @@ class _HealthFilesState extends State<HealthFiles> {
             path.join(documentsDir.path, 'Downloads'),
           );
 
-          
           if (!await downloadsDir.exists()) {
             await downloadsDir.create(recursive: true);
-            
           }
 
           String fileName = file.fileName;
           File destFile = File(path.join(downloadsDir.path, fileName));
 
-          
           int counter = 1;
           while (await destFile.exists()) {
             final nameWithoutExt = path.basenameWithoutExtension(fileName);
@@ -636,11 +572,8 @@ class _HealthFilesState extends State<HealthFiles> {
             counter++;
           }
 
-          
           await sourceFile.copy(destFile.path);
-          
 
-          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -649,7 +582,6 @@ class _HealthFilesState extends State<HealthFiles> {
 
           if (!mounted) return;
 
-          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -659,14 +591,10 @@ class _HealthFilesState extends State<HealthFiles> {
             );
           }
 
-          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
 
-          
           return;
         } catch (e) {
-          
-
           if (!mounted) return;
 
           if (showSnackbar) {
@@ -680,8 +608,6 @@ class _HealthFilesState extends State<HealthFiles> {
         }
       }
     } catch (e) {
-      
-
       if (!mounted) return;
 
       if (showSnackbar) {
@@ -703,12 +629,10 @@ class _HealthFilesState extends State<HealthFiles> {
   }
 
   void _onTabTapped(int index) {
-    
     if (index == _currentIndex) {
       return;
     }
 
-    
     NavigationHelper.navigateToTab(context, index, _currentIndex);
   }
 
@@ -717,12 +641,11 @@ class _HealthFilesState extends State<HealthFiles> {
       context: context,
       child: UploadBottomSheet(
         onFileUploaded: () async {
-          
           if (mounted) {
             final provider = context.read<HealthFilesProvider>();
-            
+
             await provider.refresh();
-            
+
             if (mounted) {
               provider.notifyListeners();
             }
@@ -737,8 +660,12 @@ class _HealthFilesState extends State<HealthFiles> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SvgPicture.asset(EcliniqIcons.nofiles.assetPath),
-          const SizedBox(height: 12),
+          SvgPicture.asset(
+            EcliniqIcons.nofiles.assetPath,
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 100),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 100),
+          ),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 12)),
           Text(
             'No Documents Uploaded Yet',
             style: EcliniqTextStyles.responsiveButtonXLargeProminent(
@@ -795,6 +722,31 @@ class _HealthFilesState extends State<HealthFiles> {
   Widget _buildMainContent() {
     return Consumer<HealthFilesProvider>(
       builder: (context, provider, child) {
+        if (provider.allFiles.isEmpty) {
+          return CustomRefreshIndicator(
+            onRefresh: () async {
+              await context.read<HealthFilesProvider>().refresh();
+            },
+            color: const Color(0xFF2372EC),
+            backgroundColor: Colors.white,
+            displacement: 40,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height - 200,
+                child: Column(
+                  children: [
+                    const MyFilesWidget(),
+                    Expanded(
+                      child: _buildEmptyState(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
         
         return CustomRefreshIndicator(
           onRefresh: () async {
@@ -809,12 +761,6 @@ class _HealthFilesState extends State<HealthFiles> {
             child: Column(
               children: [
                 const MyFilesWidget(),
-                if (provider.allFiles.isEmpty) ...[
-                  SizedBox(
-                    height: EcliniqTextStyles.getResponsiveSpacing(context, 40),
-                  ),
-                  _buildEmptyState(),
-                ],
                 const RecentlyUploadedWidget(),
                 const UploadTimeline(),
                 SizedBox(
@@ -838,21 +784,22 @@ class _HealthFilesState extends State<HealthFiles> {
             child: Column(
               children: [
                 SizedBox(
-                  height: EcliniqTextStyles.getResponsiveSpacing(context, 40),
+                  height: EcliniqTextStyles.getResponsiveSpacing(context, 44),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 20,
-                    bottom: 10,
-                  ),
+                 padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 14.0),
                   child: Row(
                     children: [
                       SvgPicture.asset(
                         EcliniqIcons.nameLogo.assetPath,
-                        height: 28,
-                        width: 140,
+                        height: EcliniqTextStyles.getResponsiveHeight(
+                          context,
+                          32,
+                        ),
+                        width: EcliniqTextStyles.getResponsiveWidth(
+                          context,
+                          138,
+                        ),
                       ),
                       const Spacer(),
                       GestureDetector(
@@ -872,18 +819,44 @@ class _HealthFilesState extends State<HealthFiles> {
                               children: [
                                 SvgPicture.asset(
                                   EcliniqIcons.notificationBell.assetPath,
-                                  height: 32,
-                                  width: 32,
+                                  height:
+                                      EcliniqTextStyles.getResponsiveIconSize(
+                                        context,
+                                        32,
+                                      ),
+                                  width:
+                                      EcliniqTextStyles.getResponsiveIconSize(
+                                        context,
+                                        32,
+                                      ),
                                 ),
                                 if (provider.unreadCount > 0)
                                   Positioned(
-                                    top: -12,
-                                    right: -8,
+                                    top: EcliniqTextStyles.getResponsiveSize(
+                                      context,
+                                      -12,
+                                    ),
+                                    right: EcliniqTextStyles.getResponsiveSize(
+                                      context,
+                                      -8,
+                                    ),
                                     child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 20,
-                                        minHeight: 20,
+                                      padding:
+                                          EcliniqTextStyles.getResponsiveEdgeInsetsAll(
+                                            context,
+                                            4,
+                                          ),
+                                      constraints: BoxConstraints(
+                                        minWidth:
+                                            EcliniqTextStyles.getResponsiveSize(
+                                              context,
+                                              20,
+                                            ),
+                                        minHeight:
+                                            EcliniqTextStyles.getResponsiveSize(
+                                              context,
+                                              20,
+                                            ),
                                       ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xffF04248),
@@ -920,7 +893,12 @@ class _HealthFilesState extends State<HealthFiles> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(height: 18),
+                              SizedBox(
+                                height: EcliniqTextStyles.getResponsiveSpacing(
+                                  context,
+                                  18,
+                                ),
+                              ),
                               SearchBarWidget(
                                 controller: _searchController,
                                 onSearch: _onSearch,
@@ -951,26 +929,17 @@ class _HealthFilesState extends State<HealthFiles> {
         ),
 
         Positioned(
-          right: EcliniqTextStyles.getResponsiveWidth(context, 20),
-          bottom: EcliniqTextStyles.getResponsiveHeight(context, 120),
+          right: 16,
+          bottom: 110,
           child: GestureDetector(
             onTap: () => _showUploadBottomSheet(context),
             behavior: HitTestBehavior.opaque,
             child: Container(
-              height: EcliniqTextStyles.getResponsiveButtonHeight(
-                context,
-                baseHeight: 52.0,
-              ),
-              padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
-                context,
-                horizontal: 12,
-                vertical: 12,
-              ),
+              height: 52,
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
                 color: EcliniqScaffold.darkBlue,
-                borderRadius: BorderRadius.circular(
-                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4),
-                ),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -978,22 +947,15 @@ class _HealthFilesState extends State<HealthFiles> {
                 children: [
                   SvgPicture.asset(
                     EcliniqIcons.upload.assetPath,
-                    width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
-                    height: EcliniqTextStyles.getResponsiveIconSize(
-                      context,
-                      24,
-                    ),
+                    width: 24,
+                    height: 24,
                   ),
-                  SizedBox(
-                    width: EcliniqTextStyles.getResponsiveSpacing(context, 4),
-                  ),
-
+                  SizedBox(width: 8),
                   Text(
                     'Upload',
                     style: EcliniqTextStyles.responsiveHeadlineBMedium(context)
                         .copyWith(
                           color: Colors.white,
-
                           fontWeight: FontWeight.w500,
                           decoration: TextDecoration.none,
                         ),
@@ -1018,7 +980,7 @@ class _FileViewerScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(file.fileName),
-        toolbarHeight: 38,
+        toolbarHeight: EcliniqTextStyles.getResponsiveSize(context, 38),
         backgroundColor: EcliniqScaffold.primaryBlue,
       ),
       body: file.isImage && File(file.filePath).existsSync()
@@ -1048,7 +1010,9 @@ class _FileViewerScreen extends StatelessWidget {
                   ),
                   Text(
                     'Size: ${_formatFileSize(file.fileSize)}',
-                    style: const TextStyle(color: Colors.grey),
+                    style: EcliniqTextStyles.responsiveBodySmall(
+                      context,
+                    ).copyWith(color: Colors.grey),
                   ),
                 ],
               ),

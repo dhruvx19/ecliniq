@@ -22,8 +22,13 @@ import 'package:shimmer/shimmer.dart';
 
 class HospitalDetailScreen extends StatefulWidget {
   final String hospitalId;
+  final int initialTabIndex;
 
-  const HospitalDetailScreen({super.key, required this.hospitalId});
+  const HospitalDetailScreen({
+    super.key,
+    required this.hospitalId,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<HospitalDetailScreen> createState() => _HospitalDetailScreenState();
@@ -40,7 +45,12 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   void initState() {
     super.initState();
     _provider = HospitalDetailProvider();
-    _tabController = TabController(length: 4, vsync: this);
+    _currentTabIndex = widget.initialTabIndex;
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
     _tabController.addListener(() {
       setState(() {
         _currentTabIndex = _tabController.index;
@@ -60,11 +70,18 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     super.dispose();
   }
 
-  
-  
-  
-  
-  
+  // Method to handle back navigation - switches to Details tab if not already there
+  void _handleBackNavigation() {
+    if (_currentTabIndex != 0) {
+      _tabController.index = 0;
+      setState(() {
+        _currentTabIndex = 0;
+      });
+    } else {
+      EcliniqRouter.pop();
+    }
+  }
+
   Future<String> _getImageUrl(String? imageKey) async {
     return await _storageService.getImageUrl(
       imageKey,
@@ -75,33 +92,47 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: ChangeNotifierProvider<HospitalDetailProvider>.value(
-        key: ValueKey('hospital_detail_provider_${widget.hospitalId}'),
-        value: _provider,
-        child: Consumer<HospitalDetailProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return _buildShimmerScreen();
-            }
+    return WillPopScope(
+      onWillPop: () async {
+        // If not on Details tab, switch to Details tab first
+        if (_currentTabIndex != 0) {
+          _tabController.index = 0;
+          setState(() {
+            _currentTabIndex = 0;
+          });
+          return false; // Prevent navigation - stay on page
+        }
+        // If already on Details tab, allow normal back navigation
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: ChangeNotifierProvider<HospitalDetailProvider>.value(
+          key: ValueKey('hospital_detail_provider_${widget.hospitalId}'),
+          value: _provider,
+          child: Consumer<HospitalDetailProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading) {
+                return _buildShimmerScreen();
+              }
 
-            if (provider.errorMessage != null) {
-              return _buildErrorScreen(
-                errorMessage: provider.errorMessage!,
-                onRetry: () {
-                  provider.retry(hospitalId: widget.hospitalId);
-                },
-              );
-            }
+              if (provider.errorMessage != null) {
+                return _buildErrorScreen(
+                  errorMessage: provider.errorMessage!,
+                  onRetry: () {
+                    provider.retry(hospitalId: widget.hospitalId);
+                  },
+                );
+              }
 
-            if (!provider.hasHospitalDetail) {
-              return _buildEmptyScreen();
-            }
+              if (!provider.hasHospitalDetail) {
+                return _buildEmptyScreen();
+              }
 
-            final hospital = provider.hospitalDetail!;
-            return _buildContent(hospital);
-          },
+              final hospital = provider.hospitalDetail!;
+              return _buildContent(hospital);
+            },
+          ),
         ),
       ),
     );
@@ -110,28 +141,29 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildContent(hospital) {
     return Stack(
       children: [
-        
+        // Main content area with tabs
         IndexedStack(
           index: _currentTabIndex,
           children: [
-            
+            // Details tab
             _buildDetailsContent(hospital),
-            
+            // Doctors tab - pass callback to handle back navigation
             _buildDoctorsContent(hospital),
-
+            // Surgeries tab - pass callback to handle back navigation
             _buildSurgeriesContent(),
-            _buildBranchesContent(),
+            // Branches tab - pass callback to handle back navigation
+            _buildBranchesContent(hospital),
           ],
         ),
-        
+        // Floating tab section - only show on Details tab
         if (_currentTabIndex == 0)
           Positioned(
             left: 0,
             right: 0,
-            bottom: 80,
+            bottom: EcliniqTextStyles.getResponsiveSize(context, 80.0),
             child: _buildFloatingTabSection(),
           ),
-        
+        // Bottom section - only show on Details tab
         if (_currentTabIndex == 0)
           Positioned(
             left: 0,
@@ -354,7 +386,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   size: EcliniqTextStyles.getResponsiveIconSize(context, 64),
                   color: Colors.red[300],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(
+                  height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
+                ),
                 Text(
                   'Authentication required',
                   style: EcliniqTextStyles.responsiveHeadlineBMedium(context)
@@ -382,6 +416,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           hospitalName: hospital.name,
           authToken: authToken,
           hideAppBar: true,
+          onBackPressed: _handleBackNavigation, // Pass callback
         );
       },
     );
@@ -419,7 +454,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   children: [
                     _buildCircleButton(
                       EcliniqIcons.arrowLeft,
-                      () => EcliniqRouter.pop(),
+                      _handleBackNavigation, // Use the handler
                     ),
                     Row(
                       children: [
@@ -493,9 +528,13 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                       fontWeight: FontWeight.w400,
                     ),
               ),
-              const SizedBox(width: 6),
-              Container(width: 0.5, height: 20, color: Color(0xffD6D6D6)),
-              const SizedBox(width: 6),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 6.0)),
+              Container(
+                width: EcliniqTextStyles.getResponsiveSize(context, 0.5),
+                height: EcliniqTextStyles.getResponsiveHeight(context, 20.0),
+                color: Color(0xffD6D6D6),
+              ),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 6.0)),
               Text(
                 '${hospital.numberOfDoctors}+ Doctors',
                 style: EcliniqTextStyles.responsiveTitleXLarge(context)
@@ -506,7 +545,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 6.0)),
           Text(
             'Established in ${hospital.establishmentYear} (${DateTime.now().year - (int.tryParse(hospital.establishmentYear) ?? 0)} Years of Experience)',
             style: EcliniqTextStyles.responsiveTitleXLarge(
@@ -514,16 +553,16 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             ).copyWith(color: Color(0xff424242), fontWeight: FontWeight.w400),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 6.0)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset(
                 EcliniqIcons.mapPointBlue.assetPath,
-                width: 24,
-                height: 24,
+                width: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
+                height: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 6.0)),
               Flexible(
                 child: Text(
                   '${hospital.city}, ${hospital.state}',
@@ -536,18 +575,27 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   maxLines: 1,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 6.0)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                  context,
+                  horizontal: 4.0,
+                  vertical: 2.0,
+                ),
                 decoration: BoxDecoration(
                   color: Color(0xffF9F9F9),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Color(0xffB8B8B8), width: 0.5),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveBorderRadius(context, 6.0),
+                  ),
+                  border: Border.all(
+                    color: Color(0xffB8B8B8),
+                    width: EcliniqTextStyles.getResponsiveSize(context, 0.5),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(width: 4),
+                    SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
                     Center(
                       child: Text(
                         '4KM ',
@@ -558,11 +606,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                             ),
                       ),
                     ),
-                    SizedBox(width: 2),
+                    SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
                     SvgPicture.asset(
                       EcliniqIcons.mapArrow.assetPath,
-                      width: 18,
-                      height: 18,
+                      width: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
+                      height: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
                     ),
                   ],
                 ),
@@ -577,10 +625,18 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildStatsCards(hospital) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+        context,
+        vertical: 8.0,
+        horizontal: 0,
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+          context,
+          horizontal: 12.0,
+          vertical: 0,
+        ),
         child: Row(
           children: [
             _buildStatCard(
@@ -590,13 +646,17 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   ? '${hospital.numberOfDoctors * 1000}'
                   : 'N/A',
             ),
-            DashedVerticalDivider(height: 110),
+            DashedVerticalDivider(
+              height: EcliniqTextStyles.getResponsiveHeight(context, 110.0),
+            ),
             _buildStatCard(
               EcliniqIcons.stethoscopeBlue,
               'Doctors',
               '${hospital.numberOfDoctors}',
             ),
-            DashedVerticalDivider(height: 110),
+            DashedVerticalDivider(
+              height: EcliniqTextStyles.getResponsiveHeight(context, 110.0),
+            ),
             _buildStatCard(
               EcliniqIcons.bed,
               'Total Beds',
@@ -610,7 +670,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
 
   Widget _buildStatCard(final EcliniqIcons icon, String label, String value) {
     return SizedBox(
-      width: 140,
+      width: EcliniqTextStyles.getResponsiveWidth(context, 140.0),
       child: Column(
         children: [
           SvgPicture.asset(
@@ -618,7 +678,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
             height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
           Text(
             label,
             style: EcliniqTextStyles.responsiveTitleXLarge(
@@ -626,7 +686,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             ).copyWith(fontWeight: FontWeight.w400, color: Color(0xff626060)),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+        
           Text(
             value,
             style: EcliniqTextStyles.responsiveHeadlineXLarge(
@@ -718,9 +778,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             color: isActive ? Color(0xff2372EC) : Colors.white,
             fontWeight: FontWeight.w400,
           ),
-          
           maxLines: 1,
-          
         ),
       ),
     );
@@ -729,7 +787,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildBottomSection() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(16),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -738,8 +796,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               boxShadow: [
                 BoxShadow(
                   color: Color(0x332372EC),
-                  offset: Offset(7, 4),
-                  blurRadius: 5.3,
+                  offset: Offset(
+                    EcliniqTextStyles.getResponsiveSize(context, 7.0),
+                    EcliniqTextStyles.getResponsiveSize(context, 4.0),
+                  ),
+                  blurRadius: EcliniqTextStyles.getResponsiveSize(context, 5.3),
                   spreadRadius: 0,
                 ),
               ],
@@ -748,14 +809,12 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               context,
               baseHeight: 52.0,
             ),
-
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xff2372EC),
                 foregroundColor: Colors.white,
-
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     EcliniqTextStyles.getResponsiveBorderRadius(context, 4),
@@ -770,7 +829,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
         ],
       ),
     );
@@ -783,15 +842,15 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
         child: Column(
           children: [
             _buildShimmerHeaderImage(),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
             _buildShimmerHospitalInfo(),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
             _buildShimmerStatsCards(),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
             _buildShimmerSection(),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
             _buildShimmerSection(),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
             _buildShimmerSection(),
           ],
         ),
@@ -803,38 +862,45 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     return Shimmer.fromColors(
       baseColor: Colors.grey.shade300,
       highlightColor: Colors.grey.shade100,
-      child: Container(height: 280, color: Colors.white),
+      child: Container(
+        height: EcliniqTextStyles.getResponsiveHeight(context, 280.0),
+        color: Colors.white,
+      ),
     );
   }
 
   Widget _buildShimmerHospitalInfo() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(16),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16.0),
       child: Column(
         children: [
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              height: 32,
-              width: 200,
+              height: EcliniqTextStyles.getResponsiveHeight(context, 32.0),
+              width: EcliniqTextStyles.getResponsiveWidth(context, 200.0),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              height: 20,
-              width: 150,
+              height: EcliniqTextStyles.getResponsiveHeight(context, 20.0),
+              width: EcliniqTextStyles.getResponsiveWidth(context, 150.0),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                ),
               ),
             ),
           ),
@@ -846,24 +912,38 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildShimmerStatsCards() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+        context,
+        vertical: 24.0,
+        horizontal: 0,
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+          context,
+          horizontal: 16.0,
+          vertical: 0,
+        ),
         child: Row(
           children: List.generate(
             3,
             (index) => Padding(
-              padding: EdgeInsets.only(right: index < 2 ? 40 : 0),
+              padding: EdgeInsets.only(
+                right: index < 2
+                    ? EcliniqTextStyles.getResponsiveSpacing(context, 40.0)
+                    : 0,
+              ),
               child: Shimmer.fromColors(
                 baseColor: Colors.grey.shade300,
                 highlightColor: Colors.grey.shade100,
                 child: Container(
-                  width: 120,
-                  height: 100,
+                  width: EcliniqTextStyles.getResponsiveWidth(context, 120.0),
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 100.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+                    ),
                   ),
                 ),
               ),
@@ -877,7 +957,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildShimmerSection() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(16),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -885,24 +965,28 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              height: 24,
-              width: 150,
+              height: EcliniqTextStyles.getResponsiveHeight(context, 24.0),
+              width: EcliniqTextStyles.getResponsiveWidth(context, 150.0),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              height: 100,
+              height: EcliniqTextStyles.getResponsiveHeight(context, 100.0),
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+                ),
               ),
             ),
           ),
@@ -918,7 +1002,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -927,7 +1011,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 size: EcliniqTextStyles.getResponsiveIconSize(context, 64),
                 color: Colors.red[300],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
               Text(
                 'Error Loading Hospital Details',
                 style: EcliniqTextStyles.responsiveHeadlineLarge(context)
@@ -936,7 +1020,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                       color: Colors.grey[800],
                     ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
               Text(
                 errorMessage,
                 textAlign: TextAlign.center,
@@ -944,15 +1028,16 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   context,
                 ).copyWith(color: Colors.grey[600]),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24.0)),
               ElevatedButton(
                 onPressed: onRetry,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff2372EC),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 12,
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                    context,
+                    horizontal: 32.0,
+                    vertical: 12.0,
                   ),
                 ),
                 child: const Text('Retry'),
@@ -969,12 +1054,19 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
       body: Center(child: Text('No hospital details available')),
     );
   }
-}
 
-Widget _buildSurgeriesContent() {
-  return SurgeryList();
-}
+  Widget _buildSurgeriesContent() {
+    return SurgeryList(
+      onBackPressed: _handleBackNavigation, // Pass callback
+    );
+  }
 
-Widget _buildBranchesContent() {
-  return BranchesPage(hospitalId: '', hospitalName: ' ');
+  Widget _buildBranchesContent(hospital) {
+    return BranchesPage(
+      hospitalId: widget.hospitalId,
+      hospitalName: hospital.name,
+      hideAppBar: true,
+      onBackPressed: _handleBackNavigation, // Pass callback
+    );
+  }
 }

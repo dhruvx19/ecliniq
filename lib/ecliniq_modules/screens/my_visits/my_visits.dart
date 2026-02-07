@@ -5,6 +5,7 @@ import 'package:ecliniq/ecliniq_core/router/navigation_helper.dart';
 import 'package:ecliniq/ecliniq_core/router/route.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/cancelled.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/completed.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/confirmed.dart';
@@ -39,6 +40,9 @@ class AppointmentData {
   final AppointmentStatus status;
   final String? tokenNumber;
   final int? rating;
+  final String? doctorId;
+  final String? hospitalId;
+  final String? clinicId;
 
   AppointmentData({
     required this.id,
@@ -52,6 +56,9 @@ class AppointmentData {
     required this.status,
     this.tokenNumber,
     this.rating,
+    this.doctorId,
+    this.hospitalId,
+    this.clinicId,
   });
 }
 
@@ -178,6 +185,7 @@ class _MyVisitsState extends State<MyVisits>
         status = AppointmentStatus.confirmed;
         break;
       case 'PENDING':
+      case 'ENGAGED':
         status = AppointmentStatus.requested;
         break;
       case 'CANCELLED':
@@ -222,6 +230,9 @@ class _MyVisitsState extends State<MyVisits>
       status: status,
       tokenNumber: item.tokenNo?.toString(),
       rating: item.rating,
+      doctorId: item.doctorId,
+      hospitalId: item.hospitalId,
+      clinicId: item.clinicId,
     );
   }
 
@@ -840,7 +851,33 @@ class _MyVisitsState extends State<MyVisits>
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  if (appointment.doctorId != null &&
+                      (appointment.hospitalId != null ||
+                          appointment.clinicId != null)) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ClinicVisitSlotScreen(
+                          doctorId: appointment.doctorId!,
+                          hospitalId: appointment.hospitalId,
+                          clinicId: appointment.clinicId,
+                          doctorName: appointment.doctorName,
+                          doctorSpecialization: appointment.specialization,
+                        ),
+                      ),
+                    );
+                  } else {
+                    // Show error if IDs are missing
+                    CustomErrorSnackBar.show(
+                      context: context,
+                      title: 'Unable to Book',
+                      subtitle:
+                          'Appointment details are incomplete. Please search for the doctor.',
+                      duration: const Duration(seconds: 3),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF2372EC),
                   shape: RoundedRectangleBorder(
@@ -938,15 +975,26 @@ class _MyVisitsState extends State<MyVisits>
               body: SizedBox.expand(
                 child: Column(
                   children: [
-                    const SizedBox(height: 40),
+                    SizedBox(
+                      height: EcliniqTextStyles.getResponsiveSpacing(
+                        context,
+                        44,
+                      ),
+                    ),
                     Padding(
-                      padding: const EdgeInsets.all(14.0),
+                     padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 14.0),
                       child: Row(
                         children: [
                           SvgPicture.asset(
                             EcliniqIcons.nameLogo.assetPath,
-                            height: 28,
-                            width: 140,
+                            height: EcliniqTextStyles.getResponsiveHeight(
+                              context,
+                              32,
+                            ),
+                            width: EcliniqTextStyles.getResponsiveWidth(
+                              context,
+                              138,
+                            ),
                           ),
                           const Spacer(),
                           GestureDetector(
@@ -966,8 +1014,16 @@ class _MyVisitsState extends State<MyVisits>
                                   children: [
                                     SvgPicture.asset(
                                       EcliniqIcons.notificationBell.assetPath,
-                                      height: 32,
-                                      width: 32,
+                                      height:
+                                          EcliniqTextStyles.getResponsiveIconSize(
+                                            context,
+                                            32.0,
+                                          ),
+                                      width:
+                                          EcliniqTextStyles.getResponsiveIconSize(
+                                            context,
+                                            32.0,
+                                          ),
                                     ),
                                     if (provider.unreadCount > 0)
                                       Positioned(

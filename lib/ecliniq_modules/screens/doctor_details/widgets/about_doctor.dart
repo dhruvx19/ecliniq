@@ -46,7 +46,10 @@ class AboutHospital extends StatelessWidget {
           ),
 
           Padding(
-            padding: const EdgeInsets.all(16),
+         padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+             top: 8,left: 16,right: 16,bottom: 16
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

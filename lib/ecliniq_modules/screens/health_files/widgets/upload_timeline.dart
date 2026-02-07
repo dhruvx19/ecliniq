@@ -51,11 +51,12 @@ class _UploadTimelineState extends State<UploadTimeline> {
         final showExpandButton = recentFiles.length >= 3;
 
         return Container(
-          padding: const EdgeInsets.only(
-            left: 16.0,
-            right: 16.0,
-            top: 24.0,
-            bottom: 16.0,
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+            context,
+            left: 16,
+            right: 16,
+            top: 24,
+            bottom: 16,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,19 +85,38 @@ class _UploadTimelineState extends State<UploadTimeline> {
                             'Collapse',
                             style: EcliniqTextStyles.responsiveHeadlineXMedium(
                               context,
-                            ).copyWith(color: Color(0xff2372EC)),
+                            ).copyWith(color: Color(0xff2372EC),fontWeight: FontWeight.w400),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: EcliniqTextStyles.getResponsiveSpacing(
+                              context,
+                              8,
+                            ),
+                          ),
                           Container(
                             width: 0.5,
-                            height: 20,
+                            height: EcliniqTextStyles.getResponsiveSize(
+                              context,
+                              20,
+                            ),
                             color: Color(0xff96BFFF),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: EcliniqTextStyles.getResponsiveSpacing(
+                              context,
+                              8,
+                            ),
+                          ),
                           SvgPicture.asset(
                             EcliniqIcons.arrowUp.assetPath,
-                            width: 20,
-                            height: 20,
+                            width: EcliniqTextStyles.getResponsiveIconSize(
+                              context,
+                              20,
+                            ),
+                            height: EcliniqTextStyles.getResponsiveIconSize(
+                              context,
+                              20,
+                            ),
                             color: Color(0xff2372EC),
                           ),
                         ],
@@ -104,7 +124,9 @@ class _UploadTimelineState extends State<UploadTimeline> {
                     ),
                 ],
               ),
-              const SizedBox(height: 18),
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 16),
+              ),
 
               // Show stacked cards or timeline list based on expansion state
               if (!_isExpanded)
@@ -176,7 +198,10 @@ class _UploadTimelineState extends State<UploadTimeline> {
 
               if (!_isExpanded && showExpandButton) ...[
                 SizedBox(
-                  height: _getExpandTimelineTopPadding(displayFiles.length),
+                  height: EcliniqTextStyles.getResponsiveSpacing(
+                    context,
+                    _getExpandTimelineTopPadding(displayFiles.length),
+                  ),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -193,17 +218,36 @@ class _UploadTimelineState extends State<UploadTimeline> {
                           context,
                         ).copyWith(color: EcliniqScaffold.darkBlue),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: EcliniqTextStyles.getResponsiveSpacing(
+                          context,
+                          8,
+                        ),
+                      ),
                       Container(
                         width: 1,
-                        height: 20,
+                        height: EcliniqTextStyles.getResponsiveSize(
+                          context,
+                          20,
+                        ),
                         color: EcliniqScaffold.darkBlue,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: EcliniqTextStyles.getResponsiveSpacing(
+                          context,
+                          8,
+                        ),
+                      ),
                       SvgPicture.asset(
                         EcliniqIcons.arrowDown.assetPath,
-                        width: 20,
-                        height: 20,
+                        width: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          20,
+                        ),
+                        height: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          20,
+                        ),
                         color: EcliniqScaffold.darkBlue,
                       ),
                     ],
@@ -212,7 +256,9 @@ class _UploadTimelineState extends State<UploadTimeline> {
               ],
 
               if (_isExpanded && recentFiles.length > 10) ...[
-                const SizedBox(height: 16),
+                SizedBox(
+                  height: EcliniqTextStyles.getResponsiveSpacing(context, 16),
+                ),
                 GestureDetector(
                   onTap: () {
                     // Load more functionality
@@ -226,11 +272,22 @@ class _UploadTimelineState extends State<UploadTimeline> {
                           context,
                         ).copyWith(color: EcliniqScaffold.darkBlue),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: EcliniqTextStyles.getResponsiveSpacing(
+                          context,
+                          8,
+                        ),
+                      ),
                       SvgPicture.asset(
                         EcliniqIcons.arrowDown.assetPath,
-                        width: 20,
-                        height: 20,
+                        width: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          20,
+                        ),
+                        height: EcliniqTextStyles.getResponsiveIconSize(
+                          context,
+                          20,
+                        ),
                         color: EcliniqScaffold.darkBlue,
                       ),
                     ],
@@ -292,9 +349,15 @@ class TimelineItemWithLine extends StatelessWidget {
         children: [
           // Date column (left side)
           SizedBox(
-            width: 40,
+            width: EcliniqTextStyles.getResponsiveWidth(context, 40),
             child: Padding(
-              padding: const EdgeInsets.only(top: 20.0),
+              padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                context,
+                top: 20,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -320,30 +383,44 @@ class TimelineItemWithLine extends StatelessWidget {
           Column(
             children: [
               // Top line (always show, including for first item)
-              Container(width: 1, height: 32, color: Color(0xffD6D6D6)),
-              
+              Container(
+                width: 1,
+                height: EcliniqTextStyles.getResponsiveSize(context, 32),
+                color: Color(0xffD6D6D6),
+              ),
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 5),
+              ),
               // Dot
               Container(
-                width: 12,
-                height: 12,
+                width: EcliniqTextStyles.getResponsiveSize(context, 12),
+                height: EcliniqTextStyles.getResponsiveSize(context, 12),
                 decoration: BoxDecoration(
                   color: Color(0xffD6D6D6),
                   shape: BoxShape.circle,
                 ),
               ),
-              SizedBox(height: 4),
-              
+              SizedBox(
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 5),
+              ),
+
               // Bottom line (always show, including for last item)
               Expanded(child: Container(width: 1, color: Color(0xffD6D6D6))),
             ],
           ),
 
-          const SizedBox(width: 8),
+          SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
 
           // Card (right side)
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
+              padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+                context,
+                bottom: 12,
+                left: 0,
+                right: 0,
+                top: 0,
+              ),
               child: PrescriptionCardTimeline(
                 file: file,
                 headingFontSize: 18,

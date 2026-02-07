@@ -1,6 +1,7 @@
 import 'package:ecliniq/ecliniq_api/appointment_service.dart';
 import 'package:ecliniq/ecliniq_icons/icons.dart';
 import 'package:ecliniq/ecliniq_modules/screens/auth/provider/auth_provider.dart';
+import 'package:ecliniq/ecliniq_modules/screens/booking/clinic_visit_slot_screen.dart';
 import 'package:ecliniq/ecliniq_modules/screens/my_visits/booking_details/widgets/common.dart';
 import 'package:ecliniq/ecliniq_ui/lib/tokens/styles.dart';
 import 'package:ecliniq/ecliniq_ui/lib/widgets/shimmer/shimmer_loading.dart';
@@ -97,14 +98,16 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leadingWidth: 58,
-        titleSpacing: 0,
+        surfaceTintColor: Colors.transparent,
+          leadingWidth: EcliniqTextStyles.getResponsiveWidth(context, 54.0),
+          titleSpacing: 0,
+          toolbarHeight: EcliniqTextStyles.getResponsiveHeight(context, 46.0),
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.arrowLeft.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -126,8 +129,8 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
             children: [
               SvgPicture.asset(
                 EcliniqIcons.questionCircleFilled.assetPath,
-                width: 24,
-                height: 24,
+                width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
+                height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
               ),
               Text(
                 ' Help',
@@ -137,7 +140,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              SizedBox(width: 20),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 20)),
             ],
           ),
         ],
@@ -148,7 +151,17 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
           ? _buildErrorWidget()
           : _appointment == null
           ? _buildErrorWidget()
-          : _buildContent(),
+          : Stack(
+              children: [
+                _buildContent(),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildBottomButton(context),
+                ),
+              ],
+            ),
     );
   }
 
@@ -158,52 +171,66 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
         children: [
           
           Container(
-            height: 120,
-            margin: const EdgeInsets.all(16),
-            child: ShimmerLoading(borderRadius: BorderRadius.circular(12)),
+            height: EcliniqTextStyles.getResponsiveHeight(context, 120),
+            margin: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
+            child: ShimmerLoading(
+              borderRadius: BorderRadius.circular(
+                EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+              ),
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 
                 SizedBox(
-                  height: 150,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 150),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 200,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 200),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 120,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 120),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 100,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 100),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 120,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 120),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
               ],
@@ -217,7 +244,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
   Widget _buildErrorWidget() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -226,13 +253,13 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
               size: EcliniqTextStyles.getResponsiveIconSize(context, 64),
               color: Colors.red[300],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
             Text(
               _errorMessage ?? 'Failed to load appointment details',
               style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith( color: Colors.grey[700]),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
             ElevatedButton(
               onPressed: () {
                 setState(() {
@@ -253,9 +280,12 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
     return Column(
       children: [
         
-        StatusHeader(status: _appointment!.status),
+        StatusHeader(
+          status: _appointment!.status,
+          displayDate: _appointment!.timeInfo.displayDate,
+        ),
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
           child: DoctorInfoCard(
             doctor: _appointment!.doctor,
             clinic: _appointment!.clinic,
@@ -266,27 +296,28 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
         Expanded(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                context,
+                horizontal: 16,
+                vertical: 0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 10),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 10)),
                   AppointmentDetailsSection(
                     patient: _appointment!.patient,
                     timeInfo: _appointment!.timeInfo,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
                   ClinicLocationCard(clinic: _appointment!.clinic),
-                  const SizedBox(height: 16),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
                   Divider(color: Color(0xffB8B8B8), thickness: 0.5, height: 1),
-                  const SizedBox(height: 24),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                   PaymentDetailsCard(payment: _appointment!.payment),
-                  const SizedBox(height: 40),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 40)),
                   _buildCallbackSection(),
-                  const SizedBox(height: 24),
-                  const SizedBox(height: 80),
-
-                  _buildBottomButton(context),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 100)),
                 ],
               ),
             ),
@@ -313,17 +344,17 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
         Column(
           children: [
             Row(
               children: [
                 SvgPicture.asset(
                   EcliniqIcons.call.assetPath,
-                  width: 32,
-                  height: 32,
+                  width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                  height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12)),
 
                 Expanded(
                   child: Column(
@@ -337,7 +368,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                           color: Color(0xff424242),
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 2)),
                       Text(
                         'Assisted booking with expert',
                         style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
@@ -353,7 +384,8 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                 OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                      context,
                       horizontal: 14,
                       vertical: 7,
                     ),
@@ -362,7 +394,9 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                       width: 1.5,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(context, 8),
+                      ),
                     ),
                     backgroundColor: Color(0xFFF2F7FF),
                   ),
@@ -377,7 +411,7 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
 
             Divider(
               height: 1,
@@ -394,15 +428,46 @@ class _BookingCancelledDetailState extends State<BookingCancelledDetail> {
 
   Widget _buildBottomButton(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(color: Colors.white),
-      child: BookingActionButton(
-        label: 'Book Again',
-
-        type: BookingButtonType.primary,
-        onPressed: () {
-          
-        },
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+        context,
+        top: 16,
+        left: 16,
+        right: 16,
+        bottom: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: BookingActionButton(
+          label: 'Book Again',
+          type: BookingButtonType.primary,
+          onPressed: () {
+            if (_appointment?.doctorId != null && 
+                (_appointment?.hospitalId != null || _appointment?.clinicId != null)) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ClinicVisitSlotScreen(
+                    doctorId: _appointment!.doctorId!,
+                    hospitalId: _appointment!.hospitalId,
+                    clinicId: _appointment!.clinicId,
+                    doctorName: _appointment!.doctor.name,
+                    doctorSpecialization: _appointment!.doctor.specialization,
+                  ),
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }

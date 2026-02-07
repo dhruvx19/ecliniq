@@ -21,10 +21,10 @@ class AppointmentTimingWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
            Text(
-            'Appointment & OPD timing',
+            'Appointment & OPD Timing',
             style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith( fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

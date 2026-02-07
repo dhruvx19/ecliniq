@@ -9,9 +9,14 @@ import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 class DoctorFilterBottomSheet extends StatefulWidget {
-  const DoctorFilterBottomSheet({super.key, required this.onFilterChanged});
+  const DoctorFilterBottomSheet({
+    super.key,
+    required this.onFilterChanged,
+    this.initialFilters,
+  });
 
   final ValueChanged<Map<String, dynamic>> onFilterChanged;
+  final Map<String, dynamic>? initialFilters;
 
   @override
   State<DoctorFilterBottomSheet> createState() =>
@@ -26,6 +31,38 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
   String? selectedExperience;
   double distanceRange = 50;
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize with passed filters if available
+    if (widget.initialFilters != null) {
+      final filters = widget.initialFilters!;
+
+      if (filters['specialities'] != null) {
+        selectedSpecialities = Set<String>.from(
+          filters['specialities'] as List,
+        );
+      }
+
+      if (filters['availability'] != null) {
+        selectedAvailability = filters['availability'] as String;
+      }
+
+      if (filters['gender'] != null) {
+        selectedGender = filters['gender'] as String;
+      }
+
+      if (filters['experience'] != null) {
+        selectedExperience = filters['experience'] as String;
+      }
+
+      if (filters['distance'] != null) {
+        distanceRange = (filters['distance'] as num).toDouble();
+      }
+    }
+  }
 
   void _resetFilters() {
     setState(() {
@@ -526,6 +563,7 @@ class _DoctorFilterBottomSheetState extends State<DoctorFilterBottomSheet> {
             setState(() {
               selectedExperience = option;
             });
+            _emitFilterChange();
           },
           child: Padding(
             padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(

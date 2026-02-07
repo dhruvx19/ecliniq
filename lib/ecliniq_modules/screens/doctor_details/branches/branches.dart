@@ -5,20 +5,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Branches extends StatelessWidget {
-  const Branches({super.key});
+  final String? aboutDescription;
+
+  const Branches({super.key, this.aboutDescription});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leadingWidth: 58,
+        surfaceTintColor: Colors.transparent,
+        leadingWidth: EcliniqTextStyles.getResponsiveWidth(context, 54.0),
         titleSpacing: 0,
+        toolbarHeight: EcliniqTextStyles.getResponsiveHeight(context, 46.0),
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.arrowLeft.assetPath,
-            width: 32,
-            height: 32,
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -26,17 +31,22 @@ class Branches extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Text(
             'Branches',
-            style: EcliniqTextStyles.responsiveHeadlineMedium(context).copyWith(
-              color: Color(0xff424242),
-            ),
+            style: EcliniqTextStyles.responsiveHeadlineMedium(
+              context,
+            ).copyWith(color: Color(0xff424242)),
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.2),
-          child: Container(color: Color(0xFFB8B8B8), height: 1.0),
+          preferredSize: Size.fromHeight(
+            EcliniqTextStyles.getResponsiveHeight(context, 1.0),
+          ),
+          child: Container(
+            color: Color(0xFFB8B8B8),
+            height: EcliniqTextStyles.getResponsiveHeight(context, 1.0),
+          ),
         ),
       ),
-      body: HospitalBranchDetail(),
+      body: HospitalBranchDetail(aboutDescription: aboutDescription),
     );
   }
 }

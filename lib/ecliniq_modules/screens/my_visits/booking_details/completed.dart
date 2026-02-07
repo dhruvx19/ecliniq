@@ -140,60 +140,76 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
         children: [
           
           Container(
-            height: 120,
-            margin: const EdgeInsets.all(16),
-            child: ShimmerLoading(borderRadius: BorderRadius.circular(12)),
+            height: EcliniqTextStyles.getResponsiveHeight(context, 120),
+            margin: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
+            child: ShimmerLoading(
+              borderRadius: BorderRadius.circular(
+                EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+              ),
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 
                 SizedBox(
-                  height: 150,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 150),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 100,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 100),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 200,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 200),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 120,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 120),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 100,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 100),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                 
                 SizedBox(
-                  height: 100,
+                  height: EcliniqTextStyles.getResponsiveHeight(context, 100),
                   child: ShimmerLoading(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+                    ),
                   ),
                 ),
               ],
@@ -207,7 +223,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
   Widget _buildErrorWidget() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -216,13 +232,13 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
               size: EcliniqTextStyles.getResponsiveIconSize(context, 64),
               color: Colors.red[300],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
             Text(
               _errorMessage ?? 'Failed to load appointment details',
               style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(color: Colors.grey[700]),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
             ElevatedButton(
               onPressed: () {
                 setState(() {
@@ -245,14 +261,14 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
         
         StatusHeader(status: _appointment!.status),
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
           child: DoctorInfoCard(
             doctor: _appointment!.doctor,
             clinic: _appointment!.clinic,
             isSimplified: true,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 12)),
         Padding(
           padding: EdgeInsets.zero,
           child: RatingSection(
@@ -270,25 +286,25 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
             onRefetch: _loadAppointmentDetails,
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
         
         Expanded(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16),
               child: Column(
                 children: [
                   AppointmentDetailsSection(
                     patient: _appointment!.patient,
                     timeInfo: _appointment!.timeInfo,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                   ClinicLocationCard(clinic: _appointment!.clinic),
-                  const SizedBox(height: 24),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                   PaymentDetailsCard(payment: _appointment!.payment),
-                  const SizedBox(height: 40),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 40)),
                   _buildCallbackSection(),
-                  const SizedBox(height: 24),
+                  SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
                   _buildBottomButton(context),
                 ],
               ),
@@ -316,17 +332,17 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
         Column(
           children: [
             Row(
               children: [
                 SvgPicture.asset(
                   EcliniqIcons.call.assetPath,
-                  width: 32,
-                  height: 32,
+                  width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                  height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12)),
 
                 Expanded(
                   child: Column(
@@ -339,7 +355,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                           color: Color(0xff424242),
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 2)),
                       Text(
                         'Assisted booking with expert',
                         style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
@@ -355,7 +371,8 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                      context,
                       horizontal: 14,
                       vertical: 7,
                     ),
@@ -364,7 +381,9 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                       width: 1.5,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(context, 8),
+                      ),
                     ),
                     backgroundColor: Color(0xFFF2F7FF),
                   ),
@@ -379,7 +398,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
 
             Divider(
               height: 1,
@@ -398,7 +417,7 @@ class _BookingCompletedDetailState extends State<BookingCompletedDetail> {
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.all(4),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 4),
       decoration: BoxDecoration(color: Colors.white),
       child: BookingActionButton(
         label: 'Book Again',

@@ -27,17 +27,21 @@ class MedicalSpecialtiesWidget extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 8,
-                height: 24,
+                width: EcliniqTextStyles.getResponsiveSize(context, 8.0),
+                height: EcliniqTextStyles.getResponsiveHeight(context, 24.0),
                 decoration: BoxDecoration(
                   color: Color(0xFF96BFFF),
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(4),
-                    bottomRight: Radius.circular(4),
+                    topRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
+                    bottomRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
               Text(
                 'Medical Specialties',
                 style: EcliniqTextStyles.responsiveHeadlineLarge(context)
@@ -49,19 +53,27 @@ class MedicalSpecialtiesWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8.0,
+              left: 16.0,
+              right: 16.0,
+            ),
             child: Wrap(
-              spacing: 8,
-              runSpacing: 12,
+              spacing: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+              runSpacing: EcliniqTextStyles.getResponsiveSpacing(context, 12.0),
               children: specialtyNames.map((specialty) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                    context,
+                    horizontal: 16.0,
+                    vertical: 8.0,
                   ),
                   decoration: BoxDecoration(
                     color: Color(0xffF9F9F9),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 6.0),
+                    ),
                   ),
                   child: Text(
                     specialty,
@@ -102,17 +114,21 @@ class HospitalServicesWidget extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 8,
-                height: 24,
+                width: EcliniqTextStyles.getResponsiveSize(context, 8.0),
+                height: EcliniqTextStyles.getResponsiveHeight(context, 24.0),
                 decoration: BoxDecoration(
                   color: Color(0xFF96BFFF),
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(4),
-                    bottomRight: Radius.circular(4),
+                    topRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
+                    bottomRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
               Text(
                 'Hospital Services & Facilities',
                 style: EcliniqTextStyles.responsiveHeadlineLarge(context)
@@ -124,19 +140,27 @@ class HospitalServicesWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8.0,
+              left: 16.0,
+              right: 16.0,
+            ),
             child: Wrap(
-              spacing: 8,
-              runSpacing: 12,
+              spacing: EcliniqTextStyles.getResponsiveSpacing(context, 8.0),
+              runSpacing: EcliniqTextStyles.getResponsiveSpacing(context, 12.0),
               children: serviceList.map((service) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                    context,
+                    horizontal: 6.0,
+                    vertical: 7.0,
                   ),
                   decoration: BoxDecoration(
                     color: Color(0xffF9F9F9),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 6.0),
+                    ),
                   ),
                   child: Text(
                     service,
@@ -181,18 +205,22 @@ class CertificatesWidget extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 8,
-                height: 24,
+                width: EcliniqTextStyles.getResponsiveSize(context, 8.0),
+                height: EcliniqTextStyles.getResponsiveHeight(context, 24.0),
 
                 decoration: BoxDecoration(
                   color: Color(0xFF96BFFF),
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(4),
-                    bottomRight: Radius.circular(4),
+                    topRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
+                    bottomRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
               Text(
                 'Certificates & Accreditations',
                 style: EcliniqTextStyles.responsiveHeadlineLarge(context)
@@ -204,29 +232,37 @@ class CertificatesWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 8.0,
+              left: 16.0,
+              right: 16.0,
+            ),
             child: Wrap(
-              spacing: 16,
-              runSpacing: 12,
+              spacing: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
+              runSpacing: EcliniqTextStyles.getResponsiveSpacing(context, 12.0),
               children: certificates.map((cert) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 8,
+                  padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                    context,
+                    horizontal: 6.0,
+                    vertical: 7.0,
                   ),
                   decoration: BoxDecoration(
                     color: Color(0xffF9F9F9),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 6.0),
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SvgPicture.asset(
                         EcliniqIcons.certificate.assetPath,
-                        width: 18,
-                        height: 18,
+                        width: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
+                        height: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
                       Text(
                         cert['name'] as String,
                         style: EcliniqTextStyles.responsiveTitleXLarge(context)
@@ -260,17 +296,21 @@ class ContactDetailsWidget extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 8,
-                height: 24,
+                width: EcliniqTextStyles.getResponsiveSize(context, 8.0),
+                height: EcliniqTextStyles.getResponsiveHeight(context, 24.0),
                 decoration: BoxDecoration(
                   color: Color(0xFF96BFFF),
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(4),
-                    bottomRight: Radius.circular(4),
+                    topRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
+                    bottomRight: Radius.circular(
+                      EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
               Text(
                 'Contact Details',
                 style: EcliniqTextStyles.responsiveHeadlineLarge(context)
@@ -282,7 +322,12 @@ class ContactDetailsWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 18, left: 16, right: 16),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+              context,
+              top: 18.0,
+              left: 16.0,
+              right: 16.0,
+            ),
             child: Column(
               children: [
                 _buildContactItem(
@@ -293,9 +338,9 @@ class ContactDetailsWidget extends StatelessWidget {
                   subtitle: 'Hospital Contact Email',
                   onTap: () {},
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 HorizontalDivider(),
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 _buildContactItem(
                   context: context,
                   icon: EcliniqIcons.hospitalBuilding,
@@ -305,9 +350,9 @@ class ContactDetailsWidget extends StatelessWidget {
                   showCallButton: true,
                   onTap: () {},
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 HorizontalDivider(),
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 _buildContactItem(
                   context: context,
                   icon: EcliniqIcons.callEmergency,
@@ -317,10 +362,10 @@ class ContactDetailsWidget extends StatelessWidget {
                   showCallButton: true,
                   onTap: () {},
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 HorizontalDivider(),
 
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 _buildContactItem(
                   context: context,
 
@@ -331,9 +376,9 @@ class ContactDetailsWidget extends StatelessWidget {
                   showCallButton: true,
                   onTap: () {},
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 HorizontalDivider(),
-                const SizedBox(height: 8),
+                SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 8.0)),
                 _buildContactItem(
                   context: context,
                   icon: EcliniqIcons.drop,
@@ -367,7 +412,7 @@ class ContactDetailsWidget extends StatelessWidget {
           width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
           height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +425,7 @@ class ContactDetailsWidget extends StatelessWidget {
                       color: Color(0xff424242),
                     ),
               ),
-              const SizedBox(height: 2),
+             
               Text(
                 subtitle,
                 style: EcliniqTextStyles.responsiveTitleXLarge(context)
@@ -401,7 +446,7 @@ class ContactDetailsWidget extends StatelessWidget {
               height: EcliniqTextStyles.getResponsiveIconSize(context, 26),
             ),
           ),
-        SizedBox(width: 4),
+        SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
       ],
     );
   }

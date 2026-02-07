@@ -450,12 +450,19 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20), bottom: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 20),
+          ),
+          bottom: Radius.circular(
+            EcliniqTextStyles.getResponsiveBorderRadius(context, 16),
+          ),
+        ),
       ),
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,7 +475,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
               color: Color(0xFF424242),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24)),
           _ActionOption(
             icon: EcliniqIcons.camera,
             backgroundColor: const Color(0xFFE3F2FD),
@@ -476,7 +483,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
             onTap: () => _handleUpload(UploadSource.camera),
             enabled: !_isUploading,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
           _ActionOption(
             icon: EcliniqIcons.gallery,
             backgroundColor: const Color(0xFFE3F2FD),
@@ -484,7 +491,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
             onTap: () => _handleUpload(UploadSource.gallery),
             enabled: !_isUploading,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
           _ActionOption(
             icon: EcliniqIcons.fileSend,
             backgroundColor: const Color(0xFFFFEBEE),
@@ -493,7 +500,7 @@ class _UploadBottomSheetState extends State<UploadBottomSheet> with WidgetsBindi
             onTap: () => _handleUpload(UploadSource.files),
             enabled: !_isUploading,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
         ],
       ),
     );
@@ -523,14 +530,22 @@ class _ActionOption extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+        ),
         child: Opacity(
           opacity: enabled ? 1.0 : 0.5,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+              context,
+              horizontal: 4,
+              vertical: 4,
+            ),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                EcliniqTextStyles.getResponsiveBorderRadius(context, 12),
+              ),
             ),
             child: Row(
               children: [
@@ -539,7 +554,7 @@ class _ActionOption extends StatelessWidget {
                   width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
                   height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 16)),
                 Expanded(
                   child: Text(
                     title,

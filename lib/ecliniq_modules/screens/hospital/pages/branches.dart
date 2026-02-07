@@ -19,6 +19,7 @@ class BranchesPage extends StatefulWidget {
   final int? totalBeds;
   final int? patientsServed;
   final bool hideAppBar;
+  final VoidCallback? onBackPressed;
 
   const BranchesPage({
     super.key,
@@ -30,6 +31,7 @@ class BranchesPage extends StatefulWidget {
     this.totalDoctors,
     this.totalBeds,
     this.patientsServed,
+    required this.onBackPressed,
     this.hideAppBar = false,
   });
 
@@ -48,7 +50,6 @@ class _BranchesPageState extends State<BranchesPage> {
   }
 
   Future<void> _fetchBranches() async {
-    
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
@@ -112,16 +113,12 @@ class _BranchesPageState extends State<BranchesPage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          
           _buildHeaderSection(),
 
-          
           _buildStatsCards(),
 
-          
           HorizontalDivider(),
 
-          
           _buildBranchesList(),
 
           SizedBox(
@@ -136,9 +133,8 @@ class _BranchesPageState extends State<BranchesPage> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        
         Container(
-          height: 200,
+          height: EcliniqTextStyles.getResponsiveHeight(context, 210.0),
           width: double.infinity,
           decoration: BoxDecoration(
             image: DecorationImage(
@@ -149,82 +145,122 @@ class _BranchesPageState extends State<BranchesPage> {
           ),
           child: Stack(
             children: [
-              
               Positioned(
-                top: 50,
-                left: 16,
-                child: _buildCircleButton(
-                  EcliniqIcons.arrowLeft,
-                  () => EcliniqRouter.pop(),
-                ),
+                top: EcliniqTextStyles.getResponsiveSize(context, 44.0),
+                left: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
+                child: _buildCircleButton(EcliniqIcons.arrowLeft, () {
+                  if (widget.onBackPressed != null) {
+                    widget.onBackPressed!();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                }),
               ),
-              
+
               Positioned(
-                top: 50,
-                right: 16,
+                top: EcliniqTextStyles.getResponsiveSize(context, 44.0),
+                right: EcliniqTextStyles.getResponsiveSpacing(context, 16.0),
                 child: _buildCircleButton(EcliniqIcons.share, () {}),
               ),
             ],
           ),
         ),
 
-        
-        Positioned(
-          top: 150,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xff2372EC), width: 2),
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child:
-                        widget.hospitalLogo != null &&
-                            widget.hospitalLogo!.isNotEmpty
-                        ? ClipOval(
-                            child: Image.network(
-                              _getImageUrl(widget.hospitalLogo),
-                              width: 94,
-                              height: 94,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.local_hospital,
-                                  size: 50,
-                                  color: Colors.orange[700],
-                                );
-                              },
-                            ),
-                          )
-                        : Icon(
-                            Icons.local_hospital,
-                            size: 50,
-                            color: Colors.orange[700],
-                          ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: SvgPicture.asset(
-                      EcliniqIcons.verified.assetPath,
-                      width: 24,
-                      height: 24,
+        Builder(
+          builder: (context) {
+            final headerHeight = EcliniqTextStyles.getResponsiveHeight(
+              context,
+              210.0,
+            );
+            final circleSize = EcliniqTextStyles.getResponsiveSize(
+              context,
+              80.0,
+            );
+            final circleRadius = circleSize / 2;
+            
+            final topPosition = headerHeight - circleRadius;
+
+            return Positioned(
+              top: topPosition,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  width: circleSize,
+                  height: circleSize,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Color(0xff2372EC),
+                      width: EcliniqTextStyles.getResponsiveSize(
+                        context,
+                        2.0,
+                      ),
                     ),
                   ),
-                ],
+                  child: Stack(
+                    children: [
+                      Center(
+                        child:
+                            widget.hospitalLogo != null &&
+                                widget.hospitalLogo!.isNotEmpty
+                            ? ClipOval(
+                                child: Image.network(
+                                  _getImageUrl(widget.hospitalLogo),
+                                  width: EcliniqTextStyles.getResponsiveSize(
+                                    context,
+                                    94.0,
+                                  ),
+                                  height: EcliniqTextStyles.getResponsiveSize(
+                                    context,
+                                    94.0,
+                                  ),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.local_hospital,
+                                      size: EcliniqTextStyles.getResponsiveIconSize(
+                                        context,
+                                        60.0,
+                                      ),
+                                      color: Colors.orange[700],
+                                    );
+                                  },
+                                ),
+                              )
+                            : Icon(
+                                Icons.local_hospital,
+                                size: EcliniqTextStyles.getResponsiveIconSize(
+                                  context,
+                                  60.0,
+                                ),
+                                color: Colors.orange[700],
+                              ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: SvgPicture.asset(
+                          EcliniqIcons.verified.assetPath,
+                          width: EcliniqTextStyles.getResponsiveIconSize(
+                            context,
+                            24.0,
+                          ),
+                          height: EcliniqTextStyles.getResponsiveIconSize(
+                            context,
+                            24.0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
 
-        
         Container(
           margin: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
             context,
@@ -241,44 +277,46 @@ class _BranchesPageState extends State<BranchesPage> {
           child: Column(
             children: [
               Text(
-                'Manipal Hospital',
-                style:  EcliniqTextStyles.responsiveHeadlineXLarge(context).copyWith(
-           
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xff424242),
-                ),
+                widget.hospitalName,
+                style: EcliniqTextStyles.responsiveHeadlineXLarge(context)
+                    .copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff424242),
+                    ),
                 textAlign: TextAlign.center,
               ),
               SizedBox(
-            height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
-          ),
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 6.0),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     widget.hospitalType ?? 'Multi-Specialty',
-                    style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                      color: Color(0xff424242),
-                      fontWeight: FontWeight.w400,
-                    ),
+                    style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                        .copyWith(
+                          color: Color(0xff424242),
+                          fontWeight: FontWeight.w400,
+                        ),
                   ),
                   SizedBox(
-                    width: EcliniqTextStyles.getResponsiveSpacing(context, 8),
+                    width: EcliniqTextStyles.getResponsiveSpacing(context, 6.0),
                   ),
                   Container(
-                    width: 0.5,
-                    height: 20,
+                    width: EcliniqTextStyles.getResponsiveSize(context, 0.5),
+                    height: EcliniqTextStyles.getResponsiveHeight(context, 20.0),
                     color: const Color(0xffD6D6D6),
                   ),
                   SizedBox(
-                    width: EcliniqTextStyles.getResponsiveSpacing(context, 8),
+                    width: EcliniqTextStyles.getResponsiveSpacing(context, 6.0),
                   ),
                   Text(
                     'All Branches Near You',
-                    style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                      color: Color(0xff424242),
-                      fontWeight: FontWeight.w400,
-                    ),
+                    style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                        .copyWith(
+                          color: Color(0xff424242),
+                          fontWeight: FontWeight.w400,
+                        ),
                   ),
                 ],
               ),
@@ -292,19 +330,21 @@ class _BranchesPageState extends State<BranchesPage> {
   Widget _buildCircleButton(EcliniqIcons icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(
+        EcliniqTextStyles.getResponsiveBorderRadius(context, 20.0),
+      ),
       child: Container(
-        width: 40,
-        height: 40,
+        width: EcliniqTextStyles.getResponsiveSize(context, 40.0),
+        height: EcliniqTextStyles.getResponsiveSize(context, 40.0),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withOpacity(0.5),
           shape: BoxShape.circle,
         ),
         child: Center(
           child: SvgPicture.asset(
             icon.assetPath,
-            width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
-            height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
+            width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+            height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
           ),
         ),
       ),
@@ -334,16 +374,19 @@ class _BranchesPageState extends State<BranchesPage> {
             _buildStatCard(
               EcliniqIcons.usersGroupRounded,
               'Patients Served',
-
               _formatNumber(patientsServed),
             ),
-            DashedVerticalDivider(height: 110),
+            DashedVerticalDivider(
+              height: EcliniqTextStyles.getResponsiveHeight(context, 110.0),
+            ),
             _buildStatCard(
               EcliniqIcons.stethoscopeBlue,
               'Doctors',
               '$totalDoctors',
             ),
-            DashedVerticalDivider(height: 110),
+            DashedVerticalDivider(
+              height: EcliniqTextStyles.getResponsiveHeight(context, 110.0),
+            ),
             _buildStatCard(
               EcliniqIcons.bed,
               'Total Beds',
@@ -357,7 +400,7 @@ class _BranchesPageState extends State<BranchesPage> {
 
   Widget _buildStatCard(final EcliniqIcons icon, String label, String value) {
     return SizedBox(
-      width: 140,
+      width: EcliniqTextStyles.getResponsiveWidth(context, 140.0),
       child: Column(
         children: [
           SvgPicture.asset(
@@ -365,25 +408,20 @@ class _BranchesPageState extends State<BranchesPage> {
             width: EcliniqTextStyles.getResponsiveIconSize(context, 24),
             height: EcliniqTextStyles.getResponsiveIconSize(context, 24),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
           Text(
             label,
-            style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-              fontWeight: FontWeight.w400,
-              color: Color(0xff626060),
-            ),
+            style: EcliniqTextStyles.responsiveTitleXLarge(
+              context,
+            ).copyWith(fontWeight: FontWeight.w400, color: Color(0xff626060)),
             textAlign: TextAlign.center,
           ),
-          SizedBox(
-            height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
-          ),
+        
           Text(
             value,
-            style: EcliniqTextStyles.responsiveHeadlineXLarge(context).copyWith(
-             
-              fontWeight: FontWeight.w600,
-              color: Color(0xff2372EC),
-            ),
+            style: EcliniqTextStyles.responsiveHeadlineXLarge(
+              context,
+            ).copyWith(fontWeight: FontWeight.w600, color: Color(0xff2372EC)),
           ),
         ],
       ),
@@ -409,9 +447,8 @@ class _BranchesPageState extends State<BranchesPage> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _branches.length,
       padding: EdgeInsets.zero,
-      separatorBuilder: (context, index) => SizedBox(
-        height: EcliniqTextStyles.getResponsiveSpacing(context, 0),
-      ),
+      separatorBuilder: (context, index) =>
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 0)),
       itemBuilder: (context, index) {
         return _buildBranchCard(_branches[index]);
       },
@@ -422,73 +459,81 @@ class _BranchesPageState extends State<BranchesPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, right: 12, top: 24),
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsOnly(
+            context,
+            left: 12.0,
+            right: 12.0,
+            top: 24.0,
+            bottom: 0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               Row(
                 children: [
                   Text(
                     branch.name,
-                    style:  EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
-                    
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xff424242),
-                    ),
+                    style: EcliniqTextStyles.responsiveHeadlineLarge(context)
+                        .copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xff424242),
+                        ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 10.0)),
                   SvgPicture.asset(
                     EcliniqIcons.verified.assetPath,
-                    width: 20,
-                    height: 20,
+                    width: EcliniqTextStyles.getResponsiveIconSize(context, 20.0),
+                    height: EcliniqTextStyles.getResponsiveIconSize(context, 20.0),
                   ),
                 ],
               ),
-              SizedBox(height: 4),
+              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
 
-              
               Text(
                 '${branch.type} | ${branch.doctorCount}+ Doctors | ${branch.bedCount} Beds',
-                style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                  color: Color(0xff424242),
-                  fontWeight: FontWeight.w400,
-                ),
+                style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                    .copyWith(
+                      color: Color(0xff424242),
+                      fontWeight: FontWeight.w400,
+                    ),
               ),
               SizedBox(
-            height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
-          ),
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
+              ),
 
-              
               Row(
                 children: [
                   SvgPicture.asset(
                     EcliniqIcons.mapPointBlack.assetPath,
-                    width: 26,
-                    height: 26,
+                    width: EcliniqTextStyles.getResponsiveIconSize(context, 26.0),
+                    height: EcliniqTextStyles.getResponsiveIconSize(context, 26.0),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
                   Text(
                     branch.location,
-                    style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                      color: Color(0xff424242),
-                      fontWeight: FontWeight.w400,
-                    ),
+                    style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                        .copyWith(
+                          color: Color(0xff424242),
+                          fontWeight: FontWeight.w400,
+                        ),
                   ),
                   SizedBox(
                     width: EcliniqTextStyles.getResponsiveSpacing(context, 8),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
+                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                      context,
+                      horizontal: 6.0,
                       vertical: 2.5,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xffF9F9F9),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                      ),
                       border: Border.all(
                         color: const Color(0xffB8B8B8),
-                        width: 0.5,
+                        width: EcliniqTextStyles.getResponsiveSize(context, 0.5),
                       ),
                     ),
                     child: Row(
@@ -496,45 +541,51 @@ class _BranchesPageState extends State<BranchesPage> {
                       children: [
                         Text(
                           '${branch.distance.toStringAsFixed(0)} KM',
-                          style:  EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-                      
-                            color: Color(0xff424242),
-                            fontWeight: FontWeight.w400,
-                          ),
+                          style: EcliniqTextStyles.responsiveBodySmall(context)
+                              .copyWith(
+                                color: Color(0xff424242),
+                                fontWeight: FontWeight.w400,
+                              ),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
                         SvgPicture.asset(
                           EcliniqIcons.mapArrow.assetPath,
-                          width: 12,
-                          height: 12,
+                          width: EcliniqTextStyles.getResponsiveIconSize(context, 12.0),
+                          height: EcliniqTextStyles.getResponsiveIconSize(context, 12.0),
                         ),
                       ],
                     ),
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 6,
+                    padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                      context,
+                      horizontal: 6.0,
+                      vertical: 6.0,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xffFEF9E6),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(
+                        EcliniqTextStyles.getResponsiveBorderRadius(context, 6.0),
+                      ),
                     ),
                     child: Row(
                       children: [
                         SvgPicture.asset(
                           EcliniqIcons.star.assetPath,
-                          width: 18,
-                          height: 18,
+                          width: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
+                          height: EcliniqTextStyles.getResponsiveIconSize(context, 18.0),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
                         Text(
                           branch.rating.toString(),
-                          style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                            color: Color(0xffBE8B00),
-                            fontWeight: FontWeight.w400,
-                          ),
+                          style:
+                              EcliniqTextStyles.responsiveTitleXLarge(
+                                context,
+                              ).copyWith(
+                                color: Color(0xffBE8B00),
+                                fontWeight: FontWeight.w400,
+                              ),
                         ),
                       ],
                     ),
@@ -542,33 +593,32 @@ class _BranchesPageState extends State<BranchesPage> {
                 ],
               ),
               SizedBox(
-            height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
-          ),
+                height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
+              ),
 
-              
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SvgPicture.asset(
                     EcliniqIcons.clockCircle.assetPath,
-                    width: 24,
-                    height: 24,
+                    width: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
+                    height: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 4.0)),
                   Expanded(
                     child: Text(
                       'OPD Timing: ${branch.opdTiming}',
-                      style: EcliniqTextStyles.responsiveTitleXLarge(context).copyWith(
-                        color: Color(0xff424242),
-                        fontWeight: FontWeight.w400,
-                      ),
+                      style: EcliniqTextStyles.responsiveTitleXLarge(context)
+                          .copyWith(
+                            color: Color(0xff424242),
+                            fontWeight: FontWeight.w400,
+                          ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
 
-              
               Row(
                 children: [
                   Expanded(
@@ -577,13 +627,19 @@ class _BranchesPageState extends State<BranchesPage> {
                         boxShadow: [
                           BoxShadow(
                             color: Color(0x4D2372EC),
-                            offset: Offset(2, 2),
-                            blurRadius: 10,
+                            offset: Offset(
+                              EcliniqTextStyles.getResponsiveSize(context, 2.0),
+                              EcliniqTextStyles.getResponsiveSize(context, 2.0),
+                            ),
+                            blurRadius: EcliniqTextStyles.getResponsiveSize(context, 10.0),
                             spreadRadius: 0,
                           ),
                         ],
                       ),
-                      height: 52,
+                      height: EcliniqTextStyles.getResponsiveButtonHeight(
+                        context,
+                        baseHeight: 52.0,
+                      ),
                       child: ElevatedButton(
                         onPressed: () {
                           EcliniqRouter.push(
@@ -594,7 +650,9 @@ class _BranchesPageState extends State<BranchesPage> {
                           backgroundColor: const Color(0xff2372EC),
 
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(
+                              EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                            ),
                           ),
                           elevation: 0,
                         ),
@@ -603,29 +661,32 @@ class _BranchesPageState extends State<BranchesPage> {
                           children: [
                             Text(
                               'View All Doctors',
-                              style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style:
+                                  EcliniqTextStyles.responsiveHeadlineBMedium(
+                                    context,
+                                  ).copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
-                            const SizedBox(width: 2),
+                            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2.0)),
                             SvgPicture.asset(
                               EcliniqIcons.arrowRight.assetPath,
-                              width: 24,
-                              height: 24,
+                              width: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
+                              height: EcliniqTextStyles.getResponsiveIconSize(context, 24.0),
                             ),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
                   IconButton(
                     onPressed: () => PhoneLauncher.launchPhoneCall(null),
                     icon: SvgPicture.asset(
                       EcliniqIcons.phone.assetPath,
-                      width: 32,
-                      height: 32,
+                      width: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
+                      height: EcliniqTextStyles.getResponsiveIconSize(context, 32.0),
                     ),
                   ),
                 ],
@@ -634,7 +695,7 @@ class _BranchesPageState extends State<BranchesPage> {
           ),
         ),
 
-        SizedBox(height: 16),
+        SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
         HorizontalDivider(color: Color(0xffD6D6D6)),
       ],
     );
@@ -644,48 +705,62 @@ class _BranchesPageState extends State<BranchesPage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          
-          Shimmer.fromColors(
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
-            child: Container(height: 200, color: Colors.white),
-          ),
-          const SizedBox(height: 60),
-          
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              height: 28,
-              width: 200,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
+              height: EcliniqTextStyles.getResponsiveHeight(context, 200.0),
+              color: Colors.white,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 60.0)),
+
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              height: 20,
-              width: 250,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
+              height: EcliniqTextStyles.getResponsiveHeight(context, 28.0),
+              width: EcliniqTextStyles.getResponsiveWidth(context, 200.0),
+              margin: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                context,
+                horizontal: 16.0,
+                vertical: 0,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
+          Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
+              height: EcliniqTextStyles.getResponsiveHeight(context, 20.0),
+              width: EcliniqTextStyles.getResponsiveWidth(context, 250.0),
+              margin: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+                context,
+                horizontal: 16.0,
+                vertical: 0,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 24.0)),
+
           _buildShimmerStats(),
-          const SizedBox(height: 16),
-          
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
+
           _buildShimmerCard(),
-          const SizedBox(height: 16),
+          SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
           _buildShimmerCard(),
         ],
       ),
@@ -694,7 +769,11 @@ class _BranchesPageState extends State<BranchesPage> {
 
   Widget _buildShimmerStats() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+        context,
+        horizontal: 16.0,
+        vertical: 0,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: List.generate(
@@ -703,11 +782,13 @@ class _BranchesPageState extends State<BranchesPage> {
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
             child: Container(
-              width: 100,
-              height: 80,
+              width: EcliniqTextStyles.getResponsiveWidth(context, 100.0),
+              height: EcliniqTextStyles.getResponsiveHeight(context, 80.0),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(
+                  EcliniqTextStyles.getResponsiveBorderRadius(context, 8.0),
+                ),
               ),
             ),
           ),
@@ -718,14 +799,20 @@ class _BranchesPageState extends State<BranchesPage> {
 
   Widget _buildShimmerCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+        context,
+        horizontal: 16.0,
+        vertical: 0,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          EcliniqTextStyles.getResponsiveBorderRadius(context, 12.0),
+        ),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -733,65 +820,75 @@ class _BranchesPageState extends State<BranchesPage> {
               baseColor: Colors.grey.shade300,
               highlightColor: Colors.grey.shade100,
               child: Container(
-                height: 22,
-                width: 200,
+                height: EcliniqTextStyles.getResponsiveHeight(context, 22.0),
+                width: EcliniqTextStyles.getResponsiveWidth(context, 200.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                  ),
                 ),
               ),
             ),
             SizedBox(
-            height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
-          ),
+              height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
+            ),
             Shimmer.fromColors(
               baseColor: Colors.grey.shade300,
               highlightColor: Colors.grey.shade100,
               child: Container(
-                height: 16,
-                width: 250,
+                height: EcliniqTextStyles.getResponsiveHeight(context, 16.0),
+                width: EcliniqTextStyles.getResponsiveWidth(context, 250.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
             Shimmer.fromColors(
               baseColor: Colors.grey.shade300,
               highlightColor: Colors.grey.shade100,
               child: Container(
-                height: 16,
-                width: 150,
+                height: EcliniqTextStyles.getResponsiveHeight(context, 16.0),
+                width: EcliniqTextStyles.getResponsiveWidth(context, 150.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 12.0)),
             Shimmer.fromColors(
               baseColor: Colors.grey.shade300,
               highlightColor: Colors.grey.shade100,
               child: Container(
-                height: 16,
+                height: EcliniqTextStyles.getResponsiveHeight(context, 16.0),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
             Shimmer.fromColors(
               baseColor: Colors.grey.shade300,
               highlightColor: Colors.grey.shade100,
               child: Container(
-                height: 48,
+                height: EcliniqTextStyles.getResponsiveHeight(context, 48.0),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(
+                    EcliniqTextStyles.getResponsiveBorderRadius(context, 4.0),
+                  ),
                 ),
               ),
             ),
@@ -804,30 +901,33 @@ class _BranchesPageState extends State<BranchesPage> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 32.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.location_off_outlined,
-              size: 64,
+              size: EcliniqTextStyles.getResponsiveIconSize(context, 64.0),
               color: Colors.grey.shade400,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 16.0)),
             Text(
               'No Branches Found',
-              style: EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
-              ),
+              style: EcliniqTextStyles.responsiveHeadlineBMedium(context)
+                  .copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
             ),
             SizedBox(
-            height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
-          ),
+              height: EcliniqTextStyles.getResponsiveSpacing(context, 8),
+            ),
             Text(
               'No branches available for this hospital',
               textAlign: TextAlign.center,
-              style: EcliniqTextStyles.responsiveBodySmall(context).copyWith( color: Colors.grey.shade600),
+              style: EcliniqTextStyles.responsiveBodySmall(
+                context,
+              ).copyWith(color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -835,7 +935,6 @@ class _BranchesPageState extends State<BranchesPage> {
     );
   }
 }
-
 
 class BranchModel {
   final String id;

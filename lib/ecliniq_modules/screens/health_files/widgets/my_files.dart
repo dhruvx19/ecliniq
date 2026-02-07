@@ -60,48 +60,61 @@ class MyFilesWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-           Text(
-            'My Files',
-            style: EcliniqTextStyles.responsiveHeadlineLarge(context).copyWith(
-        
-              fontWeight: FontWeight.w600,
-              color: Color(0xff424242),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
+            context,
+            horizontal: 16,
+            vertical: 12,
           ),
-          const SizedBox(height: 16),
+          child: Text(
+            'My Files',
+            style: EcliniqTextStyles.responsiveHeadlineLarge(
+              context,
+            ).copyWith(fontWeight: FontWeight.w600, color: Color(0xff424242)),
+          ),
+        ),
 
-          SizedBox(
-            height: EcliniqTextStyles.getResponsiveHeight(context, 170),
-            child: Consumer<HealthFilesProvider>(
-              builder: (context, provider, child) {
-                return ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _categories.length,
-                  separatorBuilder: (context, index) =>
-                      SizedBox(width: EcliniqTextStyles.getResponsiveWidth(context, 24)),
-                  itemBuilder: (context, index) {
-                    final category = _categories[index];
-                    final fileCount = provider.getFileCountByType(
-                      category.fileType,
-                    );
-                    return FileCategoryCard(
+        SizedBox(
+          height: 140,
+          child: Consumer<HealthFilesProvider>(
+            builder: (context, provider, child) {
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                itemCount: _categories.length,
+                itemBuilder: (context, index) {
+                  final category = _categories[index];
+                  final fileCount = provider.getFileCountByType(
+                    category.fileType,
+                  );
+                  final isFirst = index == 0;
+                  final isLast = index == _categories.length - 1;
+
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      left: isFirst
+                          ? EcliniqTextStyles.getResponsiveSize(context, 16)
+                          : EcliniqTextStyles.getResponsiveSize(context, 8),
+                      right: isLast
+                          ? EcliniqTextStyles.getResponsiveSize(context, 16)
+                          : EcliniqTextStyles.getResponsiveSize(context, 8),
+                    ),
+                    child: FileCategoryCard(
                       category: category,
                       fileCount: fileCount,
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
+        ),
 
-          const SizedBox(height: 32),
-        ],
-      ),
+        SizedBox(height: EcliniqTextStyles.getResponsiveSpacing(context, 32)),
+      ],
     );
   }
 }
@@ -123,56 +136,59 @@ class FileCategoryCard extends StatelessWidget {
         EcliniqRouter.push(FileTypeScreen(fileType: category.fileType));
       },
       child: Container(
-        width: EcliniqTextStyles.getResponsiveWidth(context, 200),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(EcliniqTextStyles.getResponsiveWidth(context, 16))),
+        width: 168,
+        height: 140,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(EcliniqTextStyles.getResponsiveWidth(context, 16)),
+          borderRadius: BorderRadius.circular(12),
           child: Stack(
+            fit: StackFit.expand,
             children: [
-              Positioned.fill(
-                child: SvgPicture.asset(
-                  category.backgroundImage,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              SvgPicture.asset(category.backgroundImage, fit: BoxFit.cover),
 
               Positioned(
-                top: EcliniqTextStyles.getResponsiveHeight(context, 28),
-                left: EcliniqTextStyles.getResponsiveWidth(context, 16),
-                right: EcliniqTextStyles.getResponsiveWidth(context, 16)  ,
+                top: 18,
+                left: 12,
+                right: 12,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       category.title,
-                      style:  EcliniqTextStyles.responsiveHeadlineBMedium(context).copyWith(
-                        color: Colors.white,
-                    
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style:
+                          EcliniqTextStyles.responsiveHeadlineXMedium(
+                            context,
+                          ).copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-          
+
                     Text(
                       '$fileCount ${fileCount == 1 ? 'File' : 'Files'}',
-                      style: EcliniqTextStyles.responsiveBodySmall(context).copyWith(
-                        color: Colors.white,
-                      
-                        fontWeight: FontWeight.w400,
-                      ),
+                      style: EcliniqTextStyles.responsiveBodySmall(context)
+                          .copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w400,
+                          ),
                     ),
                   ],
                 ),
               ),
 
               Positioned(
-                bottom: EcliniqTextStyles.getResponsiveHeight(context, 8),
-                left: EcliniqTextStyles.getResponsiveWidth(context, 8),
-                right: EcliniqTextStyles.getResponsiveWidth(context, 8),
+                bottom: 6,
+                left: 6,
+                right: 6,
                 child: SizedBox(
-                  height: EcliniqTextStyles.getResponsiveHeight(context, 76),
+                  width: 156,
+                  height: 64,
+
                   child: SvgPicture.asset(
                     category.overlayImage,
-                    fit: BoxFit.fitHeight,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),

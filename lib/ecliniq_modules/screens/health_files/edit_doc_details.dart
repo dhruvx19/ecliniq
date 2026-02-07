@@ -16,9 +16,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class EditDocumentDetailsPage extends StatefulWidget {
-  final HealthFile? healthFile; 
-  final String? filePath; 
-  final String? fileName; 
+  final HealthFile? healthFile;
+  final String? filePath;
+  final String? fileName;
 
   const EditDocumentDetailsPage({
     super.key,
@@ -55,7 +55,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
   @override
   void initState() {
     super.initState();
-    
+
     if (widget.healthFile != null) {
       _fileNameController = TextEditingController(
         text: widget.healthFile!.fileName,
@@ -77,7 +77,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
     super.dispose();
   }
 
-  
   bool _isImageFile(String filePath) {
     final extension = filePath.split('.').last.toLowerCase();
     return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].contains(extension);
@@ -106,10 +105,13 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leadingWidth: EcliniqTextStyles.getResponsiveSize(context, 58.0),
+        surfaceTintColor: Colors.transparent,
+        leadingWidth: EcliniqTextStyles.getResponsiveWidth(context, 54.0),
         titleSpacing: 0,
+        toolbarHeight: EcliniqTextStyles.getResponsiveHeight(context, 46.0),
         backgroundColor: Colors.white,
         elevation: 0,
+
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.arrowLeft.assetPath,
@@ -124,7 +126,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
             'Edit Document Details',
             style: EcliniqTextStyles.responsiveHeadlineMedium(
               context,
-            ).copyWith(color: Color(0xff424242)),
+            ).copyWith(color: Color(0xff424242), fontWeight: FontWeight.w500),
           ),
         ),
         bottom: PreferredSize(
@@ -459,7 +461,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                 height: EcliniqTextStyles.getResponsiveSpacing(context, 24.0),
               ),
 
-              
               Container(
                 width: double.infinity,
                 height: EcliniqTextStyles.getResponsiveHeight(context, 480.0),
@@ -500,7 +501,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                         child: GestureDetector(
                           onTap: () {
                             if (filePath != null) {
-                              
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -603,10 +603,8 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
                       color: _isSaving
                           ? const Color(0xFF2372EC)
                           : _isButtonPressed
-                          ? const Color(
-                              0xFF0E4395,
-                            ) 
-                          : const Color(0xFF2372EC), 
+                          ? const Color(0xFF0E4395)
+                          : const Color(0xFF2372EC),
                       borderRadius: BorderRadius.circular(
                         EcliniqTextStyles.getResponsiveBorderRadius(
                           context,
@@ -721,7 +719,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
     if (selected != null && mounted) {
       final selectedName = selected.fullName;
       if (selectedName != _selectedRecordFor) {
-        
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {
@@ -744,7 +741,7 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
       return;
     }
 
-    if (_isSaving) return; 
+    if (_isSaving) return;
 
     setState(() {
       _isSaving = true;
@@ -755,7 +752,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
       HealthFile savedFile;
 
       if (widget.healthFile != null) {
-        
         final updatedFile = widget.healthFile!.copyWith(
           fileName: _fileNameController.text.trim(),
           fileType: _selectedFileType,
@@ -763,7 +759,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           fileDate: _selectedDate,
         );
 
-        
         if (mounted) {
           final success = await context.read<HealthFilesProvider>().updateFile(
             updatedFile,
@@ -778,7 +773,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           return;
         }
       } else {
-        
         if (widget.filePath == null) {
           throw Exception('File path is required');
         }
@@ -788,30 +782,25 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           throw Exception('File does not exist');
         }
 
-        
         savedFile = await _storageService.saveFile(
           file: file,
           fileType: _selectedFileType,
           fileName: _fileNameController.text.trim(),
         );
 
-        
         savedFile = savedFile.copyWith(
           recordFor: _selectedRecordFor,
           fileDate: _selectedDate,
         );
 
-        
         await _storageService.saveFileMetadata(savedFile);
 
-        
         if (mounted) {
           await context.read<HealthFilesProvider>().refresh();
         }
       }
 
       if (mounted) {
-        
         CustomSuccessSnackBar.show(
           context: context,
           title: 'Success!',
@@ -819,7 +808,6 @@ class _EditDocumentDetailsPageState extends State<EditDocumentDetailsPage> {
           duration: const Duration(seconds: 5),
         );
 
-        
         Navigator.pop(context, savedFile);
       }
     } catch (e) {
@@ -852,6 +840,10 @@ class _FullScreenPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        leadingWidth: EcliniqTextStyles.getResponsiveWidth(context, 54.0),
+        titleSpacing: 0,
+        toolbarHeight: EcliniqTextStyles.getResponsiveHeight(context, 46.0),
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: SvgPicture.asset(
@@ -896,7 +888,6 @@ class _FullScreenPreview extends StatelessWidget {
     );
   }
 }
-
 
 class FileTypeBottomSheet extends StatelessWidget {
   final List<String> fileTypes;
@@ -992,7 +983,6 @@ class FileTypeBottomSheet extends StatelessWidget {
     );
   }
 }
-
 
 class RecordForBottomSheet extends StatelessWidget {
   final List<String> recordForOptions;

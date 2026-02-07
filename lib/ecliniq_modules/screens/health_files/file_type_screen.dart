@@ -41,19 +41,16 @@ class FileTypeScreen extends StatefulWidget {
 }
 
 class _FileTypeScreenState extends State<FileTypeScreen> {
-  String? _selectedRecordFor; 
-  final Set<String> _selectedNames = {}; 
+  String? _selectedRecordFor;
+  final Set<String> _selectedNames = {};
   final List<String> _recordForOptions = ['All'];
   HealthFileType? _selectedFileType;
 
-  
   bool _isSelectionMode = false;
   final Set<String> _selectedFileIds = {};
 
-  
   final ScrollController _tabScrollController = ScrollController();
 
-  
   final TextEditingController _searchController = TextEditingController();
   final SpeechToText _speechToText = SpeechToText();
   bool _speechEnabled = false;
@@ -92,12 +89,9 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           }
           final errorMsg = error.errorMsg.toLowerCase();
           if (!errorMsg.contains('no_match') &&
-              !errorMsg.contains('listen_failed')) {
-            
-          }
+              !errorMsg.contains('listen_failed')) {}
         },
         onStatus: (status) {
-          
           if (mounted) {
             if (status == 'notListening' ||
                 status == 'done' ||
@@ -112,9 +106,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       if (mounted) {
         setState(() {});
       }
-      
     } catch (e) {
-      
       _speechEnabled = false;
       if (mounted) {
         setState(() {});
@@ -146,12 +138,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
     final isAvailable = await _speechToText.initialize(
       onError: (error) {
-        
         final errorMsg = error.errorMsg.toLowerCase();
         if (errorMsg.contains('no_match') ||
             errorMsg.contains('listen_failed') ||
             errorMsg.contains('error_network_error')) {
-          
           if (mounted) {
             setState(() => _isListening = false);
           }
@@ -181,7 +171,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         }
       },
       onStatus: (status) {
-        
         if (mounted) {
           if (status == 'notListening' ||
               status == 'done' ||
@@ -225,7 +214,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         });
       }
     } catch (e) {
-      
       if (mounted) {
         setState(() => _isListening = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -246,9 +234,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           _isListening = false;
         });
       }
-      
     } catch (e) {
-      
       if (mounted) {
         setState(() {
           _isListening = false;
@@ -258,9 +244,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
-    
-
-    
     _searchController.text = result.recognizedWords;
     _searchController.selection = TextSelection.fromPosition(
       TextPosition(offset: result.recognizedWords.length),
@@ -353,7 +336,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   Future<void> _handleBulkDelete(List<HealthFile> files) async {
     if (_selectedFileIds.isEmpty) return;
 
-    
     if (Platform.isAndroid) {
       try {
         final appDir = await getApplicationDocumentsDirectory();
@@ -374,7 +356,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           if (!status.isGranted) {
             if (!mounted) return;
 
-            
             final result = await Permission.storage.request();
 
             if (!result.isGranted) {
@@ -405,10 +386,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             }
           }
         }
-      } catch (e) {
-        
-        
-      }
+      } catch (e) {}
     }
 
     await _proceedWithBulkDelete(files);
@@ -425,7 +403,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     BuildContext? dialogContext;
 
     try {
-      
       if (mounted) {
         showDialog(
           context: context,
@@ -435,7 +412,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             return const Center(child: EcliniqLoader());
           },
         );
-        
+
         await Future.delayed(const Duration(milliseconds: 100));
       }
 
@@ -448,14 +425,12 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           .where((f) => _selectedFileIds.contains(f.id))
           .toList();
 
-      
       for (final file in filesToDelete) {
         try {
-          
           final fileToDelete = File(file.filePath);
           if (!await fileToDelete.exists()) {
             notFoundCount++;
-            
+
             await provider.deleteFile(file);
             continue;
           }
@@ -467,29 +442,23 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             failedCount++;
           }
         } catch (e) {
-          
           failedCount++;
         }
       }
 
-      
       if (mounted && (successCount > 0 || notFoundCount > 0)) {
         await provider.refresh();
       }
 
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (e) {
-          
-        }
+        } catch (e) {}
         dialogContext = null;
       }
 
       if (!mounted) return;
 
-      
       if (successCount > 0) {
         String message = '$successCount file(s) deleted successfully';
         if (notFoundCount > 0) {
@@ -518,13 +487,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
       _clearSelection();
     } catch (e) {
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (_) {
-          
-        }
+        } catch (_) {}
         dialogContext = null;
       }
 
@@ -536,13 +502,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         duration: const Duration(seconds: 3),
       );
     } finally {
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (_) {
-          
-        }
+        } catch (_) {}
         dialogContext = null;
       }
     }
@@ -551,29 +514,22 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   Future<void> _handleBulkDownload(List<HealthFile> files) async {
     if (_selectedFileIds.isEmpty) return;
 
-    
     if (Platform.isAndroid) {
-      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        
         Permission storagePermission = Permission.storage;
 
-        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (mounted) {
             if (result.isPermanentlyDenied) {
-              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -621,12 +577,11 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       context: context,
       child: UploadBottomSheet(
         onFileUploaded: () async {
-          
           if (mounted) {
             final provider = context.read<HealthFilesProvider>();
-            
+
             await provider.refresh();
-            
+
             if (mounted) {
               provider.notifyListeners();
             }
@@ -648,10 +603,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         try {
           await _handleFileDownload(file, showSnackbar: false);
           successCount++;
-        } catch (e) {
-          
-          
-        }
+        } catch (e) {}
       }
 
       if (!mounted) return;
@@ -684,10 +636,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }
 
   Future<void> _handleFileDelete(HealthFile file) async {
-    
     if (Platform.isAndroid) {
       try {
-        
         final appDir = await getApplicationDocumentsDirectory();
         final externalDir = await getExternalStorageDirectory();
 
@@ -696,19 +646,16 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             (externalDir != null && file.filePath.startsWith(externalDir.path));
 
         if (!isInAppDir) {
-          
           final status = await Permission.storage.status;
 
           if (!status.isGranted) {
             if (!mounted) return;
 
-            
             final result = await Permission.storage.request();
 
             if (!result.isGranted) {
               if (!mounted) return;
 
-              
               await showDialog(
                 context: context,
                 builder: (context) => PermissionRequestDialog(
@@ -734,13 +681,9 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             }
           }
         }
-      } catch (e) {
-        
-        
-      }
+      } catch (e) {}
     }
 
-    
     await _proceedWithDelete(file);
   }
 
@@ -755,7 +698,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     BuildContext? dialogContext;
 
     try {
-      
       if (mounted) {
         showDialog(
           context: context,
@@ -769,21 +711,16 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
       final provider = context.read<HealthFilesProvider>();
 
-      
       final success = await provider.deleteFile(file);
 
-      
       if (success && mounted) {
         await provider.refresh();
       }
 
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (e) {
-          
-        }
+        } catch (e) {}
         dialogContext = null;
       }
 
@@ -804,13 +741,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         );
       }
     } catch (e) {
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (_) {
-          
-        }
+        } catch (_) {}
         dialogContext = null;
       }
 
@@ -822,13 +756,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         duration: const Duration(seconds: 3),
       );
     } finally {
-      
       if (dialogContext != null && mounted) {
         try {
           Navigator.of(dialogContext!, rootNavigator: true).pop();
-        } catch (_) {
-          
-        }
+        } catch (_) {}
       }
     }
   }
@@ -839,29 +770,22 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }) async {
     if (!mounted) return;
 
-    
     if (Platform.isAndroid) {
-      
       final storageStatus = await Permission.storage.status;
       final manageStorageStatus = await Permission.manageExternalStorage.status;
 
-      
       if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        
         Permission storagePermission = Permission.storage;
 
-        
         if (manageStorageStatus != PermissionStatus.permanentlyDenied) {
           storagePermission = Permission.manageExternalStorage;
         }
 
-        
         final result = await storagePermission.request();
 
         if (!result.isGranted) {
           if (mounted) {
             if (result.isPermanentlyDenied) {
-              
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -901,7 +825,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       }
     }
 
-    
     await _proceedWithDownload(file, showSnackbar: showSnackbar);
   }
 
@@ -911,7 +834,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }) async {
     if (!mounted) return;
 
-    
     if (showSnackbar) {
       SnackBarHelper.showSnackBar(
         context,
@@ -943,12 +865,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         try {
           Directory targetDir;
 
-          
           final primaryDir = Directory('/storage/emulated/0/Download');
           if (await primaryDir.exists()) {
             targetDir = primaryDir;
           } else {
-            
             final externalDir = await getExternalStorageDirectory();
             if (externalDir == null) {
               throw Exception(
@@ -974,10 +894,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             counter++;
           }
 
-          
           await sourceFile.copy(destFile.path);
 
-          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -986,7 +904,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
           if (!mounted) return;
 
-          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -996,7 +913,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             );
           }
 
-          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
           return;
         } catch (e) {
@@ -1013,7 +929,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         }
       }
 
-      
       if (Platform.isIOS) {
         try {
           final documentsDir = await getApplicationDocumentsDirectory();
@@ -1021,16 +936,13 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             path.join(documentsDir.path, 'Downloads'),
           );
 
-          
           if (!await downloadsDir.exists()) {
             await downloadsDir.create(recursive: true);
-            
           }
 
           String fileName = file.fileName;
           File destFile = File(path.join(downloadsDir.path, fileName));
 
-          
           int counter = 1;
           while (await destFile.exists()) {
             final nameWithoutExt = path.basenameWithoutExtension(fileName);
@@ -1040,11 +952,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             counter++;
           }
 
-          
           await sourceFile.copy(destFile.path);
-          
 
-          
           if (!await destFile.exists()) {
             throw Exception(
               'File copy failed - destination file does not exist.',
@@ -1053,7 +962,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
           if (!mounted) return;
 
-          
           if (showSnackbar) {
             CustomSuccessSnackBar.show(
               context: context,
@@ -1063,14 +971,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
             );
           }
 
-          
           await LocalNotifications.showDownloadSuccess(fileName: fileName);
 
-          
           return;
         } catch (e) {
-          
-
           if (!mounted) return;
 
           if (showSnackbar) {
@@ -1084,8 +988,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
         }
       }
     } catch (e) {
-      
-
       if (!mounted) return;
 
       if (showSnackbar) {
@@ -1113,12 +1015,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
 
       if (!mounted) return;
 
-      
-      
-      
-      
-
-      
       SnackBarHelper.showSnackBar(
         context,
         'File saved to app Downloads folder. Share functionality coming soon.',
@@ -1140,22 +1036,17 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       context: context,
       child: HealthFilesFilter(
         initialSelectedNames: _selectedNames,
-        onApply: (result) {
-          
-          
-        },
+        onApply: (result) {},
       ),
     ).then((result) {
-      
       if (mounted) {
         setState(() {
           if (result != null) {
             final selectedNames = result['selectedNames'] as List<dynamic>?;
             final sortBy = result['sortBy'];
-            
+
             if (selectedNames == null ||
                 (selectedNames.isEmpty && sortBy == null)) {
-              
               _selectedNames.clear();
               _selectedRecordFor = null;
             } else if (selectedNames.isNotEmpty) {
@@ -1163,23 +1054,19 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               _selectedNames.addAll(
                 selectedNames.map((name) => name.toString()),
               );
-              
+
               _selectedRecordFor = null;
             } else {
               _selectedNames.clear();
               _selectedRecordFor = null;
             }
-          } else {
-            
-            
-          }
+          } else {}
         });
       }
     });
   }
 
   void _showFileActions(HealthFile file) {
-    
     final savedContext = context;
 
     EcliniqBottomSheet.show(
@@ -1187,7 +1074,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       child: ActionBottomSheet(
         healthFile: file,
         onEditDocument: () {
-          Navigator.pop(context); 
+          Navigator.pop(context);
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
               EcliniqRouter.push(EditDocumentDetailsPage(healthFile: file));
@@ -1195,22 +1082,19 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           });
         },
         onDownloadDocument: () async {
-          Navigator.pop(context); 
+          Navigator.pop(context);
           await Future.delayed(const Duration(milliseconds: 200));
           if (mounted) {
             await _handleFileDownload(file);
           }
         },
         onDeleteDocument: () async {
-          
           Navigator.of(context, rootNavigator: false).pop();
 
-          
           await Future.delayed(const Duration(milliseconds: 300));
 
           if (!mounted) return;
 
-          
           await _handleFileDelete(file);
         },
       ),
@@ -1308,8 +1192,8 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
     return Container(
       padding: EcliniqTextStyles.getResponsiveEdgeInsetsSymmetric(
         context,
-        horizontal: 12,
-        vertical: 12,
+        horizontal: 2,
+        vertical: 2,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1324,7 +1208,6 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       child: SafeArea(
         child: Row(
           children: [
-            
             Expanded(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1390,51 +1273,44 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               ),
             ),
 
-            
             IconButton(
-              padding: EcliniqTextStyles.getResponsiveEdgeInsetsAll(context, 6),
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               onPressed: hasSelection ? () => _handleBulkDownload(files) : null,
               icon: SvgPicture.asset(
                 hasSelection
                     ? EcliniqIcons.downloadfiles.assetPath
                     : EcliniqIcons.downloadDisabled.assetPath,
-                width: EcliniqTextStyles.getResponsiveIconSize(context, 20),
-                height: EcliniqTextStyles.getResponsiveIconSize(context, 20),
+                width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
               ),
             ),
-            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2)),
+            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
             Container(
               width: 0.5,
               height: EcliniqTextStyles.getResponsiveHeight(context, 20),
               color: const Color(0xFFB8B8B8),
             ),
-            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 2)),
-            
+            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
+
             IconButton(
-              padding: const EdgeInsets.all(6),
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               onPressed: hasSelection ? () => _handleBulkDelete(files) : null,
               icon: SvgPicture.asset(
                 hasSelection
                     ? EcliniqIcons.delete.assetPath
                     : EcliniqIcons.trashBin.assetPath,
-                width: EcliniqTextStyles.getResponsiveIconSize(context, 20),
-                height: EcliniqTextStyles.getResponsiveIconSize(context, 20),
+                width: EcliniqTextStyles.getResponsiveIconSize(context, 32),
+                height: EcliniqTextStyles.getResponsiveIconSize(context, 32),
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
             Container(width: 0.5, height: 20, color: const Color(0xFFB8B8B8)),
-            const SizedBox(width: 2),
-            
+            SizedBox(width: EcliniqTextStyles.getResponsiveSpacing(context, 8)),
+
             IconButton(
-              padding: const EdgeInsets.all(6),
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               onPressed: _clearSelection,
               icon: SvgPicture.asset(
                 EcliniqIcons.closeCircle.assetPath,
-                width: 20,
-                height: 20,
+                width: 32,
+                height: 32,
               ),
             ),
             const SizedBox(width: 2),
@@ -1450,8 +1326,10 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leadingWidth: 58,
-        titleSpacing: 0,
+        surfaceTintColor: Colors.transparent,
+          leadingWidth: EcliniqTextStyles.getResponsiveWidth(context, 54.0),
+          titleSpacing: 0,
+          toolbarHeight: EcliniqTextStyles.getResponsiveHeight(context, 46.0),
         leading: IconButton(
           icon: SvgPicture.asset(
             EcliniqIcons.backArrow.assetPath,
@@ -1470,9 +1348,15 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.2),
-          child: Container(color: const Color(0xFFB8B8B8), height: 1.0),
+          preferredSize: Size.fromHeight(
+            EcliniqTextStyles.getResponsiveSize(context, 1.0),
+          ),
+          child: Container(
+            color: Color(0xFFB8B8B8),
+            height: EcliniqTextStyles.getResponsiveSize(context, 1.0),
+          ),
         ),
+
         actions: [
           if (!_isSearchMode)
             IconButton(
@@ -1535,7 +1419,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
                     return Column(
                       children: [
                         if (!_isSearchMode) _buildFileTypeTabs(),
-                        
+
                         if (files.isNotEmpty && !_isSearchMode)
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -1631,6 +1515,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
                             ),
                           ),
                         if (files.isEmpty) ...[
+                         
                           _buildEmptyState(),
                         ] else
                           Expanded(
@@ -1693,7 +1578,7 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
               ),
             ],
           ),
-          
+
           if (!_isSelectionMode)
             Positioned(
               right: 16,
@@ -1748,13 +1633,17 @@ class _FileTypeScreenState extends State<FileTypeScreen> {
   }
 
   Widget _buildEmptyState() {
-    
     final hasFilter = _selectedNames.isNotEmpty || _selectedRecordFor != null;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+      const SizedBox(height: 40),
+       const SizedBox(height: 40),
+        const SizedBox(height: 40),
+         const SizedBox(height: 40),
           const SizedBox(height: 40),
           SvgPicture.asset(EcliniqIcons.nofiles.assetPath),
           const SizedBox(height: 12),
